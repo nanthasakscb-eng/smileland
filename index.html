@@ -1,0 +1,168 @@
+<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SMILELAND ที่ดินยิ้ม – ฝากขาย ฝากเช่า บ้านและที่ดินทั่วประเทศ (ตัวอย่าง)</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--g:#8DBF7A;--gd:#5E8F4E;--gl:#E4F1DC;--c:#FBF6E9;--c2:#F3EAD3;--b:#B98B5E;--bd:#7A5636;--t:#3A3328}
+*{box-sizing:border-box}body{margin:0;font-family:'Sarabun','Prompt','Noto Sans Thai','Leelawadee UI','Tahoma',sans-serif;background:var(--c);color:var(--t);line-height:1.6}
+a{color:var(--gd)}button,input,select,textarea{font:inherit}
+.demo{background:var(--bd);color:#fff;text-align:center;font-size:13px;padding:4px}
+header{background:#fff;border-bottom:3px solid var(--g);position:sticky;top:0;z-index:20}
+.wrap{max-width:1180px;margin:auto;padding:0 16px}
+.hd{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;max-width:1180px;margin:auto;flex-wrap:wrap}
+.logo{text-decoration:none;display:flex;align-items:center;gap:8px}.logo b{font-size:24px;color:var(--gd);letter-spacing:1px}.logo small{color:var(--b);font-weight:600}
+.logo .ic{width:38px;height:38px;border-radius:50%;background:var(--g);display:grid;place-items:center;color:#fff;font-size:22px}
+nav a{margin-left:14px;text-decoration:none;color:var(--t);font-weight:600;padding:4px 2px}nav a.on{color:var(--gd);border-bottom:2px solid var(--gd)}
+.btn{background:var(--gd);color:#fff;border:0;border-radius:10px;padding:10px 18px;cursor:pointer;font-weight:600;text-decoration:none;display:inline-block}
+.btn.br{background:var(--b)}.btn.ln{background:#06C755}.btn.o{background:#fff;color:var(--gd);border:1.5px solid var(--gd)}
+.page{display:none}.page.on{display:block}
+.hero{background:linear-gradient(135deg,var(--gl),var(--c2));padding:50px 16px 60px;text-align:center}
+.hero h1{margin:0 0 6px;font-size:34px;color:var(--bd)}
+.sbox{background:#fff;max-width:900px;margin:22px auto 0;border-radius:16px;padding:18px;box-shadow:0 8px 24px #7a563622;text-align:left}
+.tg{display:inline-flex;background:var(--c2);border-radius:10px;padding:3px;margin-bottom:10px}.tg button{border:0;background:none;padding:6px 20px;border-radius:8px;cursor:pointer}.tg button.on{background:var(--gd);color:#fff}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1;min-width:150px}
+input,select,textarea{border:1.5px solid #ddd2b8;border-radius:10px;padding:9px 11px;background:#fff;width:100%}
+.badge{background:var(--b);color:#fff;border-radius:99px;padding:0 7px;font-size:12px;margin-left:4px}
+h2{color:var(--bd)}.sec{padding:30px 0}
+.cats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.cat{background:#fff;border-radius:14px;padding:18px;text-align:center;cursor:pointer;border:1px solid var(--c2)}.cat div{font-size:34px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.card{background:#fff;border-radius:14px;overflow:hidden;cursor:pointer;box-shadow:0 2px 10px #7a563618;transition:.2s}.card:hover{transform:translateY(-3px)}
+.img{height:160px;position:relative;display:flex;align-items:flex-end}
+.img .tag{position:absolute;top:8px;left:8px;background:#fffd;border-radius:6px;padding:0 8px;font-size:12px;font-weight:700;color:var(--bd)}
+.cb{padding:10px 14px}.pr{font-size:20px;font-weight:700;color:var(--gd)}.mu{color:#8a7d68;font-size:13px}
+.vf{color:#2e7d32;font-size:12px;font-weight:700}.ic2{display:flex;gap:6px;margin-top:6px}.ic2 span{border:1px solid #ddd2b8;border-radius:8px;padding:0 8px;font-size:12px}
+.lay{display:grid;grid-template-columns:260px 1fr;gap:20px;padding:20px 0}
+.side{background:#fff;border-radius:14px;padding:16px;align-self:start}.side label{display:block;font-weight:600;margin:10px 0 4px}
+.rh{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.slider{position:relative;height:360px;border-radius:14px;overflow:hidden}.sl{position:absolute;inset:0;opacity:0;transition:.4s;display:grid;place-items:center;color:#fff;font-size:22px;text-shadow:0 1px 4px #0006}.sl.on{opacity:1}
+.nv{position:absolute;top:50%;transform:translateY(-50%);background:#fffc;border:0;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer}.nv.p{left:10px}.nv.n{right:10px}
+.dots{position:absolute;bottom:10px;width:100%;text-align:center}.dots i{display:inline-block;width:10px;height:10px;border-radius:50%;background:#fff8;margin:0 4px;cursor:pointer}.dots i.on{background:#fff}
+.dl{display:grid;grid-template-columns:1fr 340px;gap:20px}.box{background:#fff;border-radius:14px;padding:16px;margin-bottom:16px}
+table{width:100%;border-collapse:collapse}td{padding:8px;border-bottom:1px solid var(--c2)}td:first-child{color:#8a7d68;width:45%}
+.map{height:220px;border-radius:12px;background:repeating-linear-gradient(0deg,#e7efdc 0 28px,#dfe9d2 28px 30px),var(--gl);position:relative;display:grid;place-items:center;border:2px dashed var(--g)}
+.map b{position:absolute;top:8px;left:12px;color:var(--bd)}.pin{font-size:40px}
+.chips span{display:inline-block;background:var(--gl);border-radius:99px;padding:3px 12px;margin:3px;font-size:14px;cursor:pointer}
+.crumb{font-size:14px;color:#8a7d68;padding:12px 0}
+.steps{display:flex;gap:6px;margin:20px 0}.st{flex:1;text-align:center;background:#fff;border-radius:12px;padding:12px 6px;border-bottom:4px solid var(--c2)}.st b{display:grid;place-items:center;width:34px;height:34px;margin:0 auto 4px;border-radius:50%;background:var(--c2)}.st.on{border-color:var(--gd)}.st.on b{background:var(--gd);color:#fff}
+.form label{font-weight:600;display:block;margin:10px 0 4px}
+.warn{background:#FFF1E0;border:1.5px solid #E0A96D;border-left:6px solid #D9822B;border-radius:12px;padding:12px 16px;color:#6b3f12}
+footer{background:var(--bd);color:#f5ead6;margin-top:40px;padding:30px 0 90px}footer a{color:#fff}
+.fl{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:10px;z-index:50}.fl a{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;color:#fff;text-decoration:none;font-weight:700;box-shadow:0 4px 14px #0004;font-size:13px}
+.fl .call{background:var(--gd);font-size:24px}.fl .line{background:#06C755}
+.modal{position:fixed;inset:0;background:#0006;display:none;place-items:center;z-index:60;padding:16px}.modal.on{display:grid}.mc{background:#fff;border-radius:16px;padding:20px;max-width:560px;width:100%;max-height:90vh;overflow:auto}
+.ok{display:none;background:var(--gl);border:2px solid var(--g);border-radius:12px;padding:16px;margin-top:12px}
+@media(max-width:800px){.lay,.dl{grid-template-columns:1fr}.cats{grid-template-columns:repeat(2,1fr)}nav{width:100%;overflow-x:auto;white-space:nowrap}nav a{margin:0 12px 0 0}.hero h1{font-size:26px}.slider{height:240px}.steps{flex-wrap:wrap}.st{min-width:45%}}
+</style></head><body>
+<div class="demo">⚠️ ข้อมูลทั้งหมดเป็นข้อมูลตัวอย่าง (Mockup) — ไม่ใช่ประกาศจริง</div>
+<header><div class="hd"><a class="logo" href="#home"><span class="ic">☺</span><span><b>SMILELAND</b> <small>ที่ดินยิ้ม</small></span></a>
+<nav><a href="#home">หน้าแรก</a><a href="#search">ค้นหาทรัพย์</a><a href="#detail">รายละเอียด</a><a href="#consign">ฝากขาย/ฝากเช่า</a></nav></div></header>
+
+<section id="home" class="page">
+<div class="hero"><h1>ฝากขาย ฝากเช่า บ้านและที่ดินทั่วประเทศ</h1><div>สไมล์แลนด์ — ซื้อ ขาย เช่า อย่างมั่นใจ ให้ทุกดีลจบด้วยรอยยิ้ม</div>
+<div class="sbox"><div class="tg" id="tg1"><button class="on">ขาย</button><button>เช่า</button></div>
+<div class="row"><input style="flex:3" placeholder="ค้นหาด้วยจังหวัด อำเภอ หรือชื่อโครงการ">
+<select><option>บ้าน</option><option selected>ที่ดิน</option><option>คอนโด</option><option>ทาวน์โฮม</option></select>
+<select class="prov"></select></div>
+<div class="row" style="margin-top:10px"><button class="btn o" style="flex:0 0 auto" onclick="om()">⚙ ตัวกรอง <span class="badge fc">0</span></button><a class="btn" href="#search" style="text-align:center">🔍 ค้นหา</a></div></div></div>
+<div class="wrap"><div class="sec"><h2>หมวดหมู่ทรัพย์</h2><div class="cats">
+<div class="cat" onclick="location.hash='search'"><div>🏡</div>บ้านเดี่ยว</div><div class="cat" onclick="location.hash='search'"><div>🌾</div>ที่ดินเปล่า</div><div class="cat" onclick="location.hash='search'"><div>🏢</div>คอนโด</div><div class="cat" onclick="location.hash='search'"><div>🏘️</div>ทาวน์โฮม</div></div></div>
+<div class="sec"><h2>ประกาศแนะนำ</h2><div class="grid" id="feat"></div></div></div>
+</section>
+
+<section id="search" class="page"><div class="wrap"><div class="lay">
+<aside class="side"><h3 style="margin:0">ตัวกรอง</h3>
+<label>ประเภท</label><select><option>ทั้งหมด</option><option>บ้าน</option><option>ที่ดิน</option><option>คอนโด</option><option>ทาวน์โฮม</option></select>
+<label>จังหวัด</label><select class="prov"></select><label>อำเภอ</label><select><option>ทุกอำเภอ</option><option>เมือง</option><option>บางใหญ่</option><option>หางดง</option></select>
+<label>ช่วงราคา (บาท)</label><div class="row"><input placeholder="ต่ำสุด"><input placeholder="สูงสุด"></div>
+<label>ขนาด</label><div class="row"><input placeholder="ไร่ ขั้นต่ำ"><input placeholder="ตร.ว. ขั้นต่ำ"></div>
+<button class="btn o" style="width:100%;margin-top:12px" onclick="om()">ตัวกรองเพิ่มเติม <span class="badge fc">0</span></button>
+<button class="btn" style="width:100%;margin-top:8px">ใช้ตัวกรอง</button></aside>
+<div><div class="rh"><h2 style="margin:0">ขายที่ดิน ทั่วไทย 1,248 ประกาศ</h2>
+<div class="row" style="flex:0 1 auto"><label style="white-space:nowrap"><input type="checkbox" style="width:auto"> ดูบนแผนที่</label><button class="btn br">🔔 สร้างการแจ้งเตือน</button>
+<select><option>เรียงตาม: ล่าสุด</option><option>ราคาต่ำ-สูง</option><option>ราคาสูง-ต่ำ</option><option>ขนาดใหญ่สุด</option></select></div></div>
+<div class="grid" id="res"></div></div></div></div></section>
+
+<section id="detail" class="page"><div class="wrap">
+<div class="crumb"><a href="#home">หน้าแรก</a> › <a href="#search">ที่ดิน</a> › เชียงใหม่ › หางดง › หนองควาย</div>
+<div class="dl"><div>
+<div class="slider" id="sld"><button class="nv p" onclick="go(-1)">‹</button><button class="nv n" onclick="go(1)">›</button><div class="dots"></div></div>
+<div class="box"><h2 style="margin-top:0">ที่ดินเปล่าวิวดอย ใกล้ถนนใหญ่ 1-2-50 ไร่</h2><div class="mu">รหัสประกาศ: SL-000123 (ตัวอย่าง) · ลงประกาศเมื่อ 2 วันที่แล้ว · <span class="vf">✔ ผู้ลงประกาศยืนยันตัวตนแล้ว</span></div>
+<p>📍 ต.หนองควาย อ.หางดง จ.เชียงใหม่ · ห่างตัวเมืองประมาณ 12 กม.</p>
+<h3>ข้อมูลเอกสารสิทธิ์</h3><table>
+<tr><td>ประเภทเอกสารสิทธิ์</td><td>โฉนดที่ดิน (น.ส.4 จ.)</td></tr><tr><td>เลขที่โฉนด (ตัวอย่าง)</td><td>12345 (ข้อมูลสมมติ)</td></tr>
+<tr><td>เนื้อที่</td><td>1 ไร่ 2 งาน 50 ตร.ว. (650 ตร.ว.)</td></tr><tr><td>หน้ากว้าง</td><td>25 เมตร</td></tr>
+<tr><td>ผังสี</td><td>สีเหลือง (ที่อยู่อาศัยหนาแน่นน้อย)</td></tr><tr><td>ถนนเข้าถึง</td><td>ถนนลาดยาง กว้าง 6 เมตร</td></tr></table></div>
+<div class="box"><h3 style="margin-top:0">แผนที่</h3><div class="map"><b>แผนที่ (ตัวอย่าง)</b><span class="pin">📍</span></div></div>
+<div class="box"><h3 style="margin-top:0">ค้นหาประกาศอื่นรอบๆ หนองควาย</h3><div class="chips"><span>ที่ดิน หางดง</span><span>บ้าน หนองควาย</span><span>ที่ดิน สันผักหวาน</span><span>ทาวน์โฮม เมืองเชียงใหม่</span><span>ที่ดิน ใต้ 3 ล้าน</span></div></div>
+</div><div>
+<div class="box"><div class="pr" style="font-size:28px">฿3,900,000</div><div class="mu">฿6,000 / ตร.ว.</div>
+<a class="btn" style="width:100%;text-align:center;margin-top:10px" href="tel:0X-XXX-XXXX">📞 โทร 0X-XXX-XXXX</a>
+<a class="btn ln" style="width:100%;text-align:center;margin-top:8px" href="#">💬 แอดไลน์สอบถาม</a>
+<button class="btn o" style="width:100%;margin-top:8px">♡ บันทึกประกาศ</button></div>
+<div class="box"><h3 style="margin-top:0">คำนวณสินเชื่อเบื้องต้น</h3>
+<label>วงเงินกู้ (บาท)</label><input id="la" value="3000000"><label>ดอกเบี้ย (%/ปี)</label><input id="lr" value="6"><label>ระยะเวลา (ปี)</label><input id="ly" value="20">
+<button class="btn" style="width:100%;margin-top:10px" onclick="calc()">คำนวณ</button><p id="lo" style="font-weight:700;color:var(--gd)"></p><div class="mu">*ผลลัพธ์เป็นการประมาณการเท่านั้น</div></div>
+</div></div></div></section>
+
+<section id="consign" class="page"><div class="wrap">
+<h2>ฝากขาย / ฝากเช่า กับ SMILELAND</h2>
+<div class="steps"><div class="st on"><b>1</b>อ่านเงื่อนไข</div><div class="st"><b>2</b>กรอกข้อมูล</div><div class="st"><b>3</b>เจรจา</div><div class="st"><b>4</b>รอผลพิจารณา</div></div>
+<div class="warn"><b>⚠️ เตือนภัยมิจฉาชีพ:</b> บริษัทไม่มีนโยบายทักหาลูกค้าก่อน หรือให้โอนเงินมัดจำผ่านบัญชีส่วนตัวใดๆ ทั้งสิ้น หากพบเห็นโปรดแจ้งเราทันทีที่ 0X-XXX-XXXX</div>
+<div class="box" style="margin-top:16px"><h3 style="margin-top:0">เงื่อนไขการฝากขาย/ฝากเช่า (ตัวอย่าง)</h3><ol>
+<li>ผู้ฝากต้องเป็นเจ้าของกรรมสิทธิ์ หรือได้รับมอบอำนาจโดยถูกต้อง</li><li>ข้อมูลและเอกสารสิทธิ์ต้องเป็นความจริง ทีมงานจะตรวจสอบก่อนเผยแพร่</li>
+<li>ไม่มีค่าใช้จ่ายในการลงประกาศ ค่าบริการคิดเมื่อปิดการขายได้ตามที่ตกลง</li><li>บริษัทขอสงวนสิทธิ์ในการพิจารณารับทรัพย์</li></ol></div>
+<form class="box form" onsubmit="event.preventDefault();document.getElementById('ok').style.display='block';document.querySelectorAll('.st').forEach((s,i)=>s.classList.toggle('on',i<4));this.querySelector('button').disabled=true">
+<h3 style="margin-top:0">กรอกข้อมูลทรัพย์</h3>
+<div class="row"><div><label>ชื่อ-นามสกุล</label><input required></div><div><label>เบอร์โทร</label><input required placeholder="0X-XXX-XXXX"></div><div><label>LINE ID</label><input></div></div>
+<div class="row"><div><label>ประเภททรัพย์</label><select><option>บ้าน</option><option>ที่ดิน</option><option>คอนโด</option><option>ทาวน์โฮม</option></select></div>
+<div><label>ต้องการ</label><select><option>ฝากขาย</option><option>ฝากเช่า</option></select></div></div>
+<div class="row"><div><label>จังหวัด</label><select class="prov"></select></div><div><label>อำเภอ</label><input></div></div>
+<div class="row"><div><label>เนื้อที่ (ไร่-งาน-ตร.ว. / ตร.ม.)</label><input placeholder="เช่น 1-2-50"></div><div><label>ราคาที่ต้องการ (บาท)</label><input></div>
+<div><label>เอกสารสิทธิ์</label><select><option>โฉนด (น.ส.4 จ.)</option><option>น.ส.3 ก.</option><option>น.ส.3</option><option>ส.ป.ก. 4-01</option><option>อื่นๆ</option></select></div></div>
+<label>อัปโหลดรูปภาพ</label><input type="file" multiple accept="image/*">
+<label>รายละเอียดเพิ่มเติม</label><textarea rows="4"></textarea>
+<label style="font-weight:400"><input type="checkbox" required style="width:auto"> ข้าพเจ้าได้อ่านและยอมรับเงื่อนไขการฝากขาย/ฝากเช่า</label>
+<button class="btn" style="margin-top:10px">ส่งข้อมูล</button>
+<div class="ok" id="ok">✅ <b>ส่งข้อมูลเรียบร้อย (ตัวอย่าง)</b> — นี่คือการสาธิตเท่านั้น ไม่มีการส่งข้อมูลจริง ทีมงานจะติดต่อกลับเพื่อเจรจาและแจ้งผลพิจารณา</div></form>
+</div></section>
+
+<div class="modal" id="md"><div class="mc"><h3 style="margin-top:0">ตัวกรอง</h3><div class="form">
+<label>ประเภททรัพย์</label><select class="f"><option value="">ทั้งหมด</option><option>บ้าน</option><option>ที่ดิน</option><option>คอนโด</option><option>ทาวน์โฮม</option></select>
+<div class="row"><div><label>ราคาขั้นต่ำ</label><input class="f"></div><div><label>ราคาสูงสุด</label><input class="f"></div></div>
+<div class="row"><div><label>ขนาดที่ดิน (ไร่)</label><input class="f"></div><div><label>ขนาดที่ดิน (ตร.ว.)</label><input class="f"></div></div>
+<label>ราคาต่อตร.ว. (สูงสุด)</label><input class="f">
+<label>ลงประกาศเมื่อ</label><select class="f"><option value="">ทั้งหมด</option><option>ภายใน 3 วัน</option><option>ภายใน 1 สัปดาห์</option><option>ภายใน 1 เดือน</option></select>
+<label style="font-weight:400"><input type="checkbox" class="f" style="width:auto"> มีวิดีโอ</label><label style="font-weight:400"><input type="checkbox" class="f" style="width:auto"> ผู้ลงประกาศยืนยันตัวตนแล้ว</label>
+<div class="row" style="margin-top:14px"><button class="btn o" onclick="cm(0)">ยกเลิก</button><button class="btn" onclick="cm(1)">ใช้ตัวกรอง</button></div></div></div></div>
+
+<footer><div class="wrap"><div class="warn" style="margin-bottom:16px"><b>⚠️ เตือนภัยมิจฉาชีพ:</b> บริษัทไม่มีนโยบายทักหาลูกค้าก่อน หรือให้โอนเงินมัดจำผ่านบัญชีส่วนตัว โปรดตรวจสอบช่องทางติดต่ออย่างเป็นทางการทุกครั้ง</div>
+<b style="font-size:20px">SMILELAND สไมล์แลนด์ · ที่ดินยิ้ม</b><p>แพลตฟอร์มฝากขาย ฝากเช่า บ้านและที่ดินทั่วประเทศ<br>โทร 0X-XXX-XXXX · LINE: <a href="#">@smileland (ตัวอย่าง)</a></p>
+<p style="font-size:13px">ข้อมูลทั้งหมดเป็นข้อมูลตัวอย่าง · © 2026 SMILELAND</p></div></footer>
+<div class="fl"><a class="line" href="#" title="แอดไลน์">LINE</a><a class="call" href="tel:0X-XXX-XXXX" title="โทร 0X-XXX-XXXX">📞</a></div>
+<script>
+const P=['ทุกจังหวัด','กรุงเทพมหานคร','นนทบุรี','ปทุมธานี','ชลบุรี','เชียงใหม่','ขอนแก่น','นครราชสีมา','ภูเก็ต','สุราษฎร์ธานี'];
+document.querySelectorAll('.prov').forEach(s=>s.innerHTML=P.map(p=>'<option>'+p+'</option>').join(''));
+const G=['#8DBF7A,#E4F1DC','#B98B5E,#F3EAD3','#A9CF8F,#F7E7C6','#7FA96B,#D9C29C','#C9A47A,#E4F1DC','#9CC98A,#B98B5E','#D8BE94,#8DBF7A','#6E9E5C,#F3EAD3'];
+const L=[['ขาย','ที่ดิน','ที่ดินเปล่าวิวดอย','฿3,900,000','6,000','1-2-50 ไร่','ต.หนองควาย อ.หางดง จ.เชียงใหม่','12 กม.','2 วัน'],
+['ขาย','บ้าน','บ้านเดี่ยว 2 ชั้น','฿4,590,000','','52 ตร.ว. / 160 ตร.ม.','ต.บางรักพัฒนา อ.บางบัวทอง จ.นนทบุรี','3 กม.','5 วัน'],
+['เช่า','คอนโด','คอนโดติดรถไฟฟ้า','฿12,000/เดือน','','32 ตร.ม.','ต.บางกระสอ อ.เมือง จ.นนทบุรี','0.4 กม.','1 วัน'],
+['ขาย','ที่ดิน','ที่ดินติดถนนสาย 304','฿8,800,000','2,750','8-0-00 ไร่','ต.หนองหญ้าขาว อ.สีคิ้ว จ.นครราชสีมา','20 กม.','1 สัปดาห์'],
+['ขาย','ทาวน์โฮม','ทาวน์โฮม 3 ชั้น','฿2,890,000','','18 ตร.ว. / 120 ตร.ม.','ต.คลองหนึ่ง อ.คลองหลวง จ.ปทุมธานี','5 กม.','3 วัน'],
+['ขาย','ที่ดิน','ที่ดินใกล้ทะเล','฿6,500,000','16,250','1-0-00 ไร่','ต.บางละมุง อ.บางละมุง จ.ชลบุรี','2 กม.','2 สัปดาห์'],
+['เช่า','บ้าน','บ้านเช่าพร้อมสวน','฿18,000/เดือน','','100 ตร.ว. / 200 ตร.ม.','ต.ศิลา อ.เมือง จ.ขอนแก่น','6 กม.','4 วัน'],
+['ขาย','ที่ดิน','สวนยางพร้อมโอน','฿1,200,000','300','10-0-00 ไร่','ต.ท่าชนะ อ.ท่าชนะ จ.สุราษฎร์ธานี','15 กม.','1 เดือน']];
+const card=(l,i)=>`<div class="card" onclick="location.hash='detail'"><div class="img" style="background:linear-gradient(135deg,${G[i]})"><span class="tag">${l[0]} · ${l[1]}</span><svg viewBox="0 0 200 60" width="100%" height="60"><path d="M0 60 L0 35 Q50 10 100 30 T200 25 L200 60Z" fill="#ffffff55"/><path d="M130 40 l15 -14 l15 14 v14 h-30z" fill="#fff9"/></svg></div>
+<div class="cb"><div class="pr">${l[3]}</div><div class="mu">${l[4]?'฿'+l[4]+' / ตร.ว. · ':''}${l[5]}</div><div><b>${l[2]}</b></div><div class="mu">📍 ${l[6]} · ห่าง ${l[7]}</div>
+<div class="mu">ลงประกาศเมื่อ ${l[8]}ที่แล้ว ${i%3!=2?'<span class="vf">✔ ยืนยันตัวตนแล้ว</span>':''}</div><div class="ic2"><span>💬 LINE</span><span>📞 โทร</span></div></div></div>`;
+res.innerHTML=L.map(card).join('');feat.innerHTML=L.slice(0,4).map(card).join('');
+document.querySelectorAll('.tg button').forEach(b=>b.onclick=()=>{b.parentNode.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on')});
+function route(){const h=(location.hash||'#home').slice(1);const id=document.getElementById(h)&&document.getElementById(h).classList.contains('page')?h:'home';
+document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id==id));document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.hash=='#'+id));scrollTo(0,0)}
+addEventListener('hashchange',route);route();
+const S=['ภาพมุมสูงของที่ดิน','ทางเข้าถนนลาดยาง','วิวดอยด้านหลัง','หลักหมุดเขตที่ดิน'];let si=0;
+sld.insertAdjacentHTML('afterbegin',S.map((t,i)=>`<div class="sl${i?'':' on'}" style="background:linear-gradient(135deg,${G[i]})">🖼️ ${t} (${i+1}/${S.length})</div>`).join(''));
+sld.querySelector('.dots').innerHTML=S.map((_,i)=>`<i onclick="go(${i}-si)"></i>`).join('');
+function go(d){si=(si+d+S.length)%S.length;sld.querySelectorAll('.sl').forEach((e,i)=>e.classList.toggle('on',i==si));sld.querySelectorAll('.dots i').forEach((e,i)=>e.classList.toggle('on',i==si))}go(0);
+function om(){md.classList.add('on')}
+function cm(a){if(a){const n=[...md.querySelectorAll('.f')].filter(f=>f.type=='checkbox'?f.checked:f.value).length;document.querySelectorAll('.fc').forEach(b=>b.textContent=n)}md.classList.remove('on')}
+function calc(){const p=+la.value,r=+lr.value/1200,n=+ly.value*12;const m=r?p*r/(1-Math.pow(1+r,-n)):p/n;lo.textContent='ผ่อนประมาณ ฿'+Math.round(m).toLocaleString('th-TH')+' / เดือน'}calc();
+</script></body></html>
