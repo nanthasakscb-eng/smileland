@@ -1,0 +1,14 @@
+<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>ระบบแอดมิน | SMILELAND</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<header class="site"><div class="hd"><a class="logo" href="index.html"><span class="ic">😊</span><span><b>SMILELAND</b><small>ระบบผู้ดูแล</small></span></a><div id="who" class="row" style="flex:0 0 auto"></div></div></header>
+<main class="wrap sec">
+<form id="login" class="box form hidden" style="max-width:420px;margin:auto"><h1 style="margin-top:0;color:var(--bd)">เข้าสู่ระบบแอดมิน</h1><label for="u">ชื่อผู้ใช้</label><input id="u" name="username" autocomplete="username" required><label for="p">รหัสผ่าน</label><input id="p" name="password" type="password" autocomplete="current-password" required><p><button class="btn">เข้าสู่ระบบ</button></p><div class="out"></div></form>
+<div id="app" class="hidden">
+<div id="mc" class="warn hidden" style="margin-bottom:14px">⚠️ กรุณาเปลี่ยนรหัสผ่านเริ่มต้น (เมนู “เปลี่ยนรหัสผ่าน”)</div>
+<h1 style="margin:0 0 10px;color:var(--bd)">แดชบอร์ด</h1><div class="g4" id="dash" style="text-align:center"></div>
+<div class="tg" style="margin-top:18px"><button data-t="queue" class="on">คิวรอพิจารณา</button><button data-t="all">จดหมายเหตุที่ดิน (ทั้งหมด)</button><button data-t="pw">เปลี่ยนรหัสผ่าน</button></div>
+<section id="t-list"><div class="row" style="margin-bottom:10px"><input id="q" placeholder="ค้นหา รหัส/เลขอ้างอิง/ชื่อ/เบอร์/ทำเล/เลขโฉนด" style="flex:3"><select id="fs"><option value="">ทุกสถานะ</option><option value="pending">รอพิจารณา</option><option value="info">ขอข้อมูลเพิ่ม</option><option value="approved">อนุมัติ</option><option value="rejected">ไม่อนุมัติ</option><option value="sold">ขายแล้ว</option><option value="rented">ให้เช่าแล้ว</option><option value="unpublished">ปิดเผยแพร่</option></select></div>
+<div class="box" style="overflow:auto"><table><thead><tr><th>รหัส</th><th>เลขอ้างอิง</th><th>หัวข้อ</th><th>ทำเล</th><th>ราคา</th><th>สถานะ</th><th>อัปเดต</th></tr></thead><tbody id="rows"></tbody></table></div></section>
+<section id="t-pw" class="hidden"><form id="pwf" class="box form" style="max-width:420px"><label>รหัสผ่านปัจจุบัน</label><input name="current" type="password" required autocomplete="current-password"><label>รหัสผ่านใหม่ (อย่างน้อย 10 ตัวอักษร)</label><input name="next" type="password" minlength="10" required autocomplete="new-password"><p><button class="btn">บันทึก</button></p><div class="out"></div></form></section>
+<section id="rec" class="box hidden" style="margin-top:16px"></section></div></main>
+<script src="assets/app.js"></script><script src="assets/admin.js"></script></body></html>
