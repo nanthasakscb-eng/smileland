@@ -5,7 +5,7 @@ import type { Bindings } from '../env';
 import { DEALS, TYPES, formatPrice, landText, type Deal, type PType } from '../lib/util';
 import { imgUrl, imgSrcset, placeholder, type Card } from '../lib/listings';
 
-export const ASSET_V = '20261024';
+export const ASSET_V = '20261024b';
 
 /* ---------- icons ---------- */
 const P = { fill: 'none', stroke: 'currentColor', 'stroke-width': '1.7', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' } as const;
@@ -92,7 +92,7 @@ export const Layout: FC<{ env: Bindings; meta: Meta; settings: Record<string, st
           <meta name="twitter:card" content="summary_large_image" />
           <meta name="theme-color" content="#0f1d2c" />
           <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-          <link rel="preload" href="/assets/fonts/ibm-plex-sans-thai-thai-400-normal.woff2" as="font" type="font/woff2" crossorigin="" />
+          <link rel="preload" href="/assets/fonts/sarabun-thai-400-normal.woff2" as="font" type="font/woff2" crossorigin="" />
           <link rel="stylesheet" href={`/assets/css/fonts.css?v=${ASSET_V}`} />
           <link rel="stylesheet" href={`/assets/css/site.css?v=${ASSET_V}`} />
           {meta.maps && <link rel="stylesheet" href="/assets/vendor/maplibre/maplibre-gl.css" />}

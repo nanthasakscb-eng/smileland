@@ -2,7 +2,7 @@
 
 แพลตฟอร์มประกาศ **ขาย / ให้เช่า บ้าน ที่ดิน คอนโด ทั่วประเทศ** สร้างตามแผนย้ายระบบ (SMILELAND-Cloudflare-Migration-Plan)
 
-**สแตก:** Hono (SSR + API) · Drizzle ORM · D1 · R2 · Workers KV · Queues + Cron · Turnstile · MapLibre (self-host) · ฟอนต์ IBM Plex Sans Thai / Noto Serif Thai (self-host)
+**สแตก:** Hono (SSR + API) · Drizzle ORM · D1 · R2 · Workers KV · Queues + Cron · Turnstile · MapLibre (self-host) · ฟอนต์ Sarabun (self-host)
 
 > โฟลเดอร์นี้เป็นงานใหม่แยกจาก `smileland-app` (ต้นฉบับ Node.js) — ไม่ได้แก้ไขต้นฉบับ
 
