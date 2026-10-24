@@ -8,7 +8,7 @@
 //  3) deploy → ได้ URL *.workers.dev → ตั้ง SITE_URL แล้ว deploy ซ้ำ
 //  4) ตั้ง secrets: รหัสผ่านแอดมินเริ่มต้น (สุ่มให้) + Turnstile
 import { spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync, unlinkSync } from 'node:fs';
+import { readFileSync, writeFileSync, unlinkSync, appendFileSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import { createInterface } from 'node:readline/promises';
 
@@ -84,17 +84,20 @@ if (n < 77) run('npx wrangler d1 execute smileland-db --remote --yes --file=seed
 else console.log('✓ มีข้อมูลจังหวัดแล้ว ข้ามขั้นนี้');
 
 step('3. Turnstile');
-const rl = createInterface({ input: process.stdin, output: process.stdout });
-console.log('สร้าง widget ได้ที่ Cloudflare Dashboard → Turnstile → Add widget (ใส่โดเมน *.workers.dev และโดเมนจริง)');
-let site = (await rl.question('Turnstile Site Key (Enter = ใช้คีย์ทดสอบชั่วคราว): ')).trim();
-let secret = '';
-if (site) secret = (await rl.question('Turnstile Secret Key: ')).trim();
-const demoAns = (await rl.question('ใส่ประกาศตัวอย่าง 200 รายการ (ทุกจังหวัด) เพื่อดูหน้าตาเว็บ? ติดป้าย "ตัวอย่าง" และลบได้ภายหลัง [y/N]: ')).trim().toLowerCase();
-rl.close();
+const AUTO = process.env.SL_NONINTERACTIVE === '1';
+let site = process.env.SL_TURNSTILE_SITE || '', secret = process.env.SL_TURNSTILE_SECRET || '', demoAns = process.env.SL_DEMO === '1' ? 'y' : '';
+if (!AUTO) {
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  console.log('สร้าง widget ได้ที่ Cloudflare Dashboard → Turnstile → Add widget (ใส่โดเมน *.workers.dev และโดเมนจริง)');
+  site = (await rl.question('Turnstile Site Key (Enter = ใช้คีย์ทดสอบชั่วคราว): ')).trim();
+  if (site) secret = (await rl.question('Turnstile Secret Key: ')).trim();
+  demoAns = (await rl.question('ใส่ประกาศตัวอย่าง 200 รายการ (ทุกจังหวัด) เพื่อดูหน้าตาเว็บ? ติดป้าย "ตัวอย่าง" และลบได้ภายหลัง [y/N]: ')).trim().toLowerCase();
+  rl.close();
+}
 if (demoAns === 'y' || demoAns === 'yes') { run('npx wrangler d1 execute smileland-db --remote --yes --file=seed/demo.sql'); console.log('✓ ใส่ประกาศตัวอย่างแล้ว — ลบได้ที่ /admin/settings → "ลบประกาศตัวอย่างทั้งหมด"'); }
 if (!site || !secret) {
   site = '1x00000000000000000000AA'; secret = '1x0000000000000000000000000000000AA';
-  console.log('⚠ ใช้คีย์ทดสอบ (ผ่านทุกครั้ง = ยังไม่กันบอท) — เปลี่ยนเป็นคีย์จริงก่อนเปิดใช้งานจริง');
+  console.log('⚠ ใช้คีย์ทดสอบ Turnstile (ผ่านทุกครั้ง = ยังไม่กันบอท) — เปลี่ยนเป็นคีย์จริงก่อนเปิดใช้งานจริง');
 }
 setToml(/TURNSTILE_SITE_KEY = "[^"]*"/, `TURNSTILE_SITE_KEY = "${site}"`);
 
@@ -113,6 +116,8 @@ writeFileSync(tmp, JSON.stringify({ ADMIN_INITIAL_PASSWORD: adminPw, TURNSTILE_S
 try { run(`npx wrangler secret bulk ${tmp}`); } finally { unlinkSync(tmp); }
 
 if (url) { step('6. Deploy อีกครั้ง (ตั้ง SITE_URL)'); run('npx wrangler deploy'); }
+writeFileSync('ADMIN-PASSWORD.txt', `SMILELAND admin\r\nURL: ${url ? url + '/admin' : '/admin'}\r\nผู้ใช้: admin\r\nรหัสผ่านเริ่มต้น: ${adminPw}\r\n(ระบบบังคับเปลี่ยนรหัสเมื่อเข้าครั้งแรก — ลบไฟล์นี้หลังเปลี่ยนรหัสแล้ว)\r\n`);
+void appendFileSync;
 
 console.log(`
 ✅ เสร็จแล้ว

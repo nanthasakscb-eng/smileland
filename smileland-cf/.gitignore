@@ -4,3 +4,5 @@ dist/
 .dev.vars
 .DS_Store
 seed/.geo-parts/
+ADMIN-PASSWORD.txt
+.secrets.tmp.json
