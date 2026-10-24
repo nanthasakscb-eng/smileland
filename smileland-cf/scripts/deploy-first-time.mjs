@@ -92,12 +92,15 @@ else console.log('✓ มีข้อมูลจังหวัดแล้ว 
 step('3. Turnstile');
 const AUTO = process.env.SL_NONINTERACTIVE === '1';
 let site = process.env.SL_TURNSTILE_SITE || '', secret = process.env.SL_TURNSTILE_SECRET || '', demoAns = process.env.SL_DEMO === '1' ? 'y' : '';
-if (!AUTO) {
+if (!site || !secret || !AUTO) {
   const rl = createInterface({ input: process.stdin, output: process.stdout });
-  console.log('สร้าง widget ได้ที่ Cloudflare Dashboard → Turnstile → Add widget (ใส่โดเมน *.workers.dev และโดเมนจริง)');
-  site = (await rl.question('Turnstile Site Key (Enter = ใช้คีย์ทดสอบชั่วคราว): ')).trim();
-  if (site) secret = (await rl.question('Turnstile Secret Key: ')).trim();
-  demoAns = (await rl.question('ใส่ประกาศตัวอย่าง 200 รายการ (ทุกจังหวัด) เพื่อดูหน้าตาเว็บ? ติดป้าย "ตัวอย่าง" และลบได้ภายหลัง [y/N]: ')).trim().toLowerCase();
+  if (!site || !secret) {
+    console.log('ถ้ามี Turnstile key จริงแล้ว (Dashboard → Turnstile) ให้ใส่ตรงนี้ · ถ้ายังไม่มี กด Enter เพื่อใช้คีย์ทดสอบ');
+    console.log('หมายเหตุ: ถ้าเคยตั้งคีย์จริงไว้ตอน deploy ครั้งก่อน ต้องใส่ซ้ำ ไม่เช่นนั้นจะกลับเป็นคีย์ทดสอบ');
+    site = (await rl.question('Turnstile Site Key (Enter = คีย์ทดสอบ): ')).trim();
+    if (site) secret = (await rl.question('Turnstile Secret Key: ')).trim();
+  }
+  if (!AUTO) demoAns = (await rl.question('ใส่ประกาศตัวอย่าง 200 รายการ (ทุกจังหวัด) เพื่อดูหน้าตาเว็บ? ติดป้าย "ตัวอย่าง" และลบได้ภายหลัง [y/N]: ')).trim().toLowerCase();
   rl.close();
 }
 if (demoAns === 'y' || demoAns === 'yes') { run('npx wrangler d1 execute smileland-db --remote --yes --file=seed/demo.sql'); console.log('✓ ใส่ประกาศตัวอย่างแล้ว — ลบได้ที่ /admin/settings → "ลบประกาศตัวอย่างทั้งหมด"'); }
@@ -116,13 +119,16 @@ if (url) {
 }
 
 step('5. Secrets');
-const adminPw = randomBytes(9).toString('base64').replace(/[+/=]/g, 'x') + '-Sl1';
+const adm = json('npx wrangler d1 execute smileland-db --remote --json --command "SELECT count(*) AS n FROM admins"');
+const hasAdmin = (adm?.[0]?.results?.[0]?.n ?? 0) > 0;
+const adminPw = hasAdmin ? null : randomBytes(9).toString('base64').replace(/[+/=]/g, 'x') + '-Sl1';
 const tmp = '.secrets.tmp.json';
-writeFileSync(tmp, JSON.stringify({ ADMIN_INITIAL_PASSWORD: adminPw, TURNSTILE_SECRET_KEY: secret }));
+writeFileSync(tmp, JSON.stringify(hasAdmin ? { TURNSTILE_SECRET_KEY: secret } : { ADMIN_INITIAL_PASSWORD: adminPw, TURNSTILE_SECRET_KEY: secret }));
 try { run(`npx wrangler secret bulk ${tmp}`); } finally { unlinkSync(tmp); }
+if (hasAdmin) console.log('✓ มีบัญชีแอดมินอยู่แล้ว — ใช้รหัสผ่านเดิม (ไม่ได้สร้างรหัสใหม่)');
 
 if (url) { step('6. Deploy อีกครั้ง (ตั้ง SITE_URL)'); run('npx wrangler deploy'); }
-writeFileSync('ADMIN-PASSWORD.txt', `SMILELAND admin\r\nURL: ${url ? url + '/admin' : '/admin'}\r\nผู้ใช้: admin\r\nรหัสผ่านเริ่มต้น: ${adminPw}\r\n(ระบบบังคับเปลี่ยนรหัสเมื่อเข้าครั้งแรก — ลบไฟล์นี้หลังเปลี่ยนรหัสแล้ว)\r\n`);
+if (!hasAdmin) writeFileSync('ADMIN-PASSWORD.txt', `SMILELAND admin\r\nURL: ${url ? url + '/admin' : '/admin'}\r\nผู้ใช้: admin\r\nรหัสผ่านเริ่มต้น: ${adminPw}\r\n(ระบบบังคับเปลี่ยนรหัสเมื่อเข้าครั้งแรก — ลบไฟล์นี้หลังเปลี่ยนรหัสแล้ว)\r\n`);
 void appendFileSync;
 
 console.log(`
@@ -130,7 +136,7 @@ console.log(`
    เว็บไซต์:  ${url || '(ดู URL จากผล deploy ด้านบน)'}
    แอดมิน:    ${url ? url + '/admin' : '/admin'}
    ผู้ใช้:     admin
-   รหัสผ่านเริ่มต้น: ${adminPw}
+   รหัสผ่าน:   ${hasAdmin ? '(ใช้รหัสเดิมที่คุณตั้งไว้)' : adminPw + '  ← รหัสเริ่มต้น'}
    (ระบบจะบังคับเปลี่ยนรหัสเมื่อเข้าครั้งแรก — อย่าส่งรหัสนี้ในแชต)
 
 ขั้นต่อไป:
