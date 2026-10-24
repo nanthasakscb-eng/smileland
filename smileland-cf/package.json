@@ -1,0 +1,32 @@
+{
+  "name": "smileland-cf",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "SMILELAND — แพลตฟอร์มประกาศขาย/เช่า บ้าน ที่ดิน คอนโด ทั่วประเทศ บน Cloudflare Workers + D1 + R2 + KV",
+  "scripts": {
+    "dev": "wrangler dev --local",
+    "build:check": "wrangler deploy --dry-run --outdir dist",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "wrangler d1 migrations apply smileland-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply smileland-db --remote",
+    "geo:build": "node scripts/build-geo-sql.mjs",
+    "db:geo:local": "wrangler d1 execute smileland-db --local --yes --file=seed/geo.sql",
+    "db:geo:remote": "wrangler d1 execute smileland-db --remote --yes --file=seed/geo.sql",
+    "demo:build": "node scripts/build-demo-seed.mjs",
+    "db:demo:local": "wrangler d1 execute smileland-db --local --file=seed/demo.sql",
+    "setup:local": "npm run db:migrate:local && npm run db:geo:local && npm run db:demo:local",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.4",
+    "hono": "^4.13.13"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261023.1",
+    "drizzle-kit": "^0.31.11",
+    "typescript": "^5.6.0",
+    "wrangler": "^4.152.0"
+  }
+}

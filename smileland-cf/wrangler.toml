@@ -1,0 +1,56 @@
+# SMILELAND — Cloudflare Workers config
+name = "smileland"
+main = "src/index.tsx"
+compatibility_date = "2026-10-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ป้องกันบิลบานปลาย: จำกัด CPU ต่อคำขอ (ms)
+[limits]
+cpu_ms = 200
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = false
+
+[observability]
+enabled = true
+
+[vars]
+SITE_NAME = "SMILELAND"
+SITE_URL = "http://127.0.0.1:8787"   # production: https://<โดเมน>
+IMG_BASE = "/img"                     # production: https://img.<โดเมน> (R2 custom domain)
+# Turnstile test site key (ผ่านทุกครั้ง) — production เปลี่ยนเป็น site key จริง
+TURNSTILE_SITE_KEY = "1x00000000000000000000AA"
+LISTING_TTL_DAYS = "180"
+THIN_PAGE_MIN = "3"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "smileland-db"
+database_id = "00000000-0000-0000-0000-000000000000" # ← ใส่ค่าจาก `wrangler d1 create smileland-db`
+migrations_dir = "migrations"
+
+[[r2_buckets]]
+binding = "UPLOADS"
+bucket_name = "smileland-uploads"
+
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "00000000000000000000000000000001" # ← ใส่ค่าจาก `wrangler kv namespace create SESSIONS`
+
+[[kv_namespaces]]
+binding = "RATELIMIT"
+id = "00000000000000000000000000000002" # ← ใส่ค่าจาก `wrangler kv namespace create RATELIMIT`
+
+[[queues.producers]]
+binding = "JOBS"
+queue = "sitemap-jobs"
+
+[[queues.consumers]]
+queue = "sitemap-jobs"
+max_batch_size = 10
+max_batch_timeout = 30
+
+[triggers]
+crons = ["17 19 * * *"] # 02:17 น. เวลาไทยทุกวัน: หมดอายุประกาศ + สร้าง sitemap
