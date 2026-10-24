@@ -4,10 +4,6 @@ main = "src/index.tsx"
 compatibility_date = "2026-10-01"
 compatibility_flags = ["nodejs_compat"]
 
-# ป้องกันบิลบานปลาย: จำกัด CPU ต่อคำขอ (ms)
-[limits]
-cpu_ms = 200
-
 [assets]
 directory = "./public"
 binding = "ASSETS"
