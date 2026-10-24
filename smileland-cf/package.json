@@ -17,7 +17,8 @@
     "demo:build": "node scripts/build-demo-seed.mjs",
     "db:demo:local": "wrangler d1 execute smileland-db --local --file=seed/demo.sql",
     "setup:local": "npm run db:migrate:local && npm run db:geo:local && npm run db:demo:local",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "deploy:first": "node scripts/deploy-first-time.mjs"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.4",

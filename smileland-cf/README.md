@@ -71,7 +71,17 @@ npm run dev                              # http://127.0.0.1:8787
 
 ---
 
-## ขึ้น production (ทำเมื่อได้รับอนุมัติจากเจ้าของโปรเจกต์เท่านั้น)
+## ขึ้น production แบบอัตโนมัติ (แนะนำ)
+
+```bash
+npm install
+npx wrangler login          # เปิดเบราว์เซอร์ให้กดอนุญาต (ครั้งเดียว)
+npm run deploy:first        # สร้าง D1/R2/KV/Queue, migrate, นำเข้าจังหวัด, deploy, ตั้ง secrets
+```
+ต้องใช้แผน **Workers Paid** (Queues) · สคริปต์จะถาม Turnstile key (กด Enter เพื่อใช้คีย์ทดสอบชั่วคราว) และพิมพ์รหัสผ่านแอดมินเริ่มต้นให้ตอนจบ
+อัปเดตครั้งต่อไปใช้แค่ `npm run deploy` (ถ้ามี migration ใหม่: `npm run db:migrate:remote` ก่อน)
+
+## ขึ้น production แบบทำเองทีละขั้น
 
 1. สมัคร Workers Paid และตั้ง billing notification
 2. สร้างทรัพยากร แล้วใส่ id ที่ได้ลงใน `wrangler.toml`
