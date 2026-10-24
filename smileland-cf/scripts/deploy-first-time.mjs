@@ -52,7 +52,13 @@ setToml(/database_id = "[^"]*"/, `database_id = "${d1.uuid}"`);
 console.log('✓ D1 smileland-db', d1.uuid);
 
 // R2
-const r2 = run('npx wrangler r2 bucket list', { quiet: true }).out;
+const r2res = run('npx wrangler r2 bucket list', { quiet: true, allowFail: true });
+if (!r2res.ok) {
+  if (/10042|enable R2/i.test(r2res.out)) console.error('\n✘ บัญชียังไม่ได้เปิดใช้ R2\n  ไปที่ Cloudflare Dashboard → R2 Object Storage → กด "Purchase R2 Plan"/"Enable R2" (ใช้ฟรีได้ 10GB/เดือน แต่ต้องผูกช่องทางชำระเงิน)\n  เสร็จแล้วดับเบิลคลิก deploy.bat อีกครั้ง — ขั้นที่ทำไปแล้วจะข้ามให้อัตโนมัติ');
+  else console.error(r2res.out);
+  process.exit(1);
+}
+const r2 = r2res.out;
 if (!/smileland-uploads/.test(r2)) run('npx wrangler r2 bucket create smileland-uploads');
 console.log('✓ R2 smileland-uploads');
 
