@@ -20,12 +20,31 @@ if errorlevel 1 (
 )
 echo.
 echo [2/3] Checking Cloudflare login...
+:checklogin
 call npx wrangler whoami > "%TEMP%\sl_whoami.txt" 2>&1
 findstr /i /c:"not authenticated" "%TEMP%\sl_whoami.txt" >nul
-if not errorlevel 1 (
-  echo A browser window will open. Log in to Cloudflare and click "Allow".
-  call npx wrangler login
-)
+if not errorlevel 1 goto dologin
+echo.
+echo ------------------------------------------------------------
+findstr /i /c:"email" "%TEMP%\sl_whoami.txt"
+echo ------------------------------------------------------------
+choice /c YN /m "Deploy to THIS Cloudflare account? (Y = yes, N = log out and switch account)"
+if errorlevel 2 goto switch
+goto deploy
+
+:switch
+call npx wrangler logout
+echo.
+echo IMPORTANT: In the browser, first log out of Cloudflare (https://dash.cloudflare.com),
+echo then log in with the correct email BEFORE clicking "Allow".
+pause
+
+:dologin
+echo A browser window will open. Log in to Cloudflare with the correct email and click "Allow".
+call npx wrangler login
+goto checklogin
+
+:deploy
 echo.
 echo [3/3] Creating resources, database and deploying...
 set SL_NONINTERACTIVE=1
