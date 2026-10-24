@@ -2,10 +2,10 @@
 import type { Child, FC } from 'hono/jsx';
 import { raw } from 'hono/html';
 import type { Bindings } from '../env';
-import { DEALS, TYPES, formatPrice, landText, type Deal, type PType } from '../lib/util';
+import { isDemo, DEALS, TYPES, formatPrice, landText, type Deal, type PType } from '../lib/util';
 import { imgUrl, imgSrcset, placeholder, type Card } from '../lib/listings';
 
-export const ASSET_V = '20261024c';
+export const ASSET_V = '20261024d';
 
 /* ---------- icons ---------- */
 const P = { fill: 'none', stroke: 'currentColor', 'stroke-width': '1.7', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' } as const;
@@ -190,6 +190,7 @@ export const ListingCard: FC<{ env: Bindings; l: Card; eager?: boolean }> = ({ e
           <span class={`badge b-${l.deal}`}>{DEALS[l.deal as Deal]}</span>
           <span class="badge b-type">{TYPES[l.type as PType]}</span>
           {l.featured ? <span class="badge b-feat">แนะนำ</span> : null}
+          {isDemo(l.ref) ? <span class="badge b-demo">ตัวอย่าง</span> : null}
         </div>
         {l.imageCount > 1 && <span class="count"><Icon name="image" class="ico" /> {l.imageCount}</span>}
       </div>

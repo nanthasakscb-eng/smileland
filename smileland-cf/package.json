@@ -15,7 +15,8 @@
     "db:geo:local": "wrangler d1 execute smileland-db --local --yes --file=seed/geo.sql",
     "db:geo:remote": "wrangler d1 execute smileland-db --remote --yes --file=seed/geo.sql",
     "demo:build": "node scripts/build-demo-seed.mjs",
-    "db:demo:local": "wrangler d1 execute smileland-db --local --file=seed/demo.sql",
+    "db:demo:local": "wrangler d1 execute smileland-db --local --yes --file=seed/demo.sql",
+    "db:demo:remote": "wrangler d1 execute smileland-db --remote --yes --file=seed/demo.sql",
     "setup:local": "npm run db:migrate:local && npm run db:geo:local && npm run db:demo:local",
     "deploy": "wrangler deploy",
     "deploy:first": "node scripts/deploy-first-time.mjs"

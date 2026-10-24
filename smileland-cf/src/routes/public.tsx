@@ -14,9 +14,9 @@ import { ConsignPage, ManagePage, NotFoundPage, PrivacyPage, ProvincesPage, Stat
 import { geo, provinceBySlug, districtBySlug, districtsOf, subdistrictName, districtLabel } from '../lib/geo';
 import {
   search, stats, provinceCounts, districtCounts, getListing, getImages, getTimeline, getPriceHistory, similar, imgUrl, addTimeline,
-  cardColumns, decorate, type SearchParams, type Card,
+  cardColumns, decorate, countActive, type SearchParams, type Card,
 } from '../lib/listings';
-import { DEALS, TYPES, formatPrice, landText, nowSec, normPhone, truncate, clampInt, type Deal, type PType } from '../lib/util';
+import { isDemo, DEALS, TYPES, formatPrice, landText, nowSec, normPhone, truncate, clampInt, type Deal, type PType } from '../lib/util';
 import { clientIp, rateLimit, sha256Hex, verifyTurnstile, sameOrigin } from '../lib/security';
 
 export const pub = new Hono<AppEnv>();
@@ -153,7 +153,8 @@ async function renderListingSearch(c: Context<AppEnv>, p: SearchParams, landing:
   }
 
   const minN = parseInt(c.env.THIN_PAGE_MIN || '3', 10);
-  const thin = result.total < minN;
+  const realTotal = result.total < minN ? 0 : await countActive(c.env, { ...p, realOnly: true });
+  const thin = realTotal < minN; // หน้าที่มีแต่ประกาศตัวอย่าง/ประกาศน้อย → noindex
   const canonicalPath = landing ? (c.req.path + ((p.page || 1) > 1 ? `?page=${p.page}` : '')) : await landingPath(c, p);
   const pageHref = (n: number) => {
     if (landing) return n === 1 ? c.req.path : `${c.req.path}?page=${n}`;
@@ -231,7 +232,7 @@ pub.get('/listing/:id{[0-9]+}', async (c) => {
   ];
   return render(c, {
     title: `${l.title} — ${typeTh}${dealWord} ${dist.nameTh} ${prov.nameTh}`, description, canonical: `/listing/${l.id}`,
-    noindex: l.status !== 'active', ogImage: cover, maps: l.lat != null, turnstile: l.status === 'active', page: 'listing', jsonld: ld,
+    noindex: l.status !== 'active' || isDemo(l.ref), ogImage: cover, maps: l.lat != null, turnstile: l.status === 'active' && !isDemo(l.ref), page: 'listing', jsonld: ld,
   }, (
     <ListingPage env={c.env} l={l} images={images} provinceName={prov.nameTh} provinceSlug={prov.slug} districtName={dist.nameTh} districtSlug={dist.slug}
       subdistrictName={sub?.nameTh} timeline={tl} prices={prices} similar={sim} crumbs={crumbs} settings={c.get('settings')} />

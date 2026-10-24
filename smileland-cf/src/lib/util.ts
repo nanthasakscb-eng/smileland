@@ -25,6 +25,10 @@ export const FEATURES: Record<string, string> = {
   garden: 'สวน', 'new-build': 'บ้านสร้างใหม่', renovated: 'รีโนเวทแล้ว', 'owner-direct': 'เจ้าของขายเอง',
 };
 
+/** ประกาศตัวอย่าง (สาธิตหน้าตาเว็บ) — ไม่ใช่ทรัพย์จริง: ติดป้าย, noindex, ไม่รับการติดต่อ, ลบได้จากหลังบ้าน */
+export const DEMO_PREFIX = 'SL-DEMO';
+export const isDemo = (ref: string | null | undefined) => !!ref && ref.startsWith(DEMO_PREFIX);
+
 export const nowSec = () => Math.floor(Date.now() / 1000);
 
 export function formatPrice(n: number | null | undefined): string {

@@ -173,6 +173,7 @@ textarea.input { min-height: 140px; resize: vertical; }
 .b-sale { background: var(--sale); color: #fff; }
 .b-rent { background: var(--rent); color: #fff; }
 .b-type { background: rgba(255, 255, 255, .94); color: var(--ink); }
+.b-demo { background: #fff4d6; color: #7a5200; border: 1px solid #ecd28f; }
 .b-feat { background: linear-gradient(135deg, var(--gold-2), var(--gold)); color: #1b1408; }
 .b-pending { background: var(--warn-bg); color: var(--warn); }
 .b-active { background: var(--ok-bg); color: var(--ok); }
@@ -268,6 +269,7 @@ textarea.input { min-height: 140px; resize: vertical; }
 .gallery.n2 { grid-template-columns: 2fr 1fr; grid-template-rows: 460px; }
 .gallery.n2 a:first-child { grid-row: auto; }
 .gallery.n3 { grid-template-columns: 2fr 1fr; }
+.gallery.n4 a:nth-child(4) { grid-column: span 2; }
 @media (max-width: 760px) {
   .gallery, .gallery.n2, .gallery.n3 { grid-template-columns: 1fr; grid-template-rows: 280px; }
   .gallery a:not(:first-child) { display: none; }

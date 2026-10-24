@@ -18,7 +18,7 @@ export async function buildProvinceSitemap(env: Bindings, provinceCode: number):
   const min = parseInt(env.THIN_PAGE_MIN || '3', 10);
   const base = site(env);
   const groups = await d.select({ deal: listings.deal, type: listings.type, district: listings.districtCode, n: count(), last: sql<number>`max(${listings.updatedAt})` })
-    .from(listings).where(and(eq(listings.status, 'active'), eq(listings.provinceCode, provinceCode)))
+    .from(listings).where(and(eq(listings.status, 'active'), eq(listings.provinceCode, provinceCode), sql`${listings.ref} NOT LIKE 'SL-DEMO%'`))
     .groupBy(listings.deal, listings.type, listings.districtCode);
   const urls: { loc: string; lastmod?: number; pri?: string }[] = [];
   // รวมยอดตาม (deal,type) และ (deal,property) ในระดับจังหวัด/อำเภอ
@@ -33,7 +33,7 @@ export async function buildProvinceSitemap(env: Bindings, provinceCode: number):
   }
   for (const [path, v] of agg) if (v.n >= min) urls.push({ loc: base + path, lastmod: v.last, pri: path.split('/').length > 4 ? '0.6' : '0.7' });
   const items = await d.select({ id: listings.id, updatedAt: listings.updatedAt }).from(listings)
-    .where(and(eq(listings.status, 'active'), eq(listings.provinceCode, provinceCode))).limit(45000);
+    .where(and(eq(listings.status, 'active'), eq(listings.provinceCode, provinceCode), sql`${listings.ref} NOT LIKE 'SL-DEMO%'`)).limit(45000);
   for (const it of items) urls.push({ loc: `${base}/listing/${it.id}`, lastmod: it.updatedAt, pri: '0.8' });
   if (!urls.length) return null;
   return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
@@ -63,7 +63,7 @@ export async function sitemapIndex(env: Bindings) {
   const base = site(env);
   const g = await geo(env);
   const rows = await db(env).select({ code: listings.provinceCode, last: sql<number>`max(${listings.updatedAt})` }).from(listings)
-    .where(eq(listings.status, 'active')).groupBy(listings.provinceCode);
+    .where(and(eq(listings.status, 'active'), sql`${listings.ref} NOT LIKE 'SL-DEMO%'`)).groupBy(listings.provinceCode);
   const entries = [`<sitemap><loc>${base}/sitemaps/static.xml</loc></sitemap>`];
   for (const r of rows) {
     const p = g.provinces.find((x) => x.code === r.code);

@@ -294,6 +294,12 @@ export const SettingsPage: FC<{ admin: AdminSession; s: Record<string, string>; 
         <p class="small muted">ระบบสร้างดัชนีให้อัตโนมัติเมื่ออนุมัติประกาศ ใช้ปุ่มนี้หลังนำเข้าข้อมูลจากระบบเดิม หรือเมื่อปรับวิธีตัดคำ (ทำครั้งละ 200 ประกาศ)</p>
         <button class="btn btn-line" type="submit">{after ? 'ทำต่อ' : 'สร้างดัชนีค้นหาใหม่'}</button>
       </form>
+      <form class="form-card" method="post" action="/admin/demo/delete" style="max-width:760px" data-confirm="ลบประกาศตัวอย่าง (SL-DEMO…) ทั้งหมด? ประกาศจริงจะไม่ถูกลบ">
+        <input type="hidden" name="csrf" value={admin.csrf} />
+        <h2 style="font-size:18px">ประกาศตัวอย่าง</h2>
+        <p class="small muted">ประกาศที่ขึ้นต้นด้วย SL-DEMO ใช้แสดงหน้าตาเว็บเท่านั้น (ติดป้าย "ตัวอย่าง", ไม่ให้ Google เก็บ, ไม่รับการติดต่อ) — ควรลบก่อนเปิดใช้งานจริง</p>
+        <button class="btn btn-danger" type="submit">ลบประกาศตัวอย่างทั้งหมด</button>
+      </form>
     </>
   );
 };

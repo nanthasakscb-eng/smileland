@@ -248,8 +248,9 @@ api.post('/leads', async (c) => {
   if (kind === 'inquiry') {
     listingId = clampInt(b.listingId, 1, 1e9);
     if (!listingId) return c.json({ ok: false, error: 'ไม่พบประกาศ' }, 404);
-    const l = await db(c.env).select({ id: listings.id, status: listings.status }).from(listings).where(eq(listings.id, listingId)).limit(1);
+    const l = await db(c.env).select({ id: listings.id, status: listings.status, ref: listings.ref }).from(listings).where(eq(listings.id, listingId)).limit(1);
     if (!l[0] || l[0].status !== 'active') return c.json({ ok: false, error: 'ประกาศนี้ปิดแล้ว' }, 410);
+    if (l[0].ref.startsWith('SL-DEMO')) return c.json({ ok: false, error: 'ประกาศตัวอย่าง ไม่รับการติดต่อ' }, 410);
   }
   const meta: Record<string, string> = {};
   for (const [k, v] of Object.entries(b)) if (k.startsWith('meta_') && typeof v === 'string' && v) meta[k.slice(5)] = v.slice(0, 80);

@@ -89,7 +89,9 @@ console.log('สร้าง widget ได้ที่ Cloudflare Dashboard → 
 let site = (await rl.question('Turnstile Site Key (Enter = ใช้คีย์ทดสอบชั่วคราว): ')).trim();
 let secret = '';
 if (site) secret = (await rl.question('Turnstile Secret Key: ')).trim();
+const demoAns = (await rl.question('ใส่ประกาศตัวอย่าง 200 รายการ (ทุกจังหวัด) เพื่อดูหน้าตาเว็บ? ติดป้าย "ตัวอย่าง" และลบได้ภายหลัง [y/N]: ')).trim().toLowerCase();
 rl.close();
+if (demoAns === 'y' || demoAns === 'yes') { run('npx wrangler d1 execute smileland-db --remote --yes --file=seed/demo.sql'); console.log('✓ ใส่ประกาศตัวอย่างแล้ว — ลบได้ที่ /admin/settings → "ลบประกาศตัวอย่างทั้งหมด"'); }
 if (!site || !secret) {
   site = '1x00000000000000000000AA'; secret = '1x0000000000000000000000000000000AA';
   console.log('⚠ ใช้คีย์ทดสอบ (ผ่านทุกครั้ง = ยังไม่กันบอท) — เปลี่ยนเป็นคีย์จริงก่อนเปิดใช้งานจริง');

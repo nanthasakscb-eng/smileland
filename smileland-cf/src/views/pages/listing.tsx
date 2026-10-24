@@ -5,7 +5,7 @@ import type { Listing } from '../../db/schema';
 import type { Card } from '../../lib/listings';
 import { imgUrl } from '../../lib/listings';
 import { Cards, Crumbs, Icon, Turnstile } from '../ui';
-import { DEALS, DEED_TYPES, FEATURES, TYPES, ZONING, formatPrice, landText, pricePerUnit, thaiDate, type Deal, type PType } from '../../lib/util';
+import { isDemo, DEALS, DEED_TYPES, FEATURES, TYPES, ZONING, formatPrice, landText, pricePerUnit, thaiDate, type Deal, type PType } from '../../lib/util';
 
 type Img = { keyBase: string; ext: string };
 
@@ -44,12 +44,14 @@ export const ListingPage: FC<{
   facts.push(['เผยแพร่เมื่อ', thaiDate(l.approvedAt || l.createdAt)]);
 
   const location = [subdistrictName, districtName, provinceName].filter(Boolean).join(', ');
-  const closed = l.status !== 'active';
+  const demo = isDemo(l.ref);
+  const closed = l.status !== 'active' || demo;
   return (
     <div class="wrap">
       <Crumbs items={crumbs} />
-      {closed && <div class="alert alert-warn" style="margin-top:14px">ประกาศนี้ไม่ได้เผยแพร่แล้ว ({l.status === 'sold' ? 'ปิดการขาย/เช่าแล้ว' : 'ปิดประกาศ'})</div>}
-      <div class={`gallery n${Math.min(Math.max(n, 1), 5) < 4 ? Math.max(n, 1) : ''}`} data-gallery>
+      {demo && <div class="alert alert-info" style="margin-top:14px"><b>ประกาศตัวอย่าง</b> — สร้างขึ้นเพื่อแสดงหน้าตาเว็บไซต์ ไม่ใช่ทรัพย์จริง ภาพเป็นภาพจำลอง 3 มิติ และไม่รับการติดต่อ</div>}
+      {!demo && closed && <div class="alert alert-warn" style="margin-top:14px">ประกาศนี้ไม่ได้เผยแพร่แล้ว ({l.status === 'sold' ? 'ปิดการขาย/เช่าแล้ว' : 'ปิดประกาศ'})</div>}
+      <div class={`gallery n${Math.min(Math.max(n, 1), 5)}`} data-gallery>
         {n === 0 ? (
           <a href="#" aria-label="ไม่มีรูปภาพ"><img src={`/assets/img/ph-${l.type}.svg`} alt={l.title} /></a>
         ) : images.slice(0, 5).map((im, i) => (
@@ -67,6 +69,7 @@ export const ListingPage: FC<{
             <span class={`badge b-${l.deal}`}>{DEALS[l.deal as Deal]}</span>
             <span class="badge b-type" style="border:1px solid var(--line)">{TYPES[l.type as PType]}</span>
             {l.featured ? <span class="badge b-feat">แนะนำ</span> : null}
+            {demo ? <span class="badge b-demo">ตัวอย่าง</span> : null}
             {l.posterRole === 'owner' ? <span class="badge b-active">เจ้าของลงเอง</span> : null}
           </div>
           <h1>{l.title}</h1>
@@ -108,7 +111,7 @@ export const ListingPage: FC<{
           <div class="panel">
             <div class="price">฿{formatPrice(l.price)}{l.deal === 'rent' && <small> /เดือน</small>}</div>
             <p class="small muted" style="margin:4px 0 16px">รหัส {l.ref}</p>
-            {closed ? <p class="muted">ประกาศนี้ปิดแล้ว ไม่รับการติดต่อ</p> : (
+            {closed ? <p class="muted">{demo ? 'ประกาศตัวอย่าง — ไม่รับการติดต่อ' : 'ประกาศนี้ปิดแล้ว ไม่รับการติดต่อ'}</p> : (
               <form data-lead-form data-listing={l.id}>
                 <h3>สนใจทรัพย์นี้</h3>
                 <p class="small muted">ส่งข้อมูลติดต่อ ทีมงานจะประสานกับผู้ลงประกาศให้ เบอร์ของเจ้าของไม่ถูกเปิดเผยบนเว็บ</p>

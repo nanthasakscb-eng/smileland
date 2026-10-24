@@ -219,6 +219,23 @@ admin.post('/reindex', async (c) => {
   return c.redirect(`/admin/settings?ok=1&msg=${encodeURIComponent(msg)}${rows.length === 200 ? `&after=${last}` : ''}`, 303);
 });
 
+/* ---------- ลบประกาศตัวอย่างทั้งหมด (ก่อนเปิดใช้งานจริง) ---------- */
+admin.post('/demo/delete', async (c) => {
+  const DB = c.env.DB;
+  const ids = (await DB.prepare("SELECT id FROM listings WHERE ref LIKE 'SL-DEMO%'").all<{ id: number }>()).results.map((r) => r.id);
+  for (let i = 0; i < ids.length; i += 50) {
+    const chunk = ids.slice(i, i + 50); const qs = chunk.map(() => '?').join(',');
+    await DB.batch([
+      DB.prepare(`DELETE FROM listing_tokens WHERE listing_id IN (${qs})`).bind(...chunk),
+      DB.prepare(`DELETE FROM listing_images WHERE listing_id IN (${qs})`).bind(...chunk),
+      DB.prepare(`DELETE FROM leads WHERE listing_id IN (${qs})`).bind(...chunk),
+      DB.prepare(`DELETE FROM listings WHERE id IN (${qs})`).bind(...chunk),
+    ]);
+  }
+  c.executionCtx.waitUntil(c.env.JOBS.send({ kind: 'sitemap-index' }).catch(() => undefined));
+  return c.redirect(`/admin/settings?ok=1&msg=${encodeURIComponent(`ลบประกาศตัวอย่างแล้ว ${ids.length} รายการ`)}`, 303);
+});
+
 /* ---------- ผู้สนใจ ---------- */
 admin.get('/leads', async (c) => {
   const status = c.req.query('status') || '';

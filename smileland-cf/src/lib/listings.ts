@@ -12,6 +12,7 @@ export type SearchParams = {
   province?: number;
   district?: number;
   q?: string;
+  realOnly?: boolean; // ไม่นับประกาศตัวอย่าง
   min?: number;
   max?: number;
   bed?: number;
@@ -38,6 +39,7 @@ export type Card = {
 export function imgUrl(env: Bindings, coverKey: string | null, size: 400 | 800 | 1600 = 800): string | null {
   if (!coverKey) return null;
   const [base, ext = 'webp'] = coverKey.split(':');
+  if (base.startsWith('/')) return `${base}-${size}.${ext}`; // รูปที่เป็นไฟล์ static (ประกาศตัวอย่าง)
   return `${env.IMG_BASE}/${base}-${size}.${ext}`;
 }
 export function imgSrcset(env: Bindings, coverKey: string | null): string | undefined {
@@ -62,6 +64,7 @@ export function buildWhere(p: SearchParams): SQL {
   if (p.min) w.push(gte(listings.price, p.min));
   if (p.max) w.push(lte(listings.price, p.max));
   if (p.bed) w.push(gte(listings.bedrooms, p.bed));
+  if (p.realOnly) w.push(sql`${listings.ref} NOT LIKE 'SL-DEMO%'`);
   if (p.q && /^sl-[a-z0-9]{4,}$/i.test(p.q.trim())) {
     w.push(eq(listings.ref, p.q.trim().toUpperCase()));
   } else if (p.q) {
