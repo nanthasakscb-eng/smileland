@@ -5,6 +5,7 @@ import { db } from '../db';
 import { leads, listingImages, listings, priceHistory, timeline } from '../db/schema';
 import { districtsOf, geo, subdistrictsOf } from '../lib/geo';
 import { search } from '../lib/listings';
+import { getUser } from '../lib/users';
 import { clientIp, randomToken, rateLimit, sameOrigin, sha256Hex, verifyTurnstile } from '../lib/security';
 import { FEATURES, DEED_TYPES, ZONING, clampInt, clampNum, isEmail, isThaiPhone, newRef, normPhone, nowSec, str, toSqw } from '../lib/util';
 
@@ -97,6 +98,12 @@ function sniff(buf: Uint8Array): 'webp' | 'jpg' | null {
 
 api.post('/listings', async (c) => {
   const ip = clientIp(c);
+  const sess = c.get('user');
+  if (!sess) return c.json({ ok: false, error: 'กรุณาเข้าสู่ระบบก่อนลงประกาศ', login: true }, 401);
+  const me = await getUser(c, sess.userId);
+  if (!me || me.status !== 'active') return c.json({ ok: false, error: 'บัญชีนี้ไม่สามารถลงประกาศได้ กรุณาติดต่อทีมงาน' }, 403);
+  if (!me.emailVerifiedAt) return c.json({ ok: false, error: 'กรุณายืนยันอีเมลก่อนลงประกาศ (ดูลิงก์ในอีเมล หรือกดส่งอีกครั้งที่บัญชีของฉัน)' }, 403);
+  if (!(await rateLimit(c.env, `postu:${me.id}`, 20, 86400)).ok) return c.json({ ok: false, error: 'ลงประกาศครบจำนวนต่อวันแล้ว กรุณาลองใหม่พรุ่งนี้' }, 429);
   const rl = await rateLimit(c.env, `post:${ip}`, 6, 3600);
   if (!rl.ok) return c.json({ ok: false, error: 'ส่งประกาศบ่อยเกินไป กรุณาลองใหม่ภายหลัง' }, 429);
 
@@ -137,7 +144,7 @@ api.post('/listings', async (c) => {
 
   const ownerName = str(g('ownerName'), 80);
   const ownerPhone = normPhone(String(g('ownerPhone') || ''));
-  const ownerEmail = str(g('ownerEmail'), 120);
+  const ownerEmail = me.email;
   if (ownerName.length < 2) errors.ownerName = 'ระบุชื่อผู้ลงประกาศ';
   if (!isThaiPhone(ownerPhone)) errors.ownerPhone = 'เบอร์โทรไม่ถูกต้อง (เช่น 0812345678)';
   if (ownerEmail && !isEmail(ownerEmail)) errors.ownerEmail = 'อีเมลไม่ถูกต้อง';
@@ -205,7 +212,7 @@ api.post('/listings', async (c) => {
     depositMonths: deal === 'rent' ? clampInt(g('depositMonths'), 0, 24) : null, minContractMonths: deal === 'rent' ? clampInt(g('minContractMonths'), 1, 120) : null,
     furnished: deal === 'rent' && g('furnished') !== '' && g('furnished') != null ? (g('furnished') === '1' ? 1 : 0) : null,
     features: JSON.stringify(features), posterRole, ownerName, ownerPhone, ownerLine: str(g('ownerLine'), 60) || null, ownerEmail: ownerEmail || null,
-    deedNo: type !== 'condo' ? str(g('deedNo'), 40) || null : null, consign: g('consign') === '1' ? 1 : 0, manageTokenHash: await sha256Hex(token),
+    deedNo: type !== 'condo' ? str(g('deedNo'), 40) || null : null, consign: g('consign') === '1' ? 1 : 0, manageTokenHash: await sha256Hex(token), userId: me.id,
   }).returning({ id: listings.id });
   const id = inserted[0].id;
 

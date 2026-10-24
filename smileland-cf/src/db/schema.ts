@@ -89,6 +89,7 @@ export const listings = sqliteTable('listings', {
   deedNo: text('deed_no'),
   consign: integer('consign').notNull().default(0), // ขอใช้บริการฝากขาย/ฝากเช่า
   manageTokenHash: text('manage_token_hash').notNull(),
+  userId: integer('user_id'),
 
   featured: integer('featured').notNull().default(0),
   views: integer('views').notNull().default(0),
@@ -162,7 +163,47 @@ export const admins = sqliteTable('admins', {
   mustChange: integer('must_change').notNull().default(1),
   createdAt: integer('created_at').notNull().default(now),
   lastLoginAt: integer('last_login_at'),
+  isOwner: integer('is_owner').notNull().default(0),
+  permissions: text('permissions').notNull().default('[]'),
+  displayName: text('display_name'),
 }, (t) => [uniqueIndex('admins_username').on(t.username)]);
+
+/* ---------- สมาชิก (ผู้ลงประกาศ) ---------- */
+export const users = sqliteTable('users', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  email: text('email').notNull(),
+  passHash: text('pass_hash').notNull(),
+  salt: text('salt').notNull(),
+  iterations: integer('iterations').notNull(),
+  name: text('name').notNull(),
+  phone: text('phone'),
+  line: text('line'),
+  emailVerifiedAt: integer('email_verified_at'),
+  status: text('status', { enum: ['active', 'suspended'] }).notNull().default('active'),
+  createdAt: integer('created_at').notNull().default(now),
+  lastLoginAt: integer('last_login_at'),
+}, (t) => [uniqueIndex('users_email').on(t.email)]);
+
+export const emailTokens = sqliteTable('email_tokens', {
+  tokenHash: text('token_hash').primaryKey(),
+  userId: integer('user_id').notNull(),
+  purpose: text('purpose', { enum: ['verify', 'reset'] }).notNull(),
+  expiresAt: integer('expires_at').notNull(),
+  usedAt: integer('used_at'),
+  createdAt: integer('created_at').notNull().default(now),
+});
+
+export const outbox = sqliteTable('outbox', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  toEmail: text('to_email').notNull(),
+  subject: text('subject').notNull(),
+  bodyText: text('body_text').notNull(),
+  kind: text('kind'),
+  userId: integer('user_id'),
+  status: text('status').notNull().default('queued'),
+  error: text('error'),
+  createdAt: integer('created_at').notNull().default(now),
+});
 
 export const settings = sqliteTable('settings', {
   key: text('key').primaryKey(),
@@ -171,5 +212,7 @@ export const settings = sqliteTable('settings', {
 
 export type Listing = typeof listings.$inferSelect;
 export type Lead = typeof leads.$inferSelect;
+export type User = typeof users.$inferSelect;
+export type Admin = typeof admins.$inferSelect;
 export type Province = typeof provinces.$inferSelect;
 export type District = typeof districts.$inferSelect;

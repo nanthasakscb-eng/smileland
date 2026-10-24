@@ -1,11 +1,11 @@
 /** @jsxImportSource hono/jsx */
 import type { Child, FC } from 'hono/jsx';
 import { raw } from 'hono/html';
-import type { Bindings } from '../env';
+import type { Bindings, UserSession } from '../env';
 import { isDemo, DEALS, TYPES, formatPrice, landText, type Deal, type PType } from '../lib/util';
 import { imgUrl, imgSrcset, placeholder, type Card } from '../lib/listings';
 
-export const ASSET_V = '20261024d';
+export const ASSET_V = '20261024e';
 
 /* ---------- icons ---------- */
 const P = { fill: 'none', stroke: 'currentColor', 'stroke-width': '1.7', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' } as const;
@@ -65,7 +65,7 @@ export const Brand: FC<{ sub?: boolean }> = ({ sub = true }) => (
   </a>
 );
 
-export const Layout: FC<{ env: Bindings; meta: Meta; settings: Record<string, string>; children?: Child }> = ({ env, meta, settings, children }) => {
+export const Layout: FC<{ env: Bindings; meta: Meta; settings: Record<string, string>; user?: UserSession; children?: Child }> = ({ env, meta, settings, user, children }) => {
   const site = env.SITE_URL.replace(/\/$/, '');
   const title = meta.title.includes('SMILELAND') ? meta.title : `${meta.title} | SMILELAND`;
   const canonical = meta.canonical ? (meta.canonical.startsWith('http') ? meta.canonical : site + meta.canonical) : undefined;
@@ -108,6 +108,7 @@ export const Layout: FC<{ env: Bindings; meta: Meta; settings: Record<string, st
                 {settings.contact_line_url ? <a href={settings.contact_line_url} rel="noopener">LINE: {settings.contact_line || 'SMILELAND'}</a> : null}
                 {settings.contact_phone ? <> · โทร <a href={`tel:${settings.contact_phone}`}>{settings.contact_phone}</a></> : null}
                 {!settings.contact_line_url && !settings.contact_phone ? <a href="/status">ตรวจสถานะประกาศ</a> : null}
+                {!user ? <> · <a href="/register">สมัครสมาชิก</a></> : null}
               </span>
             </div>
           </div>
@@ -117,7 +118,7 @@ export const Layout: FC<{ env: Bindings; meta: Meta; settings: Record<string, st
               <button class="menu-btn" type="button" aria-label="เมนู" aria-expanded="false" data-menu><Icon name="menu" /></button>
               <nav class="nav" id="nav">
                 {navs.map(([k, href, label]) => <a href={href} class={meta.nav === k ? 'on' : ''}>{label}</a>)}
-                <a href="/status" class={meta.nav === 'status' ? 'on' : ''}>ตรวจสถานะ</a>
+                {user ? <a href="/account" class={meta.nav === 'account' ? 'on' : ''}>บัญชีของฉัน{!user.verified ? ' ⚠' : ''}</a> : <a href="/login" class={meta.nav === 'login' ? 'on' : ''}>เข้าสู่ระบบ</a>}
                 <a href="/post" class="btn btn-gold btn-sm">+ ลงประกาศฟรี</a>
               </nav>
             </div>
@@ -164,6 +165,7 @@ export const Footer: FC<{ settings: Record<string, string> }> = ({ settings }) =
           <h4>บริการ</h4>
           <ul>
             <li><a href="/post">ลงประกาศฟรี</a></li>
+            <li><a href="/register">สมัครสมาชิก</a> · <a href="/account">บัญชีของฉัน</a></li>
             <li><a href="/consign">ฝากขาย / ฝากเช่า</a></li>
             <li><a href="/status">ตรวจสถานะประกาศ</a></li>
             <li><a href="/tools">เครื่องมือคำนวณ</a></li>

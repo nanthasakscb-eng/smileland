@@ -1,16 +1,18 @@
 /** @jsxImportSource hono/jsx */
 import { Hono, type Context } from 'hono';
 import type { Child } from 'hono/jsx';
-import { and, count, desc, eq, gte, like, or, type SQL } from 'drizzle-orm';
+import { and, count, desc, eq, gte, like, or, sql, type SQL } from 'drizzle-orm';
 import type { AppEnv, AdminSession } from '../env';
 import { db } from '../db';
-import { admins, leads, listings, listingTokens, priceHistory, settings, timeline } from '../db/schema';
-import { AdminLayout, Dashboard, LeadsAdminPage, ListingAdminDetail, ListingsAdminPage, LoginPage, PasswordPage, SettingsPage, UsersPage } from '../views/admin/admin';
+import { admins, leads, listings, listingTokens, outbox, priceHistory, settings, timeline, users } from '../db/schema';
+import { AdminLayout, Dashboard, LeadsAdminPage, ListingAdminDetail, ListingsAdminPage, LoginPage, MembersPage, NoPermPage, OutboxPage, PasswordPage, SettingsPage, StaffPage } from '../views/admin/admin';
 import { createSession, destroySession, ensureBootstrapAdmin, loadSession, setAdminPassword, updateSession } from '../lib/session';
 import { clientIp, hashPassword, rateLimit, sameOrigin, timingSafeEqual, verifyPassword, verifyTurnstile } from '../lib/security';
 import { geo } from '../lib/geo';
 import { addTimeline, getImages, getListing, getTimeline, reindex } from '../lib/listings';
 import { clampInt, formatPrice, normPhone, nowSec } from '../lib/util';
+import { PERMS, can, getUser, sendVerifyEmail } from '../lib/users';
+import type { Next } from 'hono';
 import { invalidateSettings } from '../lib/settings';
 
 export const admin = new Hono<AppEnv>();
@@ -51,8 +53,13 @@ admin.post('/login', async (c) => {
 
 /* ---------- ต้องเข้าสู่ระบบสำหรับทุกหน้าด้านล่าง ---------- */
 admin.use('*', async (c, next) => {
-  const s = await loadSession(c);
-  if (!s) return c.redirect('/admin/login');
+  const s0 = await loadSession(c);
+  if (!s0) return c.redirect('/admin/login');
+  // โหลดสิทธิ์ล่าสุดทุกครั้ง (ถอนสิทธิ์/ลบผู้ดูแลมีผลทันที)
+  const row = (await db(c.env).select().from(admins).where(eq(admins.id, s0.adminId)).limit(1))[0];
+  if (!row) { await destroySession(c); return c.redirect('/admin/login'); }
+  let perms: string[] = []; try { perms = JSON.parse(row.permissions || '[]'); } catch { /* ignore */ }
+  const s = { ...s0, isOwner: !!row.isOwner, perms };
   c.set('admin', s);
   if (c.req.method === 'POST') {
     if (!sameOrigin(c)) return c.text('Bad origin', 403);
@@ -63,6 +70,12 @@ admin.use('*', async (c, next) => {
   await next();
 });
 
+/** ตรวจสิทธิ์: ต้องมีอย่างน้อยหนึ่งสิทธิ์ในรายการ */
+const need = (...perms: string[]) => async (c: Context<AppEnv>, next: Next) => {
+  const a = c.get('admin');
+  if (!perms.some((p) => can(a, p))) return page(c, 'ไม่มีสิทธิ์', '', <NoPermPage need={perms.map((p) => PERMS[p] || p)} />, 403);
+  await next();
+};
 async function counts(c: Context<AppEnv>) {
   const d = db(c.env);
   const [p, l] = await Promise.all([
@@ -71,8 +84,8 @@ async function counts(c: Context<AppEnv>) {
   ]);
   return { pending: p[0].n, leads: l[0].n };
 }
-async function page(c: Context<AppEnv>, title: string, nav: string, body: Child) {
-  return c.html(<AdminLayout title={title} admin={c.get('admin')} nav={nav} counts={await counts(c)}>{body}</AdminLayout>);
+async function page(c: Context<AppEnv>, title: string, nav: string, body: Child, status = 200) {
+  return c.html(<AdminLayout title={title} admin={c.get('admin')} nav={nav} counts={await counts(c)}>{body}</AdminLayout>, status as 200);
 }
 
 admin.post('/logout', async (c) => {
@@ -118,7 +131,7 @@ admin.get('/', async (c) => {
 });
 
 /* ---------- รายการประกาศ ---------- */
-admin.get('/listings', async (c) => {
+admin.get('/listings', need('listings.review', 'listings.edit'), async (c) => {
   const status = c.req.query('status') || '';
   const q = (c.req.query('q') || '').trim().slice(0, 60);
   const pg = clampInt(c.req.query('page'), 1, 1000) || 1;
@@ -127,7 +140,7 @@ admin.get('/listings', async (c) => {
   if (['pending', 'active', 'rejected', 'sold', 'expired', 'closed'].includes(status)) w.push(eq(listings.status, status as 'pending'));
   if (q) {
     const ph = normPhone(q);
-    w.push(or(eq(listings.ref, q.toUpperCase()), like(listings.title, `%${q}%`), ...(ph.length >= 9 ? [eq(listings.ownerPhone, ph)] : []))!);
+    w.push(or(eq(listings.ref, q.toUpperCase()), like(listings.title, `%${q}%`), eq(listings.ownerEmail, q.toLowerCase()), ...(ph.length >= 9 ? [eq(listings.ownerPhone, ph)] : []))!);
   }
   const where = w.length ? and(...w) : undefined;
   const d = db(c.env);
@@ -141,8 +154,8 @@ admin.get('/listings', async (c) => {
     <ListingsAdminPage env={c.env} rows={rows.map((r) => ({ ...r, provinceName: pm.get(r.provinceCode) }))} status={status} q={q} page={pg} pages={Math.ceil(total[0].n / per)} total={total[0].n} />);
 });
 
-admin.get('/listings/:id{[0-9]+}', async (c) => {
-  const id = parseInt(c.req.param('id'), 10);
+admin.get('/listings/:id{[0-9]+}', need('listings.review', 'listings.edit'), async (c) => {
+  const id = parseInt(c.req.param('id')!, 10);
   const l = await getListing(c.env, id);
   if (!l) return c.redirect('/admin/listings');
   const g = await geo(c.env);
@@ -155,14 +168,16 @@ admin.get('/listings/:id{[0-9]+}', async (c) => {
     <ListingAdminDetail env={c.env} admin={c.get('admin')!} l={l} images={images} loc={loc} timeline={tl} leads={ls} msg={c.req.query('ok') || undefined} />);
 });
 
-admin.post('/listings/:id{[0-9]+}', async (c) => {
-  const id = parseInt(c.req.param('id'), 10);
+admin.post('/listings/:id{[0-9]+}', need('listings.review', 'listings.edit'), async (c) => {
+  const id = parseInt(c.req.param('id')!, 10);
   const s = c.get('admin') as AdminSession;
   const actor = `admin:${s.username}`;
   const l = await getListing(c.env, id);
   if (!l) return c.redirect('/admin/listings', 303);
   const f = await c.req.parseBody();
   const action = String(f.action || '');
+  const needPerm = ['approve', 'reject'].includes(action) ? 'listings.review' : 'listings.edit';
+  if (!can(s, needPerm)) return c.redirect(`/admin/listings/${id}?ok=${encodeURIComponent('ไม่มีสิทธิ์: ' + PERMS[needPerm])}`, 303);
   const d = db(c.env);
   const now = nowSec();
   const ttl = parseInt(c.env.LISTING_TTL_DAYS || '180', 10) * 86400;
@@ -210,7 +225,7 @@ admin.post('/listings/:id{[0-9]+}', async (c) => {
 });
 
 /* ---------- สร้างดัชนีค้นหาใหม่ (เช่น หลังนำเข้าข้อมูลเดิม) ---------- */
-admin.post('/reindex', async (c) => {
+admin.post('/reindex', need('settings'), async (c) => {
   const after = clampInt((await c.req.parseBody()).after, 0, 1e12) || 0;
   const rows = await db(c.env).select().from(listings).where(and(eq(listings.status, 'active'), gte(listings.id, after + 1))).orderBy(listings.id).limit(200);
   for (const l of rows) await reindex(c.env, l);
@@ -220,7 +235,7 @@ admin.post('/reindex', async (c) => {
 });
 
 /* ---------- ลบประกาศตัวอย่างทั้งหมด (ก่อนเปิดใช้งานจริง) ---------- */
-admin.post('/demo/delete', async (c) => {
+admin.post('/demo/delete', need('settings'), async (c) => {
   const DB = c.env.DB;
   const ids = (await DB.prepare("SELECT id FROM listings WHERE ref LIKE 'SL-DEMO%'").all<{ id: number }>()).results.map((r) => r.id);
   for (let i = 0; i < ids.length; i += 50) {
@@ -237,7 +252,7 @@ admin.post('/demo/delete', async (c) => {
 });
 
 /* ---------- ผู้สนใจ ---------- */
-admin.get('/leads', async (c) => {
+admin.get('/leads', need('leads'), async (c) => {
   const status = c.req.query('status') || '';
   const kind = c.req.query('kind') || '';
   const w: SQL[] = [];
@@ -247,17 +262,17 @@ admin.get('/leads', async (c) => {
     .where(w.length ? and(...w) : undefined).orderBy(desc(leads.id)).limit(300);
   return page(c, 'ผู้สนใจ', 'leads', <LeadsAdminPage rows={rows.map((r) => ({ ...r.lead, listingRef: r.ref }))} status={status} kind={kind} csrf={c.get('admin')!.csrf} />);
 });
-admin.post('/leads/:id{[0-9]+}', async (c) => {
+admin.post('/leads/:id{[0-9]+}', need('leads'), async (c) => {
   const f = await c.req.parseBody();
   const st = String(f.status || '');
-  if (['new', 'contacted', 'closed'].includes(st)) await db(c.env).update(leads).set({ status: st as 'new' }).where(eq(leads.id, parseInt(c.req.param('id'), 10)));
+  if (['new', 'contacted', 'closed'].includes(st)) await db(c.env).update(leads).set({ status: st as 'new' }).where(eq(leads.id, parseInt(c.req.param('id')!, 10)));
   return c.redirect(c.req.header('referer') || '/admin/leads', 303);
 });
 
 /* ---------- ตั้งค่า ---------- */
 const SETTING_KEYS = ['contact_phone', 'contact_line', 'contact_line_url', 'contact_email', 'company_name', 'company_address', 'dpo_contact', 'privacy_effective_date', 'data_retention'];
-admin.get('/settings', (c) => page(c, 'ตั้งค่า', 'settings', <SettingsPage admin={c.get('admin')!} s={c.get('settings')} ok={c.req.query('ok') ? (c.req.query('msg') || 'บันทึกแล้ว') : undefined} after={c.req.query('after')} />));
-admin.post('/settings', async (c) => {
+admin.get('/settings', need('settings'), (c) => page(c, 'ตั้งค่า', 'settings', <SettingsPage admin={c.get('admin')!} s={c.get('settings')} ok={c.req.query('ok') ? (c.req.query('msg') || 'บันทึกแล้ว') : undefined} after={c.req.query('after')} />));
+admin.post('/settings', need('settings'), async (c) => {
   const f = await c.req.parseBody();
   const d = db(c.env);
   const stmts = SETTING_KEYS.map((k) => {
@@ -270,27 +285,88 @@ admin.post('/settings', async (c) => {
   return c.redirect('/admin/settings?ok=1', 303);
 });
 
-/* ---------- ผู้ดูแลระบบ ---------- */
-admin.get('/users', async (c) => {
-  const users = await db(c.env).select({ id: admins.id, username: admins.username, createdAt: admins.createdAt, lastLoginAt: admins.lastLoginAt, mustChange: admins.mustChange }).from(admins).orderBy(admins.id);
-  return page(c, 'ผู้ดูแลระบบ', 'users', <UsersPage admin={c.get('admin')!} users={users} ok={c.req.query('ok') || undefined} error={c.req.query('error') || undefined} />);
+/* ---------- ทีมผู้ดูแล + สิทธิ์ ---------- */
+const PERM_KEYS = Object.keys(PERMS);
+const readPerms = (f: Record<string, unknown>) => PERM_KEYS.filter((k) => f[`perm_${k}`] === '1');
+admin.get('/users', need('staff'), async (c) => {
+  const rows = await db(c.env).select().from(admins).orderBy(admins.id);
+  return page(c, 'ทีมผู้ดูแล', 'users', <StaffPage admin={c.get('admin')!} staff={rows} ok={c.req.query('ok') || undefined} error={c.req.query('error') || undefined} />);
 });
-admin.post('/users', async (c) => {
+admin.post('/users', need('staff'), async (c) => {
+  const me = c.get('admin')!;
   const f = await c.req.parseBody();
   const d = db(c.env);
-  if (f.action === 'create') {
+  const back = (k: 'ok' | 'error', m: string) => c.redirect(`/admin/users?${k}=${encodeURIComponent(m)}`, 303);
+  const action = String(f.action || '');
+  if (action === 'create') {
     const username = String(f.username || '').trim().toLowerCase();
     const pw = String(f.password || '');
-    if (!/^[a-z0-9._-]{3,30}$/.test(username) || pw.length < 10) return c.redirect('/admin/users?error=' + encodeURIComponent('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้องตามเงื่อนไข'), 303);
+    if (!/^[a-z0-9._-]{3,30}$/.test(username) || pw.length < 10) return back('error', 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้องตามเงื่อนไข');
+    let perms = readPerms(f);
+    if (!me.isOwner) perms = perms.filter((p) => p !== 'staff'); // ให้สิทธิ์จัดการทีมได้เฉพาะเจ้าของระบบ
     const h = await hashPassword(pw);
-    const r = await d.insert(admins).values({ username, passHash: h.hash, salt: h.salt, iterations: h.iterations, mustChange: 1 }).onConflictDoNothing().returning({ id: admins.id });
-    return c.redirect('/admin/users?' + (r.length ? 'ok=' + encodeURIComponent('เพิ่มผู้ดูแลแล้ว') : 'error=' + encodeURIComponent('ชื่อผู้ใช้นี้มีอยู่แล้ว')), 303);
+    const r = await d.insert(admins).values({ username, passHash: h.hash, salt: h.salt, iterations: h.iterations, mustChange: 1, permissions: JSON.stringify(perms), displayName: String(f.display_name || '').trim().slice(0, 60) || null }).onConflictDoNothing().returning({ id: admins.id });
+    return r.length ? back('ok', `เพิ่มผู้ดูแล ${username} แล้ว — แจ้งรหัสผ่านชั่วคราวทางช่องทางส่วนตัว`) : back('error', 'ชื่อผู้ใช้นี้มีอยู่แล้ว');
   }
-  if (f.action === 'delete') {
-    const id = clampInt(f.id, 1, 1e9);
-    if (id && id !== c.get('admin')!.adminId) await d.delete(admins).where(eq(admins.id, id));
-    return c.redirect('/admin/users?ok=' + encodeURIComponent('ลบผู้ดูแลแล้ว'), 303);
+  const id = clampInt(f.id, 1, 1e9);
+  const target = id ? (await d.select().from(admins).where(eq(admins.id, id)).limit(1))[0] : undefined;
+  if (!target) return back('error', 'ไม่พบผู้ดูแล');
+  if (target.isOwner) return back('error', 'แก้ไขบัญชีเจ้าของระบบไม่ได้');
+  if (target.id === me.adminId) return back('error', 'แก้ไขสิทธิ์ของตัวเองไม่ได้');
+  if (action === 'perms') {
+    let perms = readPerms(f);
+    if (!me.isOwner) { // ผู้ช่วยที่มีสิทธิ์ staff ห้ามเพิ่ม/ถอนสิทธิ์ staff
+      const had = (() => { try { return JSON.parse(target.permissions || '[]') as string[]; } catch { return []; } })();
+      perms = perms.filter((p) => p !== 'staff'); if (had.includes('staff')) perms.push('staff');
+    }
+    await d.update(admins).set({ permissions: JSON.stringify(perms), displayName: String(f.display_name || '').trim().slice(0, 60) || null }).where(eq(admins.id, id!));
+    return back('ok', `บันทึกสิทธิ์ของ ${target.username} แล้ว`);
   }
-  return c.redirect('/admin/users', 303);
+  if (action === 'reset') {
+    const pw = String(f.password || '');
+    if (pw.length < 10) return back('error', 'รหัสผ่านชั่วคราวอย่างน้อย 10 ตัวอักษร');
+    const h = await hashPassword(pw);
+    await d.update(admins).set({ passHash: h.hash, salt: h.salt, iterations: h.iterations, mustChange: 1 }).where(eq(admins.id, id!));
+    return back('ok', `ตั้งรหัสชั่วคราวให้ ${target.username} แล้ว (ต้องเปลี่ยนเมื่อเข้าครั้งถัดไป)`);
+  }
+  if (action === 'delete') {
+    await d.delete(admins).where(eq(admins.id, id!));
+    return back('ok', `ลบผู้ดูแล ${target.username} แล้ว`);
+  }
+  return back('error', 'คำสั่งไม่ถูกต้อง');
 });
 
+/* ---------- สมาชิก ---------- */
+admin.get('/members', need('members'), async (c) => {
+  const q = (c.req.query('q') || '').trim().toLowerCase().slice(0, 80);
+  const st = c.req.query('status') || '';
+  const w: SQL[] = [];
+  if (q) w.push(or(like(users.email, `%${q}%`), like(users.name, `%${q}%`), ...(normPhone(q).length >= 9 ? [eq(users.phone, normPhone(q))] : []))!);
+  if (st === 'unverified') w.push(sql`${users.emailVerifiedAt} IS NULL`);
+  if (st === 'suspended') w.push(eq(users.status, 'suspended'));
+  const d = db(c.env);
+  const rows = await d.select({ u: users, n: sql<number>`(SELECT count(*) FROM listings l WHERE l.user_id = ${users.id})` }).from(users).where(w.length ? and(...w) : undefined).orderBy(desc(users.id)).limit(300);
+  const total = (await d.select({ n: count() }).from(users))[0].n;
+  return page(c, 'สมาชิก', 'members', <MembersPage admin={c.get('admin')!} rows={rows.map((r) => ({ ...r.u, listingCount: r.n }))} q={q} status={st} total={total} ok={c.req.query('ok') || undefined} />);
+});
+admin.post('/members/:id{[0-9]+}', need('members'), async (c) => {
+  const id = parseInt(c.req.param('id')!, 10);
+  const f = await c.req.parseBody();
+  const u = await getUser(c, id);
+  if (!u) return c.redirect('/admin/members', 303);
+  const d = db(c.env);
+  let msg = 'บันทึกแล้ว';
+  switch (String(f.action || '')) {
+    case 'verify': await d.update(users).set({ emailVerifiedAt: nowSec() }).where(eq(users.id, id)); msg = `ยืนยันอีเมล ${u.email} แทนแล้ว`; break;
+    case 'resend': await sendVerifyEmail(c, u); msg = `ส่งลิงก์ยืนยันไปที่ ${u.email} แล้ว (ดูได้ที่กล่องอีเมลขาออก)`; break;
+    case 'suspend': await d.update(users).set({ status: 'suspended' }).where(eq(users.id, id)); msg = `ระงับบัญชี ${u.email} แล้ว`; break;
+    case 'activate': await d.update(users).set({ status: 'active' }).where(eq(users.id, id)); msg = `เปิดใช้บัญชี ${u.email} แล้ว`; break;
+  }
+  return c.redirect(`/admin/members?ok=${encodeURIComponent(msg)}&q=${encodeURIComponent(String(f.q || ''))}`, 303);
+});
+
+/* ---------- กล่องอีเมลขาออก (ใช้ระหว่างยังไม่ได้ตั้งค่าบริการส่งอีเมล) ---------- */
+admin.get('/outbox', need('members'), async (c) => {
+  const rows = await db(c.env).select().from(outbox).orderBy(desc(outbox.id)).limit(200);
+  return page(c, 'กล่องอีเมลขาออก', 'outbox', <OutboxPage rows={rows} configured={!!(c.env.RESEND_API_KEY && c.env.MAIL_FROM)} />);
+});

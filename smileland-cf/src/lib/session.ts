@@ -49,7 +49,7 @@ export async function ensureBootstrapAdmin(c: Context<AppEnv>) {
   const pw = c.env.ADMIN_INITIAL_PASSWORD;
   if (!pw || pw.length < 10) return;
   const h = await hashPassword(pw);
-  await d.insert(admins).values({ username: 'admin', passHash: h.hash, salt: h.salt, iterations: h.iterations, mustChange: 1 }).onConflictDoNothing();
+  await d.insert(admins).values({ username: 'admin', passHash: h.hash, salt: h.salt, iterations: h.iterations, mustChange: 1, isOwner: 1 }).onConflictDoNothing();
 }
 
 export async function setAdminPassword(c: Context<AppEnv>, adminId: number, pw: string) {

@@ -7,6 +7,8 @@ import { pub, notFound, render } from './routes/public';
 import { api } from './routes/api';
 import { admin } from './routes/admin';
 import { seo } from './routes/seo';
+import { account } from './routes/account';
+import { withUser } from './lib/users';
 import { loadSettings } from './lib/settings';
 import { dailyCron, handleJob } from './lib/jobs';
 
@@ -40,9 +42,11 @@ app.use('*', async (c, next) => {
 
 // ไม่ใช้ด่าน CAPTCHA แบบบล็อกทั้งเว็บอีกต่อไป (เดิมทำให้ Googlebot เข้าไม่ได้)
 // ใช้ Turnstile เฉพาะตอนส่งฟอร์ม + rate limit แทน
+app.use('*', withUser);
 app.route('/', seo);
 app.route('/api', api);
 app.route('/admin', admin);
+app.route('/', account);
 app.route('/', pub);
 
 app.notFound((c) => (c.req.path.startsWith('/api/') ? c.json({ ok: false, error: 'not found' }, 404) : notFound(c)));

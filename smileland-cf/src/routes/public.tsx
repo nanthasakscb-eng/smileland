@@ -10,6 +10,8 @@ import { HomePage } from '../views/pages/home';
 import { SearchPage, type SubLink } from '../views/pages/search';
 import { ListingPage } from '../views/pages/listing';
 import { PostDone, PostPage } from '../views/pages/post';
+import { NeedVerify } from '../views/pages/account';
+import { getUser } from '../lib/users';
 import { ConsignPage, ManagePage, NotFoundPage, PrivacyPage, ProvincesPage, StatusPage, TermsPage, ToolsPage } from '../views/pages/misc';
 import { geo, provinceBySlug, districtBySlug, districtsOf, subdistrictName, districtLabel } from '../lib/geo';
 import {
@@ -22,7 +24,7 @@ import { clientIp, rateLimit, sha256Hex, verifyTurnstile, sameOrigin } from '../
 export const pub = new Hono<AppEnv>();
 
 export function render(c: Context<AppEnv>, meta: Meta, body: Child, status = 200) {
-  return c.html(<Layout env={c.env} meta={meta} settings={c.get('settings')}>{body}</Layout>, status as 200);
+  return c.html(<Layout env={c.env} meta={meta} settings={c.get('settings')} user={c.get('user')}>{body}</Layout>, status as 200);
 }
 export function notFound(c: Context<AppEnv>) {
   return render(c, { title: 'ไม่พบหน้า', noindex: true }, <NotFoundPage />, 404);
@@ -241,11 +243,16 @@ pub.get('/listing/:id{[0-9]+}', async (c) => {
 
 /* ================= ลงประกาศ ================= */
 pub.get('/post', async (c) => {
+  const s = c.get('user');
+  if (!s) return c.redirect('/login?next=' + encodeURIComponent('/post' + (c.req.query('consign') === '1' ? '?consign=1' : '')), 303);
+  const me = await getUser(c, s.userId);
+  if (!me) return c.redirect('/login?next=/post', 303);
+  if (!me.emailVerifiedAt) return render(c, { title: 'ยืนยันอีเมลก่อนลงประกาศ', noindex: true }, <NeedVerify user={s} />);
   const g = await geo(c.env);
   return render(c, {
     title: 'ลงประกาศขาย/ให้เช่า บ้าน ที่ดิน คอนโด ฟรี', description: 'ลงประกาศขายหรือให้เช่า บ้าน ที่ดิน คอนโด ฟรี ทั่วประเทศ ทีมงานตรวจสอบก่อนเผยแพร่ ไม่เปิดเผยเบอร์โทรเจ้าของบนหน้าเว็บ',
     canonical: '/post', maps: true, turnstile: true, page: 'post', nav: 'post',
-  }, <><PostPage env={c.env} provinces={g.provinces} consign={c.req.query('consign') === '1'} /><PostDone /></>);
+  }, <><PostPage env={c.env} provinces={g.provinces} consign={c.req.query('consign') === '1'} me={me} /><PostDone /></>);
 });
 
 /* ================= ตรวจสถานะ ================= */

@@ -2,9 +2,11 @@
 import type { Child, FC } from 'hono/jsx';
 import { raw } from 'hono/html';
 import type { Bindings, AdminSession } from '../../env';
-import type { Lead, Listing } from '../../db/schema';
+import type { Admin, Lead, Listing, User } from '../../db/schema';
+import { outbox } from '../../db/schema';
+import { PERMS, can } from '../../lib/users';
 import { ASSET_V, Brand, Icon, StatusBadge } from '../ui';
-import { DEALS, DEED_TYPES, FEATURES, TYPES, ZONING, formatPrice, landText, thaiDateTime, type Deal, type PType } from '../../lib/util';
+import { DEALS, DEED_TYPES, FEATURES, TYPES, ZONING, formatPrice, landText, thaiDate, thaiDateTime, type Deal, type PType } from '../../lib/util';
 import { imgUrl, placeholder } from '../../lib/listings';
 import { TL_LABEL } from '../pages/listing';
 
@@ -28,17 +30,19 @@ export const AdminLayout: FC<{ title: string; admin?: AdminSession; nav?: string
               <Brand sub={false} />
               <nav>
                 <a href="/admin" class={nav === 'dash' ? 'on' : ''}>ภาพรวม</a>
-                <a href="/admin/listings?status=pending" class={nav === 'pending' ? 'on' : ''}>รอตรวจสอบ {counts?.pending ? <span class="n">{counts.pending}</span> : null}</a>
-                <a href="/admin/listings" class={nav === 'listings' ? 'on' : ''}>ประกาศทั้งหมด</a>
-                <a href="/admin/leads" class={nav === 'leads' ? 'on' : ''}>ผู้สนใจ / ฝากขาย {counts?.leads ? <span class="n">{counts.leads}</span> : null}</a>
-                <a href="/admin/settings" class={nav === 'settings' ? 'on' : ''}>ตั้งค่าเว็บไซต์</a>
-                <a href="/admin/users" class={nav === 'users' ? 'on' : ''}>ผู้ดูแลระบบ</a>
+                {can(admin, 'listings.review') && <a href="/admin/listings?status=pending" class={nav === 'pending' ? 'on' : ''}>รอตรวจสอบ {counts?.pending ? <span class="n">{counts.pending}</span> : null}</a>}
+                {(can(admin, 'listings.review') || can(admin, 'listings.edit')) && <a href="/admin/listings" class={nav === 'listings' ? 'on' : ''}>ประกาศทั้งหมด</a>}
+                {can(admin, 'leads') && <a href="/admin/leads" class={nav === 'leads' ? 'on' : ''}>ผู้สนใจ / ฝากขาย {counts?.leads ? <span class="n">{counts.leads}</span> : null}</a>}
+                {can(admin, 'members') && <a href="/admin/members" class={nav === 'members' ? 'on' : ''}>สมาชิก</a>}
+                {can(admin, 'members') && <a href="/admin/outbox" class={nav === 'outbox' ? 'on' : ''}>กล่องอีเมลขาออก</a>}
+                {can(admin, 'settings') && <a href="/admin/settings" class={nav === 'settings' ? 'on' : ''}>ตั้งค่าเว็บไซต์</a>}
+                {can(admin, 'staff') && <a href="/admin/users" class={nav === 'users' ? 'on' : ''}>ทีมผู้ดูแล & สิทธิ์</a>}
                 <a href="/admin/password" class={nav === 'password' ? 'on' : ''}>เปลี่ยนรหัสผ่าน</a>
                 <a href="/" target="_blank">ดูหน้าเว็บ ↗</a>
               </nav>
               <form method="post" action="/admin/logout" style="margin-top:24px;padding:0 8px">
                 <input type="hidden" name="csrf" value={admin.csrf} />
-                <div class="tiny" style="color:#9fb0c4;margin-bottom:8px">เข้าสู่ระบบ: {admin.username}</div>
+                <div class="tiny" style="color:#9fb0c4;margin-bottom:8px">เข้าสู่ระบบ: {admin.username}{admin.isOwner ? ' (เจ้าของระบบ)' : ''}</div>
                 <button class="btn btn-line btn-sm" type="submit">ออกจากระบบ</button>
               </form>
             </aside>
@@ -197,11 +201,11 @@ export const ListingAdminDetail: FC<{
       <div class="form-card" style="margin-top:18px">
         <h2 style="font-size:18px">การดำเนินการ</h2>
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-          {l.status !== 'active' && !['sold'].includes(l.status) && act('approve', '✓ อนุมัติและเผยแพร่', 'btn-ok')}
-          {l.status === 'pending' && act('reject', 'ไม่อนุมัติ', 'btn-danger', <input class="input" name="reason" required placeholder="เหตุผล (แจ้งผู้ลงประกาศ)" style="width:260px" maxlength={300} />)}
-          {l.status === 'active' && act(l.featured ? 'unfeature' : 'feature', l.featured ? 'ยกเลิกแนะนำ' : '★ ตั้งเป็นประกาศแนะนำ', 'btn-gold')}
-          {l.status === 'active' && act('sold', 'ปิดการขาย/เช่า', 'btn-line')}
-          {!['closed'].includes(l.status) && act('close', 'ปิดประกาศ', 'btn-line', undefined, 'ยืนยันปิดประกาศนี้?')}
+          {can(admin, 'listings.review') && l.status !== 'active' && !['sold'].includes(l.status) && act('approve', '✓ อนุมัติและเผยแพร่', 'btn-ok')}
+          {can(admin, 'listings.review') && l.status === 'pending' && act('reject', 'ไม่อนุมัติ', 'btn-danger', <input class="input" name="reason" required placeholder="เหตุผล (แจ้งผู้ลงประกาศ)" style="width:260px" maxlength={300} />)}
+          {can(admin, 'listings.edit') && l.status === 'active' && act(l.featured ? 'unfeature' : 'feature', l.featured ? 'ยกเลิกแนะนำ' : '★ ตั้งเป็นประกาศแนะนำ', 'btn-gold')}
+          {can(admin, 'listings.edit') && l.status === 'active' && act('sold', 'ปิดการขาย/เช่า', 'btn-line')}
+          {can(admin, 'listings.edit') && !['closed'].includes(l.status) && act('close', 'ปิดประกาศ', 'btn-line', undefined, 'ยืนยันปิดประกาศนี้?')}
         </div>
       </div>
       <div class="grid2" style="gap:20px;align-items:start">
@@ -236,10 +240,10 @@ export const ListingAdminDetail: FC<{
               <dt>ฝากขาย</dt><dd>{l.consign ? 'สนใจบริการฝากขาย/ฝากเช่า' : '-'}</dd>
             </dl>
           </div>
-          <div class="form-card">
+          {can(admin, 'listings.edit') && <div class="form-card">
             <h2 style="font-size:18px">แก้ไขราคา</h2>
             {act('price', 'บันทึก', 'btn-ink', <input class="input" name="price" data-money value={formatPrice(l.price)} style="width:200px" />)}
-          </div>
+          </div>}
         </div>
       </div>
       <div class="form-card">
@@ -304,23 +308,152 @@ export const SettingsPage: FC<{ admin: AdminSession; s: Record<string, string>; 
   );
 };
 
-export const UsersPage: FC<{ admin: AdminSession; users: { id: number; username: string; createdAt: number; lastLoginAt: number | null; mustChange: number }[]; ok?: string; error?: string }> = ({ admin, users, ok, error }) => (
+const PermChecks: FC<{ perms: string[]; disabled?: boolean; lockStaff?: boolean }> = ({ perms, disabled, lockStaff }) => (
+  <div class="chips" style="margin:6px 0 10px">
+    {Object.entries(PERMS).map(([k, label]) => (
+      <label class="chip" title={label}><input type="checkbox" name={`perm_${k}`} value="1" checked={perms.includes(k)} disabled={disabled || (lockStaff && k === 'staff')} /><span>{label}</span></label>
+    ))}
+  </div>
+);
+
+export const NoPermPage: FC<{ need: string[] }> = ({ need }) => (
+  <div class="form-card" style="max-width:620px">
+    <h1 style="font-size:22px">ไม่มีสิทธิ์เข้าถึงหน้านี้</h1>
+    <p class="muted">ต้องมีสิทธิ์: {need.join(' หรือ ')} — ติดต่อเจ้าของระบบเพื่อขอสิทธิ์</p>
+    <a class="btn btn-ink" href="/admin">กลับหน้าภาพรวม</a>
+  </div>
+);
+
+export const StaffPage: FC<{ admin: AdminSession; staff: Admin[]; ok?: string; error?: string }> = ({ admin, staff, ok, error }) => (
   <>
-    <h1>ผู้ดูแลระบบ</h1>
+    <h1>ทีมผู้ดูแล & สิทธิ์</h1>
+    <p class="muted">เพิ่มผู้ช่วยทำงาน แล้วเลือกว่าแต่ละคนทำอะไรได้บ้าง · เจ้าของระบบมีทุกสิทธิ์</p>
     {ok && <div class="alert alert-ok">{ok}</div>}
     {error && <div class="alert alert-bad">{error}</div>}
-    <div class="table-wrap" style="margin-bottom:22px"><table class="t"><thead><tr><th>ชื่อผู้ใช้</th><th>สร้างเมื่อ</th><th>เข้าสู่ระบบล่าสุด</th><th></th></tr></thead><tbody>
-      {users.map((u) => <tr><td><b>{u.username}</b>{u.mustChange ? <span class="badge b-pending" style="margin-left:6px">รอเปลี่ยนรหัส</span> : null}</td><td class="small">{thaiDateTime(u.createdAt)}</td><td class="small">{thaiDateTime(u.lastLoginAt)}</td><td>
-        {u.id !== admin.adminId && <form method="post" action="/admin/users" data-confirm={`ลบผู้ดูแล ${u.username}?`}><input type="hidden" name="csrf" value={admin.csrf} /><input type="hidden" name="action" value="delete" /><input type="hidden" name="id" value={String(u.id)} /><button class="btn btn-line btn-sm">ลบ</button></form>}
-      </td></tr>)}
-    </tbody></table></div>
-    <form class="form-card" method="post" action="/admin/users" style="max-width:520px">
-      <h2 style="font-size:18px">เพิ่มผู้ดูแล</h2>
+    <div style="display:grid;gap:14px;margin-bottom:26px">
+      {staff.map((u) => {
+        let perms: string[] = []; try { perms = JSON.parse(u.permissions || '[]'); } catch { /* ignore */ }
+        const self = u.id === admin.adminId;
+        const locked = !!u.isOwner || self;
+        return (
+          <div class="form-card" style="margin:0">
+            <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+              <div><b style="font-size:17px">{u.displayName || u.username}</b> <span class="muted small">@{u.username}</span>
+                {u.isOwner ? <span class="badge b-feat" style="margin-left:6px">เจ้าของระบบ</span> : null}
+                {self ? <span class="badge b-active" style="margin-left:6px">คุณ</span> : null}
+                {u.mustChange ? <span class="badge b-pending" style="margin-left:6px">รอเปลี่ยนรหัส</span> : null}
+                <div class="tiny muted">เข้าสู่ระบบล่าสุด: {thaiDateTime(u.lastLoginAt)}</div></div>
+            </div>
+            {u.isOwner ? <p class="small muted" style="margin:8px 0 0">มีสิทธิ์ทุกอย่าง</p> : (
+              <form method="post" action="/admin/users">
+                <input type="hidden" name="csrf" value={admin.csrf} /><input type="hidden" name="action" value="perms" /><input type="hidden" name="id" value={String(u.id)} />
+                <PermChecks perms={perms} disabled={locked} lockStaff={!admin.isOwner} />
+                {!locked && <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                  <input class="input" name="display_name" value={u.displayName || ''} placeholder="ชื่อที่แสดง" style="width:200px;padding:7px 12px" maxlength={60} />
+                  <button class="btn btn-ink btn-sm" type="submit">บันทึกสิทธิ์</button>
+                </div>}
+              </form>
+            )}
+            {!locked && (
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;border-top:1px solid var(--line-2);padding-top:10px">
+                <form method="post" action="/admin/users" style="display:flex;gap:6px">
+                  <input type="hidden" name="csrf" value={admin.csrf} /><input type="hidden" name="action" value="reset" /><input type="hidden" name="id" value={String(u.id)} />
+                  <input class="input" type="password" name="password" placeholder="รหัสชั่วคราวใหม่ (≥10)" minlength={10} style="width:200px;padding:7px 12px" autocomplete="new-password" />
+                  <button class="btn btn-line btn-sm" type="submit">ตั้งรหัสใหม่</button>
+                </form>
+                <form method="post" action="/admin/users" data-confirm={`ลบผู้ดูแล ${u.username}?`}>
+                  <input type="hidden" name="csrf" value={admin.csrf} /><input type="hidden" name="action" value="delete" /><input type="hidden" name="id" value={String(u.id)} />
+                  <button class="btn btn-danger btn-sm" type="submit">ลบ</button>
+                </form>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+    <form class="form-card" method="post" action="/admin/users" style="max-width:760px">
+      <h2 style="font-size:18px">+ เพิ่มผู้ช่วย</h2>
       <input type="hidden" name="csrf" value={admin.csrf} /><input type="hidden" name="action" value="create" />
-      <div class="field"><label>ชื่อผู้ใช้</label><input class="input" name="username" required pattern="[a-z0-9._-]{3,30}" maxlength={30} /><div class="hint">a-z 0-9 . _ - (3–30 ตัว)</div></div>
-      <div class="field"><label>รหัสผ่านชั่วคราว</label><input class="input" type="password" name="password" required minlength={10} autocomplete="new-password" /><div class="hint">ผู้ดูแลใหม่ต้องเปลี่ยนรหัสเมื่อเข้าสู่ระบบครั้งแรก · ส่งรหัสผ่านทางช่องทางส่วนตัวเท่านั้น</div></div>
-      <button class="btn btn-ink" type="submit">เพิ่มผู้ดูแล</button>
+      <div class="grid2">
+        <div class="field"><label>ชื่อผู้ใช้ (ใช้ล็อกอิน)</label><input class="input" name="username" required pattern="[a-z0-9._-]{3,30}" maxlength={30} placeholder="เช่น somchai" /><div class="hint">a-z 0-9 . _ - (3–30 ตัว)</div></div>
+        <div class="field"><label>ชื่อที่แสดง</label><input class="input" name="display_name" maxlength={60} placeholder="เช่น สมชาย (ทีมตรวจประกาศ)" /></div>
+      </div>
+      <div class="field"><label>รหัสผ่านชั่วคราว</label><input class="input" type="password" name="password" required minlength={10} autocomplete="new-password" /><div class="hint">ผู้ช่วยต้องเปลี่ยนรหัสเมื่อเข้าครั้งแรก · แจ้งรหัสทางช่องทางส่วนตัวเท่านั้น</div></div>
+      <label>สิทธิ์การใช้งาน</label>
+      <PermChecks perms={['listings.review', 'leads']} lockStaff={!admin.isOwner} />
+      <button class="btn btn-gold" type="submit">เพิ่มผู้ช่วย</button>
     </form>
+  </>
+);
+
+type MemberRow = User & { listingCount: number };
+export const MembersPage: FC<{ admin: AdminSession; rows: MemberRow[]; q: string; status: string; total: number; ok?: string }> = ({ admin, rows, q, status, total, ok }) => (
+  <>
+    <h1>สมาชิก <span class="muted" style="font-size:16px">({formatPrice(total)})</span></h1>
+    {ok && <div class="alert alert-ok">{ok}</div>}
+    <form class="toolbar" method="get">
+      <input class="input" name="q" value={q} placeholder="ค้นหา อีเมล / ชื่อ / เบอร์" />
+      <select class="input" name="status" data-autosubmit>
+        {[['', 'ทั้งหมด'], ['unverified', 'ยังไม่ยืนยันอีเมล'], ['suspended', 'ถูกระงับ']].map(([v, t]) => <option value={v} selected={status === v}>{t}</option>)}
+      </select>
+      <button class="btn btn-ink btn-sm" type="submit">ค้นหา</button>
+    </form>
+    <div class="table-wrap"><table class="t">
+      <thead><tr><th>สมาชิก</th><th>ติดต่อ</th><th>อีเมล</th><th>ประกาศ</th><th>สมัครเมื่อ</th><th>จัดการ</th></tr></thead>
+      <tbody>
+        {rows.length === 0 && <tr><td colspan={6} class="muted center" style="padding:30px">ไม่มีสมาชิก</td></tr>}
+        {rows.map((u) => (
+          <tr>
+            <td><b>{u.name}</b>{u.status === 'suspended' && <span class="badge b-rejected" style="margin-left:6px">ระงับ</span>}</td>
+            <td class="small nowrap"><a href={`tel:${u.phone}`}>{u.phone}</a>{u.line ? <div>LINE {u.line}</div> : null}</td>
+            <td class="small">{u.email}<div>{u.emailVerifiedAt ? <span class="badge b-active">ยืนยันแล้ว</span> : <span class="badge b-pending">ยังไม่ยืนยัน</span>}</div></td>
+            <td>{u.listingCount ? <a href={`/admin/listings?q=${encodeURIComponent(u.email)}`}>{u.listingCount}</a> : 0}</td>
+            <td class="small nowrap">{thaiDate(u.createdAt)}<div class="tiny muted">ล่าสุด {thaiDateTime(u.lastLoginAt)}</div></td>
+            <td style="min-width:200px"><div style="display:flex;gap:6px;flex-wrap:wrap">
+              {!u.emailVerifiedAt && mAct(admin, u.id, q, 'verify', 'ยืนยันแทน', 'btn-ok')}
+              {!u.emailVerifiedAt && mAct(admin, u.id, q, 'resend', 'ส่งลิงก์อีกครั้ง', 'btn-line')}
+              {u.status === 'active' ? mAct(admin, u.id, q, 'suspend', 'ระงับ', 'btn-danger', `ระงับบัญชี ${u.email}? สมาชิกจะเข้าสู่ระบบและลงประกาศไม่ได้`) : mAct(admin, u.id, q, 'activate', 'เปิดใช้', 'btn-line')}
+            </div></td>
+          </tr>
+        ))}
+      </tbody>
+    </table></div>
+  </>
+);
+function mAct(admin: AdminSession, id: number, q: string, action: string, label: string, cls: string, confirm?: string) {
+  return (
+    <form method="post" action={`/admin/members/${id}`} data-confirm={confirm}>
+      <input type="hidden" name="csrf" value={admin.csrf} /><input type="hidden" name="action" value={action} /><input type="hidden" name="q" value={q} />
+      <button class={`btn btn-sm ${cls}`} type="submit">{label}</button>
+    </form>
+  );
+}
+
+export const OutboxPage: FC<{ rows: (typeof outbox.$inferSelect)[]; configured: boolean }> = ({ rows, configured }) => (
+  <>
+    <h1>กล่องอีเมลขาออก</h1>
+    {configured ? <div class="alert alert-ok">ตั้งค่าบริการส่งอีเมล (Resend) แล้ว — อีเมลส่งถึงลูกค้าจริง หน้านี้ใช้ดูประวัติ</div> : (
+      <div class="alert alert-warn">ยังไม่ได้ตั้งค่าบริการส่งอีเมล — อีเมลจะยังไม่ถึงลูกค้า ใช้ลิงก์ด้านล่างส่งให้ลูกค้าทาง LINE/โทร หรือกด "ยืนยันแทน" ที่หน้าสมาชิก · เมื่อมีโดเมนแล้ว ตั้งค่า RESEND_API_KEY และ MAIL_FROM แล้วอีเมลจะส่งอัตโนมัติ</div>
+    )}
+    <div class="table-wrap"><table class="t">
+      <thead><tr><th>เวลา</th><th>ถึง</th><th>เรื่อง</th><th>ลิงก์</th><th>สถานะ</th></tr></thead>
+      <tbody>
+        {rows.length === 0 && <tr><td colspan={5} class="muted center" style="padding:30px">ยังไม่มีอีเมล</td></tr>}
+        {rows.map((m) => {
+          const link = (m.bodyText.match(/https?:\/\/\S+/) || [])[0];
+          const expired = m.createdAt < Math.floor(Date.now() / 1000) - (m.kind === 'reset' ? 3600 : 172800);
+          return (
+            <tr>
+              <td class="small nowrap">{thaiDateTime(m.createdAt)}</td>
+              <td class="small">{m.toEmail}</td>
+              <td class="small">{m.subject}</td>
+              <td class="small" style="max-width:360px;word-break:break-all">{link ? (expired ? <span class="muted">หมดอายุแล้ว</span> : <input class="input" readonly value={link} style="font-size:12px;padding:6px 8px" onclick="this.select()" />) : '-'}</td>
+              <td><span class={`badge ${m.status === 'sent' ? 'b-active' : m.status === 'failed' ? 'b-rejected' : 'b-pending'}`}>{m.status === 'sent' ? 'ส่งแล้ว' : m.status === 'failed' ? 'ส่งไม่สำเร็จ' : 'ยังไม่ส่ง (รอตั้งค่า)'}</span>{m.error && <div class="tiny muted">{m.error.slice(0, 120)}</div>}</td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table></div>
   </>
 );
 

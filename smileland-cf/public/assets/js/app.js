@@ -454,6 +454,7 @@
           window.scrollTo({ top: 0, behavior: 'smooth' });
           return;
         }
+        if (xhr.status === 401 && j.login) { location.href = '/login?next=/post'; return; }
         btn.disabled = false; resetTurnstile(form);
         const first = j.errors && Object.keys(j.errors)[0];
         fail((j.errors ? Object.values(j.errors).join(' · ') : '') || j.error || 'ส่งไม่สำเร็จ กรุณาลองใหม่', first);

@@ -7,7 +7,7 @@ import { DEED_TYPES, FEATURES, ZONING } from '../../lib/util';
 
 const MAX_IMAGES = 12;
 
-export const PostPage: FC<{ env: Bindings; provinces: Province[]; consign?: boolean }> = ({ env, provinces, consign }) => (
+export const PostPage: FC<{ env: Bindings; provinces: Province[]; consign?: boolean; me?: { name: string; phone: string | null; line: string | null; email: string } }> = ({ env, provinces, consign, me }) => (
   <div class="wrap">
     <Crumbs items={[['หน้าแรก', '/'], ['ลงประกาศฟรี']]} />
     <div class="page-head">
@@ -186,12 +186,12 @@ export const PostPage: FC<{ env: Bindings; provinces: Province[]; consign?: bool
 
         <section class="form-card" id="s-contact">
           <h2>5. ข้อมูลติดต่อ <span class="badge b-active" style="font-family:var(--font)">ไม่แสดงบนเว็บ</span></h2>
-          <p class="muted">ใช้สำหรับให้ทีมงานติดต่อกลับ และตรวจสถานะประกาศด้วยเลขอ้างอิง + เบอร์โทร</p>
+          <p class="muted">ดึงจากบัญชีของคุณ แก้ไขสำหรับประกาศนี้ได้ · ติดตามสถานะและผู้สนใจได้ที่ <a href="/account" style="text-decoration:underline">บัญชีของฉัน</a></p>
           <div class="grid2">
-            <div class="field"><label class="req" for="p-name">ชื่อผู้ลงประกาศ</label><input id="p-name" class="input" name="ownerName" required maxlength={80} autocomplete="name" /></div>
-            <div class="field"><label class="req" for="p-phone">เบอร์โทร</label><input id="p-phone" class="input" name="ownerPhone" required inputmode="tel" maxlength={15} autocomplete="tel" placeholder="08xxxxxxxx" /></div>
-            <div class="field"><label for="p-line">LINE ID</label><input id="p-line" class="input" name="ownerLine" maxlength={60} /></div>
-            <div class="field"><label for="p-email">อีเมล</label><input id="p-email" class="input" name="ownerEmail" type="email" maxlength={120} autocomplete="email" /></div>
+            <div class="field"><label class="req" for="p-name">ชื่อผู้ลงประกาศ</label><input id="p-name" class="input" name="ownerName" required maxlength={80} autocomplete="name" value={me?.name || ''} /></div>
+            <div class="field"><label class="req" for="p-phone">เบอร์โทร</label><input id="p-phone" class="input" name="ownerPhone" required inputmode="tel" maxlength={15} autocomplete="tel" placeholder="08xxxxxxxx" value={me?.phone || ''} /></div>
+            <div class="field"><label for="p-line">LINE ID</label><input id="p-line" class="input" name="ownerLine" maxlength={60} value={me?.line || ''} /></div>
+            <div class="field"><label for="p-email">อีเมล</label><input id="p-email" class="input" name="ownerEmail" type="email" maxlength={120} autocomplete="email" value={me?.email || ''} readonly={!!me} /></div>
           </div>
           <div class="field" data-for="land house">
             <label for="p-deedno">เลขที่โฉนด <span class="muted small">(ไม่บังคับ · เก็บเป็นความลับ ใช้ตรวจสอบเท่านั้น)</span></label>
@@ -228,6 +228,7 @@ export const PostDone: FC = () => (
       </div>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
         <a class="btn btn-line" href="/">กลับหน้าแรก</a>
+        <a class="btn btn-ink" href="/account">ไปที่บัญชีของฉัน</a>
         <a class="btn btn-gold" href="/post">ลงประกาศอีกรายการ</a>
       </div>
     </div>
