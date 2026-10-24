@@ -19,15 +19,15 @@ export const StatusPage: FC<{ env: Bindings; error?: string; ref?: string; resul
         <div class="field"><label class="req" for="st-phone">เบอร์โทร</label><input id="st-phone" class="input" name="phone" required inputmode="tel" maxlength={15} /></div>
       </div>
       <Turnstile env={env} />
-      <button class="btn btn-ink" type="submit" style="margin-top:14px"><Icon name="search" /> ตรวจสถานะ</button>
+      <button class="btn btn-ink" type="submit" style="margin-top:12px"><Icon name="search" /> ตรวจสถานะ</button>
     </form>
     {result && (
       <div class="form-card">
-        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+        <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center">
           <h2 style="margin:0">{result.l.ref}</h2>
           <StatusBadge s={result.l.status} />
         </div>
-        <p style="margin:10px 0 4px"><b>{result.l.title}</b></p>
+        <p style="margin:8px 0 4px"><b>{result.l.title}</b></p>
         <p class="muted small">{TYPES[result.l.type as PType]}{DEALS[result.l.deal as Deal]} · ฿{formatPrice(result.l.price)} · ส่งเมื่อ {thaiDate(result.l.createdAt)}</p>
         {result.l.status === 'rejected' && result.l.rejectReason && <div class="alert alert-bad">เหตุผล: {result.l.rejectReason}</div>}
         {result.l.status === 'active' && <a class="btn btn-gold btn-sm" href={`/listing/${result.l.id}`}>ดูประกาศบนเว็บ</a>}
@@ -66,7 +66,7 @@ export const ManagePage: FC<{ l: Listing; token: string; leads: Lead[]; msg?: st
           {['active', 'expired'].includes(l.status) && <form method="post" action={`/manage/${token}`}><input type="hidden" name="action" value="renew" /><button class="btn btn-line btn-sm">ต่ออายุประกาศ</button></form>}
           {!['closed', 'sold'].includes(l.status) && <form method="post" action={`/manage/${token}`} data-confirm="ยืนยันปิดประกาศ? ประกาศจะไม่แสดงบนเว็บอีก"><input type="hidden" name="action" value="close" /><button class="btn btn-danger btn-sm">ปิดประกาศ</button></form>}
         </div>
-        {l.status === 'active' && <p style="margin-top:14px"><a href={`/listing/${l.id}`} style="text-decoration:underline">ดูหน้าประกาศ →</a></p>}
+        {l.status === 'active' && <p style="margin-top:12px"><a href={`/listing/${l.id}`} style="text-decoration:underline">ดูหน้าประกาศ →</a></p>}
       </div>
     </div>
     <div class="form-card">
@@ -92,14 +92,14 @@ export const ConsignPage: FC<{ env: Bindings; provinces: Province[] }> = ({ env,
       <h1>ให้ SMILELAND <em>ดูแลทรัพย์</em><br />ของคุณแบบครบวงจร</h1>
       <p class="lead">เหมาะสำหรับเจ้าของที่ไม่สะดวกตอบสาย นัดชม หรืออยู่ต่างจังหวัด เราดูแลตั้งแต่ประกาศจนถึงคัดกรองผู้ซื้อ</p>
     </div></section>
-    <div class="wrap" style="padding:48px 20px 72px">
+    <div class="wrap" style="padding:48px 20px 64px">
       <div class="feature-grid" style="margin-bottom:40px">
         <div class="feature"><div class="num">01</div><h3>ส่งข้อมูลทรัพย์</h3><p>กรอกแบบฟอร์มด้านล่าง ทีมงานโทรกลับเพื่อสอบถามรายละเอียด</p></div>
         <div class="feature"><div class="num">02</div><h3>จัดทำประกาศ</h3><p>เขียนประกาศ จัดภาพ และเผยแพร่บน SMILELAND พร้อมช่องทางอื่น</p></div>
         <div class="feature"><div class="num">03</div><h3>คัดกรองผู้สนใจ</h3><p>รับสายและข้อความแทน คัดเฉพาะผู้ที่สนใจจริงส่งต่อให้คุณ</p></div>
         <div class="feature"><div class="num">04</div><h3>ประสานจนปิดดีล</h3><p>นัดชมทรัพย์ ประสานเอกสาร และการโอนที่สำนักงานที่ดิน</p></div>
       </div>
-      <div class="grid2" style="gap:28px;align-items:start">
+      <div class="grid2" style="gap:24px;align-items:start">
         <form class="form-card" data-lead-form data-kind="consign">
           <h2>ขอรับบริการฝากขาย/ฝากเช่า</h2>
           <div class="grid2">
@@ -121,7 +121,7 @@ export const ConsignPage: FC<{ env: Bindings; provinces: Province[] }> = ({ env,
           </div>
           <div class="field"><label for="c-msg">รายละเอียดเบื้องต้น</label><textarea id="c-msg" class="input" name="message" maxlength={2000} placeholder="ขนาด ทำเล ราคาที่ต้องการ"></textarea></div>
           <label class="check small"><input type="checkbox" name="consent" required /> <span>ยินยอมให้ติดต่อกลับตาม<a href="/privacy" style="text-decoration:underline">นโยบายความเป็นส่วนตัว</a></span></label>
-          <div style="margin:14px 0"><Turnstile env={env} /></div>
+          <div style="margin:12px 0"><Turnstile env={env} /></div>
           <button class="btn btn-gold btn-lg" type="submit">ส่งข้อมูลให้ทีมงานติดต่อกลับ</button>
           <div class="form-msg" aria-live="polite"></div>
         </form>
@@ -137,7 +137,7 @@ export const ConsignPage: FC<{ env: Bindings; provinces: Province[] }> = ({ env,
 
 /* ---------- ทุกจังหวัด ---------- */
 export const ProvincesPage: FC<{ provinces: Province[]; counts: Map<number, number> }> = ({ provinces, counts }) => (
-  <div class="wrap" style="padding-bottom:72px">
+  <div class="wrap" style="padding-bottom:64px">
     <Crumbs items={[['หน้าแรก', '/'], ['ทุกจังหวัด']]} />
     <div class="page-head"><h1>อสังหาริมทรัพย์ 77 จังหวัดทั่วไทย</h1><p class="muted">เลือกจังหวัดเพื่อดูบ้าน ที่ดิน และคอนโดขาย/ให้เช่า</p></div>
     <div class="form-card"><RegionLinks provinces={provinces} counts={counts} base="/sale/property" /></div>
@@ -245,6 +245,6 @@ export const NotFoundPage: FC = () => (
     <div class="eyebrow" style="justify-content:center">404</div>
     <h1>ไม่พบหน้าที่คุณต้องการ</h1>
     <p class="muted">ประกาศอาจถูกปิดไปแล้ว หรือที่อยู่ลิงก์ไม่ถูกต้อง</p>
-    <div style="display:flex;gap:10px;justify-content:center"><a class="btn btn-ink" href="/">หน้าแรก</a><a class="btn btn-line" href="/search">ค้นหาประกาศ</a></div>
+    <div style="display:flex;gap:8px;justify-content:center"><a class="btn btn-ink" href="/">หน้าแรก</a><a class="btn btn-line" href="/search">ค้นหาประกาศ</a></div>
   </div>
 );

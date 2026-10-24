@@ -72,7 +72,7 @@ export const SearchPage: FC<{
           </div>
           <div class="field">
             <label>ราคา (บาท{params.deal === 'rent' ? '/เดือน' : ''})</label>
-            <div class="grid2" style="gap:0 10px">
+            <div class="grid2" style="gap:0 8px">
               <input class="input" name="min" inputmode="numeric" placeholder="ต่ำสุด" value={params.min ? String(params.min) : ''} data-money />
               <input class="input" name="max" inputmode="numeric" placeholder="สูงสุด" value={params.max ? String(params.max) : ''} data-money />
             </div>
@@ -90,7 +90,7 @@ export const SearchPage: FC<{
           </div>
           <input type="hidden" name="sort" value={params.sort || ''} />
           <button class="btn btn-ink btn-block" type="submit"><Icon name="search" /> ค้นหา</button>
-          <a href="/search" class="btn btn-ghost btn-block btn-sm" style="margin-top:6px">ล้างตัวกรอง</a>
+          <a href="/search" class="btn btn-ghost btn-block btn-sm" style="margin-top:4px">ล้างตัวกรอง</a>
         </form>
       </aside>
       <section>
@@ -112,7 +112,7 @@ export const SearchPage: FC<{
           <div class="empty">
             <h3>ยังไม่พบประกาศที่ตรงกับเงื่อนไข</h3>
             <p class="muted">ลองขยายพื้นที่ ปรับช่วงราคา หรือเปลี่ยนคำค้น</p>
-            <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+            <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
               <a class="btn btn-line" href="/search">ดูประกาศทั้งหมด</a>
               <a class="btn btn-gold" href="/post">ลงประกาศในพื้นที่นี้</a>
             </div>

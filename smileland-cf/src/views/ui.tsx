@@ -5,7 +5,7 @@ import type { Bindings, UserSession } from '../env';
 import { isDemo, DEALS, TYPES, formatPrice, landText, type Deal, type PType } from '../lib/util';
 import { imgUrl, imgSrcset, placeholder, type Card } from '../lib/listings';
 
-export const ASSET_V = '20261024e';
+export const ASSET_V = '20261024ds1';
 
 /* ---------- icons ---------- */
 const P = { fill: 'none', stroke: 'currentColor', 'stroke-width': '1.7', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' } as const;

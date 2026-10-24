@@ -14,17 +14,17 @@ enabled = true
 
 [vars]
 SITE_NAME = "SMILELAND"
-SITE_URL = "http://127.0.0.1:8787"   # production: https://<โดเมน>
+SITE_URL = "https://xn--q3ca1a3aod6acw1c9je.com"
 IMG_BASE = "/img"                     # production: https://img.<โดเมน> (R2 custom domain)
 # Turnstile test site key (ผ่านทุกครั้ง) — production เปลี่ยนเป็น site key จริง
-TURNSTILE_SITE_KEY = "1x00000000000000000000AA"
+TURNSTILE_SITE_KEY = "0x4AAAAAAFjYuQwghWZlM5Tc"
 LISTING_TTL_DAYS = "180"
 THIN_PAGE_MIN = "3"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "smileland-db"
-database_id = "00000000-0000-0000-0000-000000000000" # ← ใส่ค่าจาก `wrangler d1 create smileland-db`
+database_id = "ff7b7083-fb87-4f5e-b2a4-82c4ec54a5f6" # ← ใส่ค่าจาก `wrangler d1 create smileland-db`
 migrations_dir = "migrations"
 
 [[r2_buckets]]
@@ -33,11 +33,11 @@ bucket_name = "smileland-uploads"
 
 [[kv_namespaces]]
 binding = "SESSIONS"
-id = "00000000000000000000000000000001" # ← ใส่ค่าจาก `wrangler kv namespace create SESSIONS`
+id = "e984af6c856d401e8d48a56a9c805e28" # ← ใส่ค่าจาก `wrangler kv namespace create SESSIONS`
 
 [[kv_namespaces]]
 binding = "RATELIMIT"
-id = "00000000000000000000000000000002" # ← ใส่ค่าจาก `wrangler kv namespace create RATELIMIT`
+id = "e1d7f5497900499793299bfb00fb668f" # ← ใส่ค่าจาก `wrangler kv namespace create RATELIMIT`
 
 [[queues.producers]]
 binding = "JOBS"

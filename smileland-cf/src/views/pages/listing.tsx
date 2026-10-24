@@ -49,8 +49,8 @@ export const ListingPage: FC<{
   return (
     <div class="wrap">
       <Crumbs items={crumbs} />
-      {demo && <div class="alert alert-info" style="margin-top:14px"><b>ประกาศตัวอย่าง</b> — สร้างขึ้นเพื่อแสดงหน้าตาเว็บไซต์ ไม่ใช่ทรัพย์จริง ภาพเป็นภาพจำลอง 3 มิติ และไม่รับการติดต่อ</div>}
-      {!demo && closed && <div class="alert alert-warn" style="margin-top:14px">ประกาศนี้ไม่ได้เผยแพร่แล้ว ({l.status === 'sold' ? 'ปิดการขาย/เช่าแล้ว' : 'ปิดประกาศ'})</div>}
+      {demo && <div class="alert alert-info" style="margin-top:12px"><b>ประกาศตัวอย่าง</b> — สร้างขึ้นเพื่อแสดงหน้าตาเว็บไซต์ ไม่ใช่ทรัพย์จริง ภาพเป็นภาพจำลอง 3 มิติ และไม่รับการติดต่อ</div>}
+      {!demo && closed && <div class="alert alert-warn" style="margin-top:12px">ประกาศนี้ไม่ได้เผยแพร่แล้ว ({l.status === 'sold' ? 'ปิดการขาย/เช่าแล้ว' : 'ปิดประกาศ'})</div>}
       <div class={`gallery n${Math.min(Math.max(n, 1), 5)}`} data-gallery>
         {n === 0 ? (
           <a href="#" aria-label="ไม่มีรูปภาพ"><img src={`/assets/img/ph-${l.type}.svg`} alt={l.title} /></a>
@@ -65,7 +65,7 @@ export const ListingPage: FC<{
 
       <div class="detail">
         <article>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
             <span class={`badge b-${l.deal}`}>{DEALS[l.deal as Deal]}</span>
             <span class="badge b-type" style="border:1px solid var(--line)">{TYPES[l.type as PType]}</span>
             {l.featured ? <span class="badge b-feat">แนะนำ</span> : null}
@@ -86,7 +86,7 @@ export const ListingPage: FC<{
 
           {features.length > 0 && (
             <>
-              <h2 style="font-size:22px;margin-top:28px">จุดเด่น</h2>
+              <h2 style="font-size:22px;margin-top:24px">จุดเด่น</h2>
               <div class="tags">{features.map((f) => <span class="tag">✓ {FEATURES[f] || f}</span>)}</div>
             </>
           )}
@@ -120,12 +120,12 @@ export const ListingPage: FC<{
                 <div class="field"><label for="ld-line">LINE ID</label><input id="ld-line" class="input" name="line" maxlength={60} /></div>
                 <div class="field"><label for="ld-msg">ข้อความ</label><textarea id="ld-msg" class="input" name="message" maxlength={1000} style="min-height:90px">สนใจ{TYPES[l.type as PType]}{DEALS[l.deal as Deal]} รหัส {l.ref} ขอรายละเอียดเพิ่มเติมครับ/ค่ะ</textarea></div>
                 <label class="check small"><input type="checkbox" name="consent" required /> <span>ยินยอมให้ SMILELAND ใช้ข้อมูลเพื่อติดต่อกลับเรื่องทรัพย์นี้ ตาม<a href="/privacy" style="text-decoration:underline">นโยบายความเป็นส่วนตัว</a></span></label>
-                <div style="margin:14px 0"><Turnstile env={env} /></div>
+                <div style="margin:12px 0"><Turnstile env={env} /></div>
                 <button class="btn btn-gold btn-block" type="submit"><Icon name="chat" /> ส่งข้อความถึงผู้ลงประกาศ</button>
                 <div class="form-msg" aria-live="polite"></div>
               </form>
             )}
-            {settings.contact_line_url && <a class="btn btn-line btn-block" style="margin-top:10px" href={settings.contact_line_url} rel="noopener">สอบถามทาง LINE OA</a>}
+            {settings.contact_line_url && <a class="btn btn-line btn-block" style="margin-top:8px" href={settings.contact_line_url} rel="noopener">สอบถามทาง LINE OA</a>}
           </div>
           <div class="panel">
             <h3 style="font-size:16px">แชร์ประกาศนี้</h3>
@@ -134,7 +134,7 @@ export const ListingPage: FC<{
               <a class="btn btn-line btn-sm" data-share="facebook" href="#">Facebook</a>
               <button class="btn btn-line btn-sm" data-share="copy" type="button">คัดลอกลิงก์</button>
             </div>
-            <p class="tiny muted" style="margin:14px 0 0"><Icon name="eye" class="ico" /> เข้าชม {formatPrice(l.views)} ครั้ง</p>
+            <p class="tiny muted" style="margin:12px 0 0"><Icon name="eye" class="ico" /> เข้าชม {formatPrice(l.views)} ครั้ง</p>
           </div>
           <div class="panel small">
             <h3 style="font-size:16px"><Icon name="shield" /> ข้อควรระวัง</h3>
