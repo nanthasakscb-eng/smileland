@@ -35,6 +35,38 @@ api.get('/geo/subdistricts', async (c) => {
   return c.json((await subdistrictsOf(c.env, code)).map((s) => ({ code: s.code, name: s.nameTh, postal: s.postalCode })));
 });
 
+/* ---------- อ่านพิกัดจากลิงก์ย่อ Google Maps (maps.app.goo.gl) ----------
+   browser อ่าน redirect ข้ามโดเมนเองไม่ได้ จึงให้ server ตามลิงก์ให้ — อนุญาตเฉพาะโดเมน Google Maps (กัน SSRF) */
+const GMAP_HOST = /^(maps\.app\.goo\.gl|goo\.gl|maps\.google\.[a-z.]+|www\.google\.[a-z.]+|google\.[a-z.]+)$/i;
+function latLngFrom(text: string): [number, number] | null {
+  const t = decodeURIComponent(text);
+  for (const re of [/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/, /@(-?\d+\.\d+),(-?\d+\.\d+)/, /[?&](?:q|query|ll|center|destination)=(-?\d+\.\d+),\s*(-?\d+\.\d+)/]) {
+    const m = t.match(re);
+    if (m) return [parseFloat(m[1]), parseFloat(m[2])];
+  }
+  return null;
+}
+api.get('/geo/resolve', async (c) => {
+  const rl = await rateLimit(c.env, `gres:${clientIp(c)}`, 30, 3600);
+  if (!rl.ok) return c.json({ ok: false }, 429);
+  let url = String(c.req.query('url') || '').slice(0, 2000);
+  for (let hop = 0; hop < 4; hop++) {
+    let u: URL;
+    try { u = new URL(url); } catch { return c.json({ ok: false }); }
+    if (u.protocol !== 'https:' || !GMAP_HOST.test(u.hostname)) return c.json({ ok: false });
+    const ll = latLngFrom(u.href);
+    if (ll) return c.json({ ok: true, lat: ll[0], lng: ll[1] });
+    const r = await fetch(u.href, { redirect: 'manual', headers: { 'User-Agent': 'Mozilla/5.0 SMILELAND' } });
+    const loc = r.headers.get('location');
+    if (!loc) {
+      if (r.status === 200) { const m = latLngFrom((await r.text()).slice(0, 200000)); if (m) return c.json({ ok: true, lat: m[0], lng: m[1] }); }
+      return c.json({ ok: false });
+    }
+    url = new URL(loc, u).href;
+  }
+  return c.json({ ok: false });
+});
+
 /* ---------- ค้นหา (JSON) ---------- */
 api.get('/listings', async (c) => {
   const q = c.req.query();

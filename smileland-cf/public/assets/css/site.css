@@ -320,14 +320,42 @@ textarea.input { min-height: 140px; resize: vertical; }
 .type-pick .tp svg { width: 34px; height: 34px; margin: 0 auto 8px; color: var(--ink-3); }
 .type-pick .tp b { display: block; color: var(--ink); }
 .type-pick input:checked + .tp { border-color: var(--gold); background: var(--gold-soft); box-shadow: 0 0 0 3px rgba(184, 146, 74, .15); }
-.dropzone { border: 1.5px dashed var(--line); border-radius: 14px; padding: 28px; text-align: center; background: var(--surface-2); cursor: pointer; transition: .15s; }
+.dropzone { border: 1.5px dashed var(--line); border-radius: 14px; padding: 14px; margin-top: 12px; text-align: center; background: var(--surface-2); transition: .15s; user-select: none; -webkit-user-select: none; }
+@media (hover: none) { .dropzone { display: none; } }
 .dropzone.drag { border-color: var(--gold); background: var(--gold-soft); }
 .thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; margin-top: 14px; }
+@media (max-width: 600px) { .thumbs { grid-template-columns: repeat(3, 1fr); gap: 8px; } }
 .thumb { position: relative; aspect-ratio: 4/3; border-radius: 10px; overflow: hidden; background: #eee; border: 1px solid var(--line); }
 .thumb img { width: 100%; height: 100%; object-fit: cover; }
 .thumb button { position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; border-radius: 50%; border: 0; background: rgba(15, 29, 44, .8); color: #fff; cursor: pointer; font-size: 14px; line-height: 1; }
 .thumb .cover { position: absolute; left: 6px; bottom: 6px; background: var(--gold); color: #1b1408; font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
-.pick-map { height: 320px; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); }
+.pin-tools { display: grid; gap: 10px; margin-bottom: 12px; }
+.pin-tools > .btn { justify-self: start; }
+.pin-paste { display: flex; gap: 8px; }
+.pin-paste .input { flex: 1; min-width: 0; }
+@media (max-width: 600px) { .pin-tools > .btn { justify-self: stretch; } .pin-paste { flex-direction: column; } }
+.pick-map-wrap { position: relative; }
+.pick-map { height: 380px; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #e9e5dc; }
+.pick-map .maplibregl-canvas { cursor: crosshair; }
+.pick-hint { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); background: rgba(15, 29, 44, .85); color: #fff; font-size: 13.5px; padding: 6px 14px; border-radius: 999px; pointer-events: none; white-space: nowrap; max-width: calc(100% - 24px); overflow: hidden; text-overflow: ellipsis; }
+.pin-status { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 10px; font-size: 14px; color: var(--muted); flex-wrap: wrap; }
+.pin-status.ok { color: var(--ok); font-weight: 600; }
+.photo-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 480px) { .photo-actions { grid-template-columns: 1fr; } }
+.photo-btn { position: relative; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 22px 14px; border: 1.5px solid var(--line); border-radius: 14px; background: #fff; cursor: pointer; text-align: center; transition: .15s; user-select: none; -webkit-user-select: none; }
+.photo-btn:hover, .photo-btn:focus-within { border-color: var(--gold); background: var(--gold-soft); }
+.photo-btn input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+.photo-btn .ico { width: 30px; height: 30px; color: var(--ink-3); }
+.photo-btn b { color: var(--ink); font-size: 16px; }
+.photo-btn span { font-size: 13px; color: var(--muted); }
+.photo-cam { background: var(--ink); border-color: var(--ink); }
+.photo-cam .ico, .photo-cam b { color: #fff; }
+.photo-cam span { color: #b8c4d3; }
+.photo-cam:hover, .photo-cam:focus-within { background: var(--ink-2); border-color: var(--gold); }
+.photo-count { margin-top: 10px; }
+.thumb.busy::after { content: 'กำลังเตรียมรูป…'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,.7); font-size: 12px; color: var(--ink); }
+.thumb.bad { outline: 2px solid var(--bad); }
+@media (max-width: 600px) { .submit-bar .btn { width: 100%; } }
 .submit-bar { position: sticky; bottom: 0; background: rgba(247, 245, 240, .95); backdrop-filter: blur(8px); padding: 16px 0; border-top: 1px solid var(--line); display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
 .progress { height: 6px; background: var(--line-2); border-radius: 999px; overflow: hidden; margin-top: 10px; display: none; }
 .progress i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--gold-2), var(--gold)); transition: width .2s; }

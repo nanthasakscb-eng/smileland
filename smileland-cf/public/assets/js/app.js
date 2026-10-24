@@ -223,34 +223,113 @@
 
     /* ----- map pin ----- */
     const pickEl = $('#pick-map');
-    let pick = null, marker = null;
-    const setPoint = (lng, lat, fly) => {
+    const statusBox = $('[data-pin-status]', form);
+    const statusText = $('[data-latlng-text]', form);
+    const clearBtn = $('[data-pin-clear]', form);
+    const hint = $('[data-pick-hint]', form);
+    let pick = null, marker = null, pending = null;
+    const inThailand = (lat, lng) => lat >= 5 && lat <= 21 && lng >= 97 && lng <= 106;
+    function setPoint(lng, lat, fly, zoom) {
+      if (!inThailand(lat, lng)) { alert('ตำแหน่งนี้อยู่นอกประเทศไทย กรุณาตรวจสอบอีกครั้ง'); return; }
       form.elements.lat.value = lat.toFixed(6); form.elements.lng.value = lng.toFixed(6);
-      $('[data-latlng-text]', form).textContent = `ปักหมุดแล้ว: ${lat.toFixed(5)}, ${lng.toFixed(5)} (ลากหมุดเพื่อปรับ)`;
-      if (!pick) return;
+      statusText.textContent = `✓ ปักหมุดแล้ว (${lat.toFixed(5)}, ${lng.toFixed(5)}) — ลากหมุดหรือแตะจุดอื่นเพื่อปรับ`;
+      statusBox.classList.add('ok'); clearBtn.hidden = false;
+      if (hint) hint.textContent = 'ลากหมุดเพื่อปรับตำแหน่งให้ตรงยิ่งขึ้น';
+      if (!pick) { pending = { lng, lat, zoom }; return; }
       if (!marker) {
         marker = new pick.ml.Marker({ color: '#b8924a', draggable: true }).setLngLat([lng, lat]).addTo(pick.map);
         marker.on('dragend', () => { const p = marker.getLngLat(); setPoint(p.lng, p.lat); });
       } else marker.setLngLat([lng, lat]);
-      if (fly) pick.map.flyTo({ center: [lng, lat], zoom: 15 });
-    };
-    if (pickEl) makeMap(pickEl, { coop: true }).then((r) => {
+      if (fly) {
+        pick.map.resize();
+        const z = Math.max(pick.map.getZoom(), zoom || 16);
+        // ถ้าแผนที่ยังโหลดไม่เสร็จ ใช้ jumpTo (flyTo อาจถูกยกเลิก)
+        if (pick.map.loaded()) pick.map.flyTo({ center: [lng, lat], zoom: z }); else pick.map.jumpTo({ center: [lng, lat], zoom: z });
+      }
+    }
+    clearBtn.addEventListener('click', () => {
+      form.elements.lat.value = ''; form.elements.lng.value = '';
+      if (marker) { marker.remove(); marker = null; }
+      statusText.textContent = 'ยังไม่ได้ปักหมุด'; statusBox.classList.remove('ok'); clearBtn.hidden = true;
+      if (hint) hint.textContent = 'แตะบนแผนที่เพื่อปักหมุด · ลากหมุดเพื่อปรับตำแหน่ง';
+    });
+    if (pickEl) makeMap(pickEl, { center: [101.5, 13.4], zoom: 4.8, coop: matchMedia('(hover: none)').matches }).then((r) => {
       pick = r; if (!r) return;
       r.map.on('click', (e) => setPoint(e.lngLat.lng, e.lngLat.lat));
+      if (pending) { setPoint(pending.lng, pending.lat, true, pending.zoom); pending = null; }
     });
+
+    // GPS
     const geoBtn = $('[data-geolocate]', form);
     if (geoBtn) geoBtn.addEventListener('click', () => {
-      if (!navigator.geolocation) return;
-      geoBtn.disabled = true;
-      navigator.geolocation.getCurrentPosition((p) => { setPoint(p.coords.longitude, p.coords.latitude, true); geoBtn.disabled = false; }, () => { geoBtn.disabled = false; alert('ไม่สามารถอ่านตำแหน่งได้'); }, { enableHighAccuracy: true, timeout: 10000 });
+      if (!navigator.geolocation) { alert('อุปกรณ์นี้ไม่รองรับการระบุตำแหน่ง'); return; }
+      if (!window.isSecureContext) { alert('การใช้ GPS ต้องเปิดเว็บผ่าน https'); return; }
+      const label = geoBtn.innerHTML;
+      geoBtn.disabled = true; geoBtn.textContent = 'กำลังหาตำแหน่ง…';
+      navigator.geolocation.getCurrentPosition((p) => {
+        geoBtn.disabled = false; geoBtn.innerHTML = label;
+        setPoint(p.coords.longitude, p.coords.latitude, true, 17);
+        pickEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }, (err) => {
+        geoBtn.disabled = false; geoBtn.innerHTML = label;
+        alert(err.code === 1 ? 'ไม่ได้รับอนุญาตให้ใช้ตำแหน่ง — กรุณากด "อนุญาต" ในเบราว์เซอร์ แล้วลองอีกครั้ง' : 'หาตำแหน่งไม่สำเร็จ ลองออกไปที่โล่งหรือเปิด GPS แล้วกดอีกครั้ง');
+      }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
     });
-    // เลือกอำเภอแล้วเลื่อนแผนที่ไปที่จังหวัด/อำเภอ (ใช้ geocoding ฟรีไม่ได้ → ซูมระดับประเทศค้างไว้)
 
-    /* ----- images: ย่อรูปฝั่ง browser เป็น 400/800/1600px ----- */
+    // วางลิงก์ Google Maps หรือพิกัด
+    const gmIn = $('[data-gmap-input]', form), gmBtn = $('[data-gmap-apply]', form);
+    function parseLatLng(text) {
+      const t = decodeURIComponent(String(text || '')).trim();
+      const pats = [/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/, /@(-?\d+\.\d+),\s*(-?\d+\.\d+)/, /[?&](?:q|query|ll|center|destination)=(-?\d+\.\d+),\s*(-?\d+\.\d+)/, /^(-?\d{1,2}\.\d+)\s*[, ]\s*(-?\d{2,3}\.\d+)$/];
+      for (const re of pats) { const m = t.match(re); if (m) return [parseFloat(m[1]), parseFloat(m[2])]; }
+      return null;
+    }
+    async function applyGmap() {
+      const v = gmIn.value.trim(); if (!v) return;
+      let ll = parseLatLng(v);
+      if (!ll && /^https?:\/\/(maps\.app\.goo\.gl|goo\.gl\/maps|maps\.google\.|www\.google\.[a-z.]+\/maps)/i.test(v)) {
+        gmBtn.disabled = true; gmBtn.textContent = 'กำลังอ่านลิงก์…';
+        try { const j = await (await fetch('/api/geo/resolve?url=' + encodeURIComponent(v))).json(); if (j.ok) ll = [j.lat, j.lng]; } catch { /* ignore */ }
+        gmBtn.disabled = false; gmBtn.textContent = 'ใช้ตำแหน่งนี้';
+      }
+      if (!ll) { alert('อ่านพิกัดจากข้อความนี้ไม่ได้ — ใน Google Maps ให้กดค้างที่จุด แล้วคัดลอกตัวเลขพิกัด (เช่น 15.2448, 104.8473) มาวาง'); return; }
+      setPoint(ll[1], ll[0], true, 17); gmIn.value = '';
+    }
+    gmBtn.addEventListener('click', applyGmap);
+    gmIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); applyGmap(); } });
+
+    // เลือกจังหวัด/อำเภอ/ตำบล → เลื่อนแผนที่ไปพื้นที่นั้น (OpenStreetMap Nominatim, แคชในเครื่อง)
+    const selText = (sel) => (sel && sel.value ? sel.options[sel.selectedIndex].text : '');
+    async function geocode(q) {
+      const key = 'sl-geo:' + q;
+      try { const c = localStorage.getItem(key); if (c) return JSON.parse(c); } catch { /* ignore */ }
+      try {
+        const r = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=th&accept-language=th&q=' + encodeURIComponent(q));
+        const j = await r.json();
+        if (!j[0]) return null;
+        const v = { lat: +j[0].lat, lng: +j[0].lon };
+        try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* ignore */ }
+        return v;
+      } catch { return null; }
+    }
+    async function flyToArea(level) {
+      if (!pick || form.elements.lat.value) return; // ปักหมุดแล้ว ไม่เลื่อนแผนที่ทับ
+      const prov = selText(form.elements.provinceCode), dist = selText(form.elements.districtCode), sub = selText(form.elements.subdistrictCode);
+      const bkk = form.elements.provinceCode.value === '10';
+      const parts = level === 'sub' ? [sub && (bkk ? 'แขวง' : 'ตำบล') + sub, dist && (bkk ? 'เขต' : 'อำเภอ') + dist, prov] : level === 'dist' ? [dist && (bkk ? 'เขต' : 'อำเภอ') + dist, prov] : [bkk ? 'กรุงเทพมหานคร' : 'จังหวัด' + prov];
+      const v = await geocode(parts.filter(Boolean).join(' '));
+      if (v && inThailand(v.lat, v.lng) && !form.elements.lat.value) pick.map.flyTo({ center: [v.lng, v.lat], zoom: level === 'sub' ? 14 : level === 'dist' ? 12 : 9 });
+    }
+    form.elements.provinceCode.addEventListener('change', () => flyToArea('prov'));
+    form.elements.districtCode.addEventListener('change', () => flyToArea('dist'));
+    form.elements.subdistrictCode.addEventListener('change', () => flyToArea('sub'));
+
+    /* ----- images: ถ่ายจากกล้อง/เลือกจากเครื่อง แล้วย่อเป็น 400/800/1600px ----- */
     const drop = $('[data-dropzone]', form);
-    const input = $('[data-file-input]', form);
+    const inputs = $$('[data-file-input]', form);
     const thumbs = $('[data-thumbs]', form);
-    const images = []; // { id, file, url, out: {400,800,1600}, ext, w, h, ready: Promise }
+    const countEl = $('[data-photo-count]', form);
+    const images = []; // { id, url, out, ext, w, h, ready }
     let uid = 0;
     const canWebp = (() => { try { return document.createElement('canvas').toDataURL('image/webp').startsWith('data:image/webp'); } catch { return false; } })();
 
@@ -263,7 +342,8 @@
     function toBlob(canvas, type, q) { return new Promise((res) => canvas.toBlob(res, type, q)); }
     async function resize(file) {
       const bmp = await decode(file);
-      const W = bmp.width, H = bmp.height;
+      const W = bmp.naturalWidth || bmp.width, H = bmp.naturalHeight || bmp.height;
+      if (!W || !H) throw new Error('decode');
       const out = {};
       const type = canWebp ? 'image/webp' : 'image/jpeg';
       for (const s of [1600, 800, 400]) {
@@ -275,39 +355,48 @@
         ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(bmp, 0, 0, w, h);
         out[s] = await toBlob(cv, type, s === 400 ? 0.78 : 0.82);
+        if (!out[s]) throw new Error('encode');
       }
       if (bmp.close) bmp.close();
-      return { out, ext: canWebp ? 'webp' : 'jpg', w: W, h: H };
+      return { out, ext: canWebp ? 'webp' : 'jpg', w: W, h: H, thumb: URL.createObjectURL(out[400]) };
     }
     function render() {
       thumbs.innerHTML = '';
       images.forEach((im, i) => {
         const d = document.createElement('div');
-        d.className = 'thumb';
-        d.innerHTML = `<img src="${im.url}" alt="">${i === 0 ? '<span class="cover">ปก</span>' : ''}<button type="button" aria-label="ลบรูป">✕</button>`;
-        d.title = i === 0 ? 'รูปปก' : 'คลิกเพื่อตั้งเป็นรูปปก';
-        $('button', d).addEventListener('click', (e) => { e.stopPropagation(); URL.revokeObjectURL(im.url); images.splice(i, 1); render(); });
+        d.className = 'thumb' + (im.out ? '' : im.failed ? ' bad' : ' busy');
+        d.innerHTML = `<img src="${im.thumb || ''}" alt="">${i === 0 ? '<span class="cover">ปก</span>' : ''}<button type="button" aria-label="ลบรูป">✕</button>`;
+        d.title = i === 0 ? 'รูปปก' : 'แตะเพื่อตั้งเป็นรูปปก';
+        $('button', d).addEventListener('click', (e) => { e.stopPropagation(); if (im.thumb) URL.revokeObjectURL(im.thumb); images.splice(i, 1); render(); });
         d.addEventListener('click', () => { if (i) { images.unshift(images.splice(i, 1)[0]); render(); } });
         thumbs.appendChild(d);
       });
+      countEl.textContent = images.length ? `${images.length}/${MAX} รูป` : '';
     }
     function addFiles(files) {
-      for (const f of files) {
+      let skipped = 0;
+      for (const f of Array.from(files || [])) {
         if (images.length >= MAX) { alert(`อัปโหลดได้สูงสุด ${MAX} รูป`); break; }
-        if (!/^image\/(jpeg|png|webp)$/.test(f.type)) continue;
-        if (f.size > 25 * 1024 * 1024) { alert(`${f.name} ใหญ่เกิน 25MB`); continue; }
-        const im = { id: ++uid, file: f, url: URL.createObjectURL(f) };
-        im.ready = resize(f).then((r) => Object.assign(im, r)).catch(() => { im.failed = true; });
+        if (f.type && !f.type.startsWith('image/')) { skipped++; continue; }
+        if (f.size > 40 * 1024 * 1024) { alert('ไฟล์รูปใหญ่เกิน 40MB'); continue; }
+        const im = { id: ++uid };
+        im.ready = resize(f).then((r) => { Object.assign(im, r); render(); }).catch(() => {
+          im.failed = true;
+          const i = images.indexOf(im); if (i >= 0) images.splice(i, 1);
+          render();
+          alert('เปิดรูปนี้ไม่ได้ (อาจเป็นไฟล์ HEIC) — ลองถ่ายใหม่ด้วยปุ่ม "ถ่ายรูป" หรือตั้งกล้องเป็น "เข้ากันได้มากที่สุด / JPEG"');
+        });
         images.push(im);
       }
+      if (skipped) alert('ข้ามไฟล์ที่ไม่ใช่รูปภาพ ' + skipped + ' ไฟล์');
       render();
     }
-    drop.addEventListener('click', () => input.click());
-    drop.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); } });
-    input.addEventListener('change', () => { addFiles(input.files); input.value = ''; });
-    ['dragenter', 'dragover'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('drag'); }));
-    ['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('drag'); }));
-    drop.addEventListener('drop', (e) => addFiles(e.dataTransfer.files));
+    inputs.forEach((inp) => inp.addEventListener('change', () => { addFiles(inp.files); inp.value = ''; }));
+    if (drop) {
+      ['dragenter', 'dragover'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('drag'); }));
+      ['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('drag'); }));
+      drop.addEventListener('drop', (e) => addFiles(e.dataTransfer.files));
+    }
 
     /* ----- submit ----- */
     const bar = $('[data-progress]', form);

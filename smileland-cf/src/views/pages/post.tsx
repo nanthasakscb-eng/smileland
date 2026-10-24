@@ -140,22 +140,47 @@ export const PostPage: FC<{ env: Bindings; provinces: Province[]; consign?: bool
             <input id="p-addr" class="input" name="addressNote" maxlength={160} placeholder="เช่น ถ.ชยางกูร ใกล้แยกไฟแดง (ไม่ต้องใส่บ้านเลขที่)" />
           </div>
           <div class="field" style="margin:0">
-            <label>ปักหมุดตำแหน่ง <span class="muted small">(ไม่บังคับ แต่ช่วยให้คนหาเจอบนแผนที่)</span></label>
-            <div class="pick-map" id="pick-map"></div>
-            <div class="hint" style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><span data-latlng-text>คลิกบนแผนที่เพื่อปักหมุด</span><button type="button" class="btn btn-line btn-sm" data-geolocate>ใช้ตำแหน่งปัจจุบัน</button></div>
+            <label>ปักหมุดตำแหน่งทรัพย์ <span class="muted small">(ไม่บังคับ แต่ช่วยให้คนหาเจอบนแผนที่)</span></label>
+            <div class="pin-tools">
+              <button type="button" class="btn btn-gold" data-geolocate><Icon name="pin" /> ปักหมุดตรงที่ฉันอยู่ตอนนี้ (GPS)</button>
+              <div class="pin-paste">
+                <input class="input" data-gmap-input placeholder="หรือวางลิงก์ Google Maps / พิกัด เช่น 15.2448, 104.8473" inputmode="url" />
+                <button type="button" class="btn btn-ink" data-gmap-apply>ใช้ตำแหน่งนี้</button>
+              </div>
+            </div>
+            <div class="pick-map-wrap">
+              <div class="pick-map" id="pick-map"></div>
+              <div class="pick-hint" data-pick-hint>แตะบนแผนที่เพื่อปักหมุด · ลากหมุดเพื่อปรับตำแหน่ง</div>
+            </div>
+            <div class="pin-status" data-pin-status>
+              <span data-latlng-text>ยังไม่ได้ปักหมุด — เลือกอำเภอ/ตำบลด้านบน แผนที่จะเลื่อนไปให้อัตโนมัติ</span>
+              <button type="button" class="btn btn-ghost btn-sm" data-pin-clear hidden>ลบหมุด</button>
+            </div>
             <input type="hidden" name="lat" /><input type="hidden" name="lng" />
           </div>
         </section>
 
         <section class="form-card" id="s-photos">
           <h2>4. รูปภาพ</h2>
-          <p class="muted">สูงสุด {MAX_IMAGES} รูป (JPG/PNG/WebP) ระบบย่อรูปให้อัตโนมัติก่อนอัปโหลด รูปแรกจะเป็นรูปปก</p>
-          <div class="dropzone" data-dropzone tabindex={0} role="button" aria-label="เลือกรูปภาพ">
-            <Icon name="image" class="ico" />
-            <div><b>ลากรูปมาวาง หรือคลิกเพื่อเลือก</b></div>
-            <div class="tiny muted">แนะนำภาพแนวนอน ถ่ายในที่สว่าง</div>
-            <input type="file" accept="image/jpeg,image/png,image/webp" multiple hidden data-file-input />
+          <p class="muted">สูงสุด {MAX_IMAGES} รูป ถ่ายจากกล้องมือถือได้เลย ระบบย่อรูปให้อัตโนมัติก่อนอัปโหลด รูปแรกจะเป็นรูปปก (แตะรูปเพื่อตั้งเป็นปก)</p>
+          <div class="photo-actions">
+            <label class="photo-btn photo-cam">
+              <input type="file" accept="image/*" capture="environment" data-file-input data-camera />
+              <Icon name="camera" class="ico" />
+              <b>ถ่ายรูป</b>
+              <span>เปิดกล้องมือถือ</span>
+            </label>
+            <label class="photo-btn">
+              <input type="file" accept="image/*" multiple data-file-input />
+              <Icon name="image" class="ico" />
+              <b>เลือกรูปจากเครื่อง</b>
+              <span>เลือกได้หลายรูปพร้อมกัน</span>
+            </label>
           </div>
+          <div class="dropzone" data-dropzone>
+            <span class="tiny muted">หรือลากไฟล์รูปมาวางตรงนี้ (คอมพิวเตอร์)</span>
+          </div>
+          <div class="photo-count tiny muted" data-photo-count></div>
           <div class="thumbs" data-thumbs></div>
         </section>
 

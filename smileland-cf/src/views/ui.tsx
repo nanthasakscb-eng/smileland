@@ -5,7 +5,7 @@ import type { Bindings } from '../env';
 import { DEALS, TYPES, formatPrice, landText, type Deal, type PType } from '../lib/util';
 import { imgUrl, imgSrcset, placeholder, type Card } from '../lib/listings';
 
-export const ASSET_V = '20261024b';
+export const ASSET_V = '20261024c';
 
 /* ---------- icons ---------- */
 const P = { fill: 'none', stroke: 'currentColor', 'stroke-width': '1.7', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' } as const;
@@ -15,6 +15,7 @@ export const Icon: FC<{ name: string; class?: string }> = ({ name, class: cls = 
     bed: <><path d="M3 18V7M3 13h18v5M21 18v-5a3 3 0 0 0-3-3h-7v4" /><circle cx="7" cy="10.5" r="1.8" /></>,
     bath: <><path d="M4 12h16v3a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4v-3ZM6 12V6a2 2 0 0 1 3.5-1.3" /><path d="M7 19l-1 2M17 19l1 2" /></>,
     area: <><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></>,
+    camera: <><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z" /><circle cx="12" cy="13.5" r="3.5" /></>,
     image: <><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="8.5" cy="10" r="1.5" /><path d="m21 16-5-5-8 8" /></>,
     search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></>,
     map: <><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2ZM9 4v14M15 6v14" /></>,

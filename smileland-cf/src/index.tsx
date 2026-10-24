@@ -17,7 +17,7 @@ app.use('*', secureHeaders({
     defaultSrc: ["'self'"],
     scriptSrc: ["'self'", 'https://challenges.cloudflare.com'],
     frameSrc: ['https://challenges.cloudflare.com'],
-    connectSrc: ["'self'", 'https://challenges.cloudflare.com', 'https://tiles.openfreemap.org', 'https://*.openfreemap.org'],
+    connectSrc: ["'self'", 'https://challenges.cloudflare.com', 'https://tiles.openfreemap.org', 'https://*.openfreemap.org', 'https://nominatim.openstreetmap.org'],
     imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
     styleSrc: ["'self'", "'unsafe-inline'"],
     fontSrc: ["'self'", 'data:', 'https://tiles.openfreemap.org'],
