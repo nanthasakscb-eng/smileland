@@ -199,7 +199,7 @@ export const PostPage: FC<{ env: Bindings; provinces: Province[]; consign?: bool
           </div>
           <label class="check" style="margin-bottom:12px"><input type="checkbox" name="consign" value="1" checked={consign} /> <span>สนใจบริการ <b>ฝากขาย/ฝากเช่า</b> ให้ทีม อีสานน่าอยู่ ช่วยดูแลประกาศและคัดกรองผู้สนใจ</span></label>
           <label class="check"><input type="checkbox" name="consent" value="1" required /> <span>ข้าพเจ้ายืนยันว่าข้อมูลเป็นความจริง มีสิทธิ์ประกาศทรัพย์นี้ และยินยอมตาม<a href="/terms" target="_blank" style="text-decoration:underline">ข้อกำหนด</a>และ<a href="/privacy" target="_blank" style="text-decoration:underline">นโยบายความเป็นส่วนตัว</a></span></label>
-          <div style="margin-top:18px"><Turnstile env={env} /></div>
+          <div style="margin-top:16px"><Turnstile env={env} /></div>
         </section>
 
         <div class="submit-bar">
@@ -217,7 +217,7 @@ export const PostPage: FC<{ env: Bindings; provinces: Province[]; consign?: bool
 export const PostDone: FC = () => (
   <template id="post-done">
     <div class="form-card result-box">
-      <div style="width:64px;height:64px;border-radius:50%;background:var(--ok-bg);color:var(--ok);display:flex;align-items:center;justify-content:center;margin:0 auto 14px"><Icon name="check" class="ico" /></div>
+      <div style="width:64px;height:64px;border-radius:50%;background:var(--ok-bg);color:var(--ok);display:flex;align-items:center;justify-content:center;margin:0 auto 12px"><Icon name="check" class="ico" /></div>
       <h2 style="justify-content:center">ส่งประกาศเรียบร้อย</h2>
       <p class="muted">เลขอ้างอิงประกาศของคุณ</p>
       <div class="ref-code" data-ref></div>
@@ -226,7 +226,7 @@ export const PostDone: FC = () => (
         <b>ลิงก์จัดการประกาศ (เก็บไว้เป็นความลับ)</b> — ใช้ปรับราคา ปิดการขาย หรือดูผู้สนใจ ระบบจะแสดงลิงก์นี้ครั้งเดียว
         <div class="copy-box"><input class="input" readonly data-manage /><button class="btn btn-ink btn-sm" type="button" data-copy>คัดลอก</button></div>
       </div>
-      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
         <a class="btn btn-line" href="/">กลับหน้าแรก</a>
         <a class="btn btn-ink" href="/account">ไปที่บัญชีของฉัน</a>
         <a class="btn btn-gold" href="/post">ลงประกาศอีกรายการ</a>

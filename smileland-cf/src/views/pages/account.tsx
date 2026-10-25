@@ -7,7 +7,7 @@ import { DEALS, TYPES, formatPrice, thaiDate, thaiDateTime, type Deal, type PTyp
 import { imgUrl, placeholder } from '../../lib/listings';
 
 const AuthShell: FC<{ title: string; sub?: string; children?: Child }> = ({ title, sub, children }) => (
-  <div class="wrap" style="max-width:520px;padding-bottom:72px">
+  <div class="wrap" style="max-width:520px;padding-bottom:64px">
     <div class="page-head" style="text-align:center;padding-top:40px">
       <h1 style="font-size:30px">{title}</h1>
       {sub && <p class="muted">{sub}</p>}
@@ -26,11 +26,11 @@ export const RegisterPage: FC<{ env: Bindings; error?: string; v?: Record<string
       <div class="field"><label class="req" for="r-email">อีเมล</label><input id="r-email" class="input" type="email" name="email" required maxlength={120} value={v.email || ''} autocomplete="email" /></div>
       <div class="field"><label class="req" for="r-phone">เบอร์โทร</label><input id="r-phone" class="input" name="phone" required inputmode="tel" maxlength={15} value={v.phone || ''} autocomplete="tel" /><div class="hint">ไม่แสดงบนหน้าเว็บ ใช้ให้ทีมงานติดต่อกลับ</div></div>
       <div class="field"><label class="req" for="r-pw">รหัสผ่าน</label><input id="r-pw" class="input" type="password" name="password" required minlength={8} maxlength={200} autocomplete="new-password" /><div class="hint">อย่างน้อย 8 ตัวอักษร</div></div>
-      <label class="check small" style="margin-bottom:14px"><input type="checkbox" name="consent" value="1" required /> <span>ยอมรับ<a href="/terms" target="_blank" style="text-decoration:underline">ข้อกำหนด</a>และ<a href="/privacy" target="_blank" style="text-decoration:underline">นโยบายความเป็นส่วนตัว</a></span></label>
+      <label class="check small" style="margin-bottom:12px"><input type="checkbox" name="consent" value="1" required /> <span>ยอมรับ<a href="/terms" target="_blank" style="text-decoration:underline">ข้อกำหนด</a>และ<a href="/privacy" target="_blank" style="text-decoration:underline">นโยบายความเป็นส่วนตัว</a></span></label>
       <Turnstile env={env} />
-      <button class="btn btn-gold btn-block btn-lg" type="submit" style="margin-top:14px">สมัครสมาชิก</button>
+      <button class="btn btn-gold btn-block btn-lg" type="submit" style="margin-top:12px">สมัครสมาชิก</button>
     </form>
-    <p class="center small" style="margin:18px 0 0">มีบัญชีแล้ว? <a href="/login" style="text-decoration:underline">เข้าสู่ระบบ</a></p>
+    <p class="center small" style="margin:16px 0 0">มีบัญชีแล้ว? <a href="/login" style="text-decoration:underline">เข้าสู่ระบบ</a></p>
   </AuthShell>
 );
 
@@ -42,22 +42,22 @@ export const LoginPage: FC<{ env: Bindings; error?: string; ok?: string; next?: 
       <div class="field"><label for="l-email">อีเมล</label><input id="l-email" class="input" type="email" name="email" required maxlength={120} value={email || ''} autocomplete="email" /></div>
       <div class="field"><label for="l-pw">รหัสผ่าน</label><input id="l-pw" class="input" type="password" name="password" required maxlength={200} autocomplete="current-password" /></div>
       <Turnstile env={env} />
-      <button class="btn btn-ink btn-block btn-lg" type="submit" style="margin-top:14px">เข้าสู่ระบบ</button>
+      <button class="btn btn-ink btn-block btn-lg" type="submit" style="margin-top:12px">เข้าสู่ระบบ</button>
     </form>
-    <p class="center small" style="margin:18px 0 0"><a href="/forgot" style="text-decoration:underline">ลืมรหัสผ่าน?</a> · ยังไม่มีบัญชี? <a href="/register" style="text-decoration:underline">สมัครสมาชิก</a></p>
+    <p class="center small" style="margin:16px 0 0"><a href="/forgot" style="text-decoration:underline">ลืมรหัสผ่าน?</a> · ยังไม่มีบัญชี? <a href="/register" style="text-decoration:underline">สมัครสมาชิก</a></p>
   </AuthShell>
 );
 
 export const CheckEmailPage: FC<{ email: string; csrf?: string; resent?: boolean; logged?: boolean }> = ({ email, csrf, resent, logged }) => (
   <AuthShell title="ยืนยันอีเมลของคุณ">
     <div style="text-align:center">
-      <div style="width:64px;height:64px;border-radius:50%;background:var(--gold-soft);color:#6b4e14;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:28px">✉</div>
+      <div style="width:64px;height:64px;border-radius:50%;background:var(--gold-soft);color:#6b4e14;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:28px">✉</div>
       <p>เราส่งลิงก์ยืนยันไปที่ <b>{email}</b> แล้ว</p>
       <p class="muted small">เปิดอีเมลแล้วกดปุ่ม "ยืนยันอีเมล" จากนั้นจึงลงประกาศได้ · ถ้าไม่เห็นอีเมล ลองดูในโฟลเดอร์จดหมายขยะ (Spam)</p>
       {resent && <div class="alert alert-ok">ส่งลิงก์ยืนยันอีกครั้งแล้ว</div>}
       {logged && <div class="alert alert-info small" style="text-align:left">ระบบยังไม่ได้ตั้งค่าบริการส่งอีเมล — ทีมงานจะยืนยันบัญชีให้ หรือติดต่อทีมงานเพื่อรับลิงก์ยืนยัน</div>}
       {csrf && (
-        <form method="post" action="/account/resend-verify" style="margin-top:10px">
+        <form method="post" action="/account/resend-verify" style="margin-top:8px">
           <input type="hidden" name="csrf" value={csrf} />
           <button class="btn btn-line" type="submit">ส่งลิงก์ยืนยันอีกครั้ง</button>
         </form>
@@ -83,10 +83,10 @@ export const ForgotPage: FC<{ env: Bindings; sent?: boolean; error?: string }> =
       <form method="post" action="/forgot">
         <div class="field"><label for="f-email">อีเมล</label><input id="f-email" class="input" type="email" name="email" required maxlength={120} autocomplete="email" /></div>
         <Turnstile env={env} />
-        <button class="btn btn-ink btn-block" type="submit" style="margin-top:14px">ส่งลิงก์ตั้งรหัสผ่านใหม่</button>
+        <button class="btn btn-ink btn-block" type="submit" style="margin-top:12px">ส่งลิงก์ตั้งรหัสผ่านใหม่</button>
       </form>
     )}
-    <p class="center small" style="margin:18px 0 0"><a href="/login" style="text-decoration:underline">กลับไปเข้าสู่ระบบ</a></p>
+    <p class="center small" style="margin:16px 0 0"><a href="/login" style="text-decoration:underline">กลับไปเข้าสู่ระบบ</a></p>
   </AuthShell>
 );
 
@@ -103,7 +103,7 @@ export const ResetPage: FC<{ token: string; error?: string }> = ({ token, error 
 );
 
 export const NeedVerify: FC<{ user: UserSession }> = ({ user }) => (
-  <div class="wrap" style="max-width:640px;padding:48px 20px 72px">
+  <div class="wrap" style="max-width:640px;padding:48px 20px 64px">
     <div class="form-card center">
       <h1 style="font-size:26px">ยืนยันอีเมลก่อนลงประกาศ</h1>
       <p>บัญชี <b>{user.email}</b> ยังไม่ได้ยืนยันอีเมล กรุณากดลิงก์ในอีเมลที่เราส่งไป</p>
@@ -115,7 +115,7 @@ export const NeedVerify: FC<{ user: UserSession }> = ({ user }) => (
 
 type Row = Listing & { leadCount: number; provinceName?: string };
 export const AccountPage: FC<{ env: Bindings; user: User; sess: UserSession; rows: Row[]; leads: (Lead & { listingRef?: string | null })[]; msg?: string; error?: string; tab: string }> = ({ env, user, sess, rows, leads, msg, error, tab }) => (
-  <div class="wrap" style="padding-bottom:72px">
+  <div class="wrap" style="padding-bottom:64px">
     <Crumbs items={[['หน้าแรก', '/'], ['บัญชีของฉัน']]} />
     <div class="page-head" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
       <div><h1 style="margin:0">สวัสดี คุณ{user.name}</h1><p class="muted" style="margin:4px 0 0">{user.email} · สมาชิกตั้งแต่ {thaiDate(user.createdAt)}</p></div>
@@ -156,13 +156,13 @@ export const AccountPage: FC<{ env: Bindings; user: User; sess: UserSession; row
                 <td><a href="/account?tab=leads">{l.leadCount}</a></td>
                 <td style="min-width:230px">
                   {['active', 'pending'].includes(l.status) && (
-                    <form method="post" action={`/account/listings/${l.id}`} style="display:flex;gap:6px;margin-bottom:6px">
+                    <form method="post" action={`/account/listings/${l.id}`} style="display:flex;gap:4px;margin-bottom:4px">
                       <input type="hidden" name="csrf" value={sess.csrf} /><input type="hidden" name="action" value="price" />
-                      <input class="input" name="price" data-money value={formatPrice(l.price)} style="padding:6px 10px;font-size:14px" aria-label="ราคาใหม่" />
+                      <input class="input" name="price" data-money value={formatPrice(l.price)} style="padding:4px 8px;font-size:14px" aria-label="ราคาใหม่" />
                       <button class="btn btn-line btn-sm" type="submit">ปรับราคา</button>
                     </form>
                   )}
-                  <div style="display:flex;gap:6px;flex-wrap:wrap">
+                  <div style="display:flex;gap:4px;flex-wrap:wrap">
                     {l.status === 'active' && <a class="btn btn-ghost btn-sm" href={`/listing/${l.id}`}>ดูหน้าเว็บ</a>}
                     {l.status === 'active' && act(sess, l.id, 'sold', 'ขาย/เช่าแล้ว', 'btn-gold')}
                     {['active', 'expired'].includes(l.status) && act(sess, l.id, 'renew', 'ต่ออายุ', 'btn-line')}
@@ -178,7 +178,7 @@ export const AccountPage: FC<{ env: Bindings; user: User; sess: UserSession; row
 
     {tab === 'leads' && (
       <div class="table-wrap"><table class="t"><thead><tr><th>วันที่</th><th>ประกาศ</th><th>ผู้สนใจ</th><th>ข้อความ</th></tr></thead><tbody>
-        {leads.length === 0 && <tr><td colspan={4} class="muted center" style="padding:30px">ยังไม่มีผู้สนใจ</td></tr>}
+        {leads.length === 0 && <tr><td colspan={4} class="muted center" style="padding:32px">ยังไม่มีผู้สนใจ</td></tr>}
         {leads.map((d) => <tr><td class="nowrap small">{thaiDateTime(d.createdAt)}</td><td class="nowrap">{d.listingRef}</td><td><b>{d.name}</b><div class="small"><a href={`tel:${d.phone}`}>{d.phone}</a>{d.line ? ` · LINE ${d.line}` : ''}</div></td><td class="small">{d.message}</td></tr>)}
       </tbody></table></div>
     )}

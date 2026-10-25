@@ -58,12 +58,12 @@ export const AdminLayout: FC<{ title: string; admin?: AdminSession; nav?: string
 export const LoginPage: FC<{ env: Bindings; error?: string; username?: string }> = ({ env, error, username }) => (
   <div class="login-wrap">
     <form class="login-card" method="post" action="/admin/login">
-      <div style="margin-bottom:22px"><Brand sub={false} /></div>
+      <div style="margin-bottom:20px"><Brand sub={false} /></div>
       <h1 style="font-size:24px">เข้าสู่ระบบผู้ดูแล</h1>
       {error && <div class="alert alert-bad">{error}</div>}
       <div class="field"><label for="a-user">ชื่อผู้ใช้หรืออีเมลผู้ดูแล</label><input id="a-user" class="input" name="username" value={username || ''} required autocomplete="username" autocapitalize="none" spellcheck={false} maxlength={40} /></div>
       <div class="field"><label for="a-pass">รหัสผ่าน</label><input id="a-pass" class="input" type="password" name="password" required autocomplete="current-password" maxlength={200} /></div>
-      <div class="cf-turnstile" data-sitekey={env.TURNSTILE_SITE_KEY} data-language="th" style="margin-bottom:14px"></div>
+      <div class="cf-turnstile" data-sitekey={env.TURNSTILE_SITE_KEY} data-language="th" style="margin-bottom:12px"></div>
       <button class="btn btn-ink btn-block" type="submit">เข้าสู่ระบบ</button>
       <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     </form>
@@ -99,7 +99,7 @@ export const Dashboard: FC<{ k: Record<string, number>; recent: (Listing & { pro
     </div>
     <div class="section-head"><h2 style="font-size:20px">ประกาศล่าสุด</h2><a class="btn btn-line btn-sm" href="/admin/listings">ดูทั้งหมด</a></div>
     <ListingTable rows={recent} />
-    <div class="section-head" style="margin-top:28px"><h2 style="font-size:20px">ผู้สนใจล่าสุด</h2><a class="btn btn-line btn-sm" href="/admin/leads">ดูทั้งหมด</a></div>
+    <div class="section-head" style="margin-top:24px"><h2 style="font-size:20px">ผู้สนใจล่าสุด</h2><a class="btn btn-line btn-sm" href="/admin/leads">ดูทั้งหมด</a></div>
     <LeadTable rows={leads} />
   </>
 );
@@ -109,11 +109,11 @@ export const ListingTable: FC<{ rows: (Listing & { provinceName?: string })[]; e
     <table class="t">
       <thead><tr><th></th><th>รหัส / หัวข้อ</th><th>ประเภท</th><th>ราคา</th><th>จังหวัด</th><th>สถานะ</th><th>ส่งเมื่อ</th></tr></thead>
       <tbody>
-        {rows.length === 0 && <tr><td colspan={7} class="muted center" style="padding:30px">ไม่มีรายการ</td></tr>}
+        {rows.length === 0 && <tr><td colspan={7} class="muted center" style="padding:32px">ไม่มีรายการ</td></tr>}
         {rows.map((l) => (
           <tr>
             <td class="thumbcell"><img src={(env && imgUrl(env, l.coverKey, 400)) || placeholder(l.type)} alt="" loading="lazy" /></td>
-            <td><a href={`/admin/listings/${l.id}`}><b>{l.ref}</b></a>{l.featured ? <span class="badge b-feat" style="margin-left:6px">แนะนำ</span> : null}{l.consign ? <span class="badge b-sold" style="margin-left:6px">ฝากขาย</span> : null}<div class="small">{l.title}</div></td>
+            <td><a href={`/admin/listings/${l.id}`}><b>{l.ref}</b></a>{l.featured ? <span class="badge b-feat" style="margin-left:4px">แนะนำ</span> : null}{l.consign ? <span class="badge b-sold" style="margin-left:4px">ฝากขาย</span> : null}<div class="small">{l.title}</div></td>
             <td class="nowrap">{TYPES[l.type as PType]}{DEALS[l.deal as Deal]}</td>
             <td class="nowrap">฿{formatPrice(l.price)}</td>
             <td class="nowrap">{l.provinceName}</td>
@@ -131,7 +131,7 @@ export const LeadTable: FC<{ rows: (Lead & { listingRef?: string | null })[]; cs
     <table class="t">
       <thead><tr><th>วันที่</th><th>ประเภท</th><th>ชื่อ / ติดต่อ</th><th>ข้อความ</th><th>สถานะ</th></tr></thead>
       <tbody>
-        {rows.length === 0 && <tr><td colspan={5} class="muted center" style="padding:30px">ไม่มีรายการ</td></tr>}
+        {rows.length === 0 && <tr><td colspan={5} class="muted center" style="padding:32px">ไม่มีรายการ</td></tr>}
         {rows.map((d) => {
           let meta: Record<string, string> = {};
           try { meta = JSON.parse(d.meta || '{}'); } catch { /* ignore */ }
@@ -143,9 +143,9 @@ export const LeadTable: FC<{ rows: (Lead & { listingRef?: string | null })[]; cs
               <td class="small" style="max-width:380px">{d.message}{Object.keys(meta).length ? <div class="tiny muted">{Object.entries(meta).map(([k, v]) => `${k}: ${v}`).join(' · ')}</div> : null}</td>
               <td>
                 {csrf ? (
-                  <form method="post" action={`/admin/leads/${d.id}`} style="display:flex;gap:6px">
+                  <form method="post" action={`/admin/leads/${d.id}`} style="display:flex;gap:4px">
                     <input type="hidden" name="csrf" value={csrf} />
-                    <select class="input" name="status" style="width:auto;padding:6px 30px 6px 10px;font-size:13.5px" data-autosubmit>
+                    <select class="input" name="status" style="width:auto;padding:4px 32px 4px 8px;font-size:13.5px" data-autosubmit>
                       <option value="new" selected={d.status === 'new'}>ใหม่</option>
                       <option value="contacted" selected={d.status === 'contacted'}>ติดต่อแล้ว</option>
                       <option value="closed" selected={d.status === 'closed'}>ปิดแล้ว</option>
@@ -197,10 +197,10 @@ export const ListingAdminDetail: FC<{
         <h1 style="margin:0">{l.ref}</h1>
         <div style="display:flex;gap:8px;align-items:center"><StatusBadge s={l.status} />{l.status === 'active' && <a class="btn btn-line btn-sm" href={`/listing/${l.id}`} target="_blank">ดูหน้าเว็บ ↗</a>}</div>
       </div>
-      {msg && <div class="alert alert-ok" style="margin-top:14px">{msg}</div>}
-      <div class="form-card" style="margin-top:18px">
+      {msg && <div class="alert alert-ok" style="margin-top:12px">{msg}</div>}
+      <div class="form-card" style="margin-top:16px">
         <h2 style="font-size:18px">การดำเนินการ</h2>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
           {can(admin, 'listings.review') && l.status !== 'active' && !['sold'].includes(l.status) && act('approve', '✓ อนุมัติและเผยแพร่', 'btn-ok')}
           {can(admin, 'listings.review') && l.status === 'pending' && act('reject', 'ไม่อนุมัติ', 'btn-danger', <input class="input" name="reason" required placeholder="เหตุผล (แจ้งผู้ลงประกาศ)" style="width:260px" maxlength={300} />)}
           {can(admin, 'listings.edit') && l.status === 'active' && act(l.featured ? 'unfeature' : 'feature', l.featured ? 'ยกเลิกแนะนำ' : '★ ตั้งเป็นประกาศแนะนำ', 'btn-gold')}
@@ -309,7 +309,7 @@ export const SettingsPage: FC<{ admin: AdminSession; s: Record<string, string>; 
 };
 
 const PermChecks: FC<{ perms: string[]; disabled?: boolean; lockStaff?: boolean }> = ({ perms, disabled, lockStaff }) => (
-  <div class="chips" style="margin:6px 0 10px">
+  <div class="chips" style="margin:4px 0 8px">
     {Object.entries(PERMS).map(([k, label]) => (
       <label class="chip" title={label}><input type="checkbox" name={`perm_${k}`} value="1" checked={perms.includes(k)} disabled={disabled || (lockStaff && k === 'staff')} /><span>{label}</span></label>
     ))}
@@ -330,18 +330,18 @@ export const StaffPage: FC<{ admin: AdminSession; staff: Admin[]; ok?: string; e
     <p class="muted">เพิ่มผู้ช่วยทำงาน แล้วเลือกว่าแต่ละคนทำอะไรได้บ้าง · เจ้าของระบบมีทุกสิทธิ์</p>
     {ok && <div class="alert alert-ok">{ok}</div>}
     {error && <div class="alert alert-bad">{error}</div>}
-    <div style="display:grid;gap:14px;margin-bottom:26px">
+    <div style="display:grid;gap:12px;margin-bottom:24px">
       {staff.map((u) => {
         let perms: string[] = []; try { perms = JSON.parse(u.permissions || '[]'); } catch { /* ignore */ }
         const self = u.id === admin.adminId;
         const locked = !!u.isOwner || self;
         return (
           <div class="form-card" style="margin:0">
-            <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center">
               <div><b style="font-size:17px">{u.displayName || u.username}</b> <span class="muted small">@{u.username}</span>
-                {u.isOwner ? <span class="badge b-feat" style="margin-left:6px">เจ้าของระบบ</span> : null}
-                {self ? <span class="badge b-active" style="margin-left:6px">คุณ</span> : null}
-                {u.mustChange ? <span class="badge b-pending" style="margin-left:6px">รอเปลี่ยนรหัส</span> : null}
+                {u.isOwner ? <span class="badge b-feat" style="margin-left:4px">เจ้าของระบบ</span> : null}
+                {self ? <span class="badge b-active" style="margin-left:4px">คุณ</span> : null}
+                {u.mustChange ? <span class="badge b-pending" style="margin-left:4px">รอเปลี่ยนรหัส</span> : null}
                 <div class="tiny muted">เข้าสู่ระบบล่าสุด: {thaiDateTime(u.lastLoginAt)}</div></div>
             </div>
             {u.isOwner ? <p class="small muted" style="margin:8px 0 0">มีสิทธิ์ทุกอย่าง</p> : (
@@ -349,16 +349,16 @@ export const StaffPage: FC<{ admin: AdminSession; staff: Admin[]; ok?: string; e
                 <input type="hidden" name="csrf" value={admin.csrf} /><input type="hidden" name="action" value="perms" /><input type="hidden" name="id" value={String(u.id)} />
                 <PermChecks perms={perms} disabled={locked} lockStaff={!admin.isOwner} />
                 {!locked && <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-                  <input class="input" name="display_name" value={u.displayName || ''} placeholder="ชื่อที่แสดง" style="width:200px;padding:7px 12px" maxlength={60} />
+                  <input class="input" name="display_name" value={u.displayName || ''} placeholder="ชื่อที่แสดง" style="width:200px;padding:8px 12px" maxlength={60} />
                   <button class="btn btn-ink btn-sm" type="submit">บันทึกสิทธิ์</button>
                 </div>}
               </form>
             )}
             {!locked && (
-              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;border-top:1px solid var(--line-2);padding-top:10px">
-                <form method="post" action="/admin/users" style="display:flex;gap:6px">
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;border-top:1px solid var(--line-2);padding-top:8px">
+                <form method="post" action="/admin/users" style="display:flex;gap:4px">
                   <input type="hidden" name="csrf" value={admin.csrf} /><input type="hidden" name="action" value="reset" /><input type="hidden" name="id" value={String(u.id)} />
-                  <input class="input" type="password" name="password" placeholder="รหัสชั่วคราวใหม่ (≥10)" minlength={10} style="width:200px;padding:7px 12px" autocomplete="new-password" />
+                  <input class="input" type="password" name="password" placeholder="รหัสชั่วคราวใหม่ (≥10)" minlength={10} style="width:200px;padding:8px 12px" autocomplete="new-password" />
                   <button class="btn btn-line btn-sm" type="submit">ตั้งรหัสใหม่</button>
                 </form>
                 <form method="post" action="/admin/users" data-confirm={`ลบผู้ดูแล ${u.username}?`}>
@@ -401,15 +401,15 @@ export const MembersPage: FC<{ admin: AdminSession; rows: MemberRow[]; q: string
     <div class="table-wrap"><table class="t">
       <thead><tr><th>สมาชิก</th><th>ติดต่อ</th><th>อีเมล</th><th>ประกาศ</th><th>สมัครเมื่อ</th><th>จัดการ</th></tr></thead>
       <tbody>
-        {rows.length === 0 && <tr><td colspan={6} class="muted center" style="padding:30px">ไม่มีสมาชิก</td></tr>}
+        {rows.length === 0 && <tr><td colspan={6} class="muted center" style="padding:32px">ไม่มีสมาชิก</td></tr>}
         {rows.map((u) => (
           <tr>
-            <td><b>{u.name}</b>{u.status === 'suspended' && <span class="badge b-rejected" style="margin-left:6px">ระงับ</span>}</td>
+            <td><b>{u.name}</b>{u.status === 'suspended' && <span class="badge b-rejected" style="margin-left:4px">ระงับ</span>}</td>
             <td class="small nowrap"><a href={`tel:${u.phone}`}>{u.phone}</a>{u.line ? <div>LINE {u.line}</div> : null}</td>
             <td class="small">{u.email}<div>{u.emailVerifiedAt ? <span class="badge b-active">ยืนยันแล้ว</span> : <span class="badge b-pending">ยังไม่ยืนยัน</span>}</div></td>
             <td>{u.listingCount ? <a href={`/admin/listings?q=${encodeURIComponent(u.email)}`}>{u.listingCount}</a> : 0}</td>
             <td class="small nowrap">{thaiDate(u.createdAt)}<div class="tiny muted">ล่าสุด {thaiDateTime(u.lastLoginAt)}</div></td>
-            <td style="min-width:200px"><div style="display:flex;gap:6px;flex-wrap:wrap">
+            <td style="min-width:200px"><div style="display:flex;gap:4px;flex-wrap:wrap">
               {!u.emailVerifiedAt && mAct(admin, u.id, q, 'verify', 'ยืนยันแทน', 'btn-ok')}
               {!u.emailVerifiedAt && mAct(admin, u.id, q, 'resend', 'ส่งลิงก์อีกครั้ง', 'btn-line')}
               {u.status === 'active' ? mAct(admin, u.id, q, 'suspend', 'ระงับ', 'btn-danger', `ระงับบัญชี ${u.email}? สมาชิกจะเข้าสู่ระบบและลงประกาศไม่ได้`) : mAct(admin, u.id, q, 'activate', 'เปิดใช้', 'btn-line')}
@@ -438,7 +438,7 @@ export const OutboxPage: FC<{ rows: (typeof outbox.$inferSelect)[]; configured: 
     <div class="table-wrap"><table class="t">
       <thead><tr><th>เวลา</th><th>ถึง</th><th>เรื่อง</th><th>ลิงก์</th><th>สถานะ</th></tr></thead>
       <tbody>
-        {rows.length === 0 && <tr><td colspan={5} class="muted center" style="padding:30px">ยังไม่มีอีเมล</td></tr>}
+        {rows.length === 0 && <tr><td colspan={5} class="muted center" style="padding:32px">ยังไม่มีอีเมล</td></tr>}
         {rows.map((m) => {
           const link = (m.bodyText.match(/https?:\/\/\S+/) || [])[0];
           const expired = m.createdAt < Math.floor(Date.now() / 1000) - (m.kind === 'reset' ? 3600 : 172800);
@@ -447,7 +447,7 @@ export const OutboxPage: FC<{ rows: (typeof outbox.$inferSelect)[]; configured: 
               <td class="small nowrap">{thaiDateTime(m.createdAt)}</td>
               <td class="small">{m.toEmail}</td>
               <td class="small">{m.subject}</td>
-              <td class="small" style="max-width:360px;word-break:break-all">{link ? (expired ? <span class="muted">หมดอายุแล้ว</span> : <input class="input" readonly value={link} style="font-size:12px;padding:6px 8px" onclick="this.select()" />) : '-'}</td>
+              <td class="small" style="max-width:360px;word-break:break-all">{link ? (expired ? <span class="muted">หมดอายุแล้ว</span> : <input class="input" readonly value={link} style="font-size:12px;padding:4px 8px" onclick="this.select()" />) : '-'}</td>
               <td><span class={`badge ${m.status === 'sent' ? 'b-active' : m.status === 'failed' ? 'b-rejected' : 'b-pending'}`}>{m.status === 'sent' ? 'ส่งแล้ว' : m.status === 'failed' ? 'ส่งไม่สำเร็จ' : 'ยังไม่ส่ง (รอตั้งค่า)'}</span>{m.error && <div class="tiny muted">{m.error.slice(0, 120)}</div>}</td>
             </tr>
           );
