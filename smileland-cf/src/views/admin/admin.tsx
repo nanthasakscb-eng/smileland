@@ -274,7 +274,7 @@ export const LeadsAdminPage: FC<{ rows: (Lead & { listingRef?: string | null })[
   </>
 );
 
-export const SettingsPage: FC<{ admin: AdminSession; s: Record<string, string>; ok?: string; after?: string }> = ({ admin, s, ok, after }) => {
+export const SettingsPage: FC<{ admin: AdminSession; s: Record<string, string>; demo: { real: number; demo: number; at: number; hidden: boolean }; ok?: string; after?: string }> = ({ admin, s, demo, ok, after }) => {
   const fields: [string, string, string?][] = [
     ['contact_phone', 'เบอร์โทรติดต่อ (แสดงบนเว็บ)'], ['contact_line', 'LINE OA ID (เช่น @smileland)'], ['contact_line_url', 'ลิงก์ LINE OA', 'https://lin.ee/...'],
     ['contact_email', 'อีเมลติดต่อ / เรื่องข้อมูลส่วนบุคคล'], ['company_name', 'ชื่อนิติบุคคล/ผู้ให้บริการ (นโยบายความเป็นส่วนตัว)'],
@@ -298,12 +298,25 @@ export const SettingsPage: FC<{ admin: AdminSession; s: Record<string, string>; 
         <p class="small muted">ระบบสร้างดัชนีให้อัตโนมัติเมื่ออนุมัติประกาศ ใช้ปุ่มนี้หลังนำเข้าข้อมูลจากระบบเดิม หรือเมื่อปรับวิธีตัดคำ (ทำครั้งละ 200 ประกาศ)</p>
         <button class="btn btn-line" type="submit">{after ? 'ทำต่อ' : 'สร้างดัชนีค้นหาใหม่'}</button>
       </form>
-      <form class="form-card" method="post" action="/admin/demo/delete" style="max-width:760px" data-confirm="ลบประกาศตัวอย่าง (SL-DEMO…) ทั้งหมด? ประกาศจริงจะไม่ถูกลบ">
-        <input type="hidden" name="csrf" value={admin.csrf} />
+      <div class="form-card" style="max-width:760px">
         <h2 style="font-size:18px">ประกาศตัวอย่าง</h2>
-        <p class="small muted">ประกาศที่ขึ้นต้นด้วย SL-DEMO ใช้แสดงหน้าตาเว็บเท่านั้น (ติดป้าย "ตัวอย่าง", ไม่ให้ Google เก็บ, ไม่รับการติดต่อ) — ควรลบก่อนเปิดใช้งานจริง</p>
-        <button class="btn btn-danger" type="submit">ลบประกาศตัวอย่างทั้งหมด</button>
-      </form>
+        <p class="small muted">ประกาศที่ขึ้นต้นด้วย SL-DEMO ใช้แสดงหน้าตาเว็บระหว่างที่ยังมีประกาศจริงน้อย (ติดป้าย "ตัวอย่าง", ไม่ให้ Google เก็บ, ไม่รับการติดต่อ) ประกาศจริงจะแสดงก่อนเสมอ และเมื่อประกาศจริงครบตามจำนวนที่ตั้ง ประกาศตัวอย่างจะหายไปเองทั้งหมด</p>
+        <p style="margin:8px 0 14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <span>ประกาศจริงที่เผยแพร่ <b>{demo.real}</b> / {demo.at}</span>
+          <span class="muted">·</span>
+          <span>ประกาศตัวอย่าง <b>{demo.demo}</b> รายการ</span>
+          {demo.demo > 0 && (demo.hidden ? <span class="badge b-active">ซ่อนแล้ว (ประกาศจริงครบ)</span> : <span class="badge b-pending">กำลังแสดงบนเว็บ</span>)}
+        </p>
+        <form method="post" action="/admin/demo/threshold" style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px">
+          <input type="hidden" name="csrf" value={admin.csrf} />
+          <div class="field" style="margin:0"><label for="demo-at">ซ่อนประกาศตัวอย่างเมื่อมีประกาศจริงครบ (รายการ)</label><input id="demo-at" class="input" name="demo_hide_at" type="number" min={1} max={10000} value={String(demo.at)} style="max-width:160px" /></div>
+          <button class="btn btn-ink" type="submit">บันทึก</button>
+        </form>
+        <form method="post" action="/admin/demo/delete" data-confirm="ลบประกาศตัวอย่าง (SL-DEMO…) ทั้งหมดถาวร? ประกาศจริงจะไม่ถูกลบ">
+          <input type="hidden" name="csrf" value={admin.csrf} />
+          <button class="btn btn-danger btn-sm" type="submit">ลบประกาศตัวอย่างทั้งหมดถาวร</button>
+        </form>
+      </div>
     </>
   );
 };

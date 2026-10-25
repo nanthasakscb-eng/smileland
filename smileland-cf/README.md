@@ -33,14 +33,20 @@
 
 ---
 
+## Deploy บน Windows (ดับเบิลคลิก)
+
+- **`deploy.bat`** — อัปเดตเว็บ: รัน migration ที่ยังไม่เคยรัน → อัปเดตประกาศตัวอย่าง (ถ้ามีชุดใหม่) → `wrangler deploy`
+  ไม่แตะโดเมน (`SITE_URL`), รหัสแอดมิน, คีย์ Turnstile หรือคีย์อีเมลที่ตั้งไว้ · ถ้ายังไม่เคย deploy จะเข้าขั้นตอนติดตั้งครั้งแรกให้เอง
+- **`set-keys.bat`** — ตั้งคีย์ลับ: `RESEND_API_KEY` (ส่งอีเมลจริง) หรือ Turnstile Site/Secret Key (กันบอท) · พิมพ์คีย์ในหน้าต่างนี้เท่านั้น
+
 ## ประกาศตัวอย่าง (demo)
 
-- `seed/demo.sql` มีประกาศตัวอย่าง **200 รายการ ครบ 77 จังหวัด** (บ้าน 84 · ที่ดิน 65 · คอนโด 51, ขาย/เช่า) รหัสขึ้นต้น `SL-DEMO`
-- รูปเป็นภาพจำลอง 3 มิติ (เรนเดอร์ด้วย three.js) อยู่ใน `public/demo-img/` — ไม่ใช่รูปถ่ายทรัพย์จริง
+- `seed/demo.sql` มีประกาศตัวอย่าง **30 รายการ ใน 20 จังหวัดภาคอีสาน** (บ้าน 15 · คอนโด 5 · ที่ดิน/ที่นา 10, ขาย/เช่า) รหัสขึ้นต้น `SL-DEMO`
+- ข้อมูลประกาศอยู่ที่ `scripts/demo-listings.json` → สร้าง SQL ใหม่ด้วย `npm run demo:build`
+- รูปเป็นภาพเรนเดอร์ 3 มิติ (Blender Cycles) อยู่ใน `public/demo-img/` — ไม่ใช่รูปถ่ายทรัพย์จริง
 - ประกาศตัวอย่าง: ติดป้าย "ตัวอย่าง", แสดงแถบแจ้งบนหน้าประกาศ, `noindex`, ไม่อยู่ใน sitemap, ไม่นับเป็นเนื้อหาของหน้า landing, ไม่รับการติดต่อ
-- ใส่: `npm run db:demo:local` (ในเครื่อง) หรือ `npm run db:demo:remote` (production) · ลบ: `/admin/settings` → **ลบประกาศตัวอย่างทั้งหมด**
-- ควรลบก่อนเปิดให้คนทั่วไปใช้งานจริง และลบโฟลเดอร์ `public/demo-img/` ได้หลังลบประกาศแล้ว
-- สร้างข้อมูลใหม่: `npm run demo:build`
+- **ซ่อนอัตโนมัติ:** ประกาศจริงแสดงก่อนเสมอ และเมื่อประกาศจริงที่เผยแพร่ครบจำนวนที่ตั้ง (ค่าเริ่มต้น 20 · ปรับได้ที่ `/admin/settings`) ประกาศตัวอย่างจะหายจากเว็บทั้งหมดเอง
+- `deploy.bat` อัปเดตประกาศตัวอย่างให้เองเมื่อไฟล์เป็นชุดใหม่ (`-- demo_version`) · ถ้ากด **ลบประกาศตัวอย่างทั้งหมดถาวร** ใน `/admin/settings` แล้ว จะไม่ใส่กลับอีก
 
 ## โครงสร้างโฟลเดอร์
 
@@ -55,7 +61,7 @@ src/
 public/assets/         css, js (app.js), fonts, vendor/maplibre, img
 migrations/            0001_init.sql (drizzle-kit), 0002_history_guards.sql (trigger ห้ามแก้ประวัติ)
 seed/geo.sql           77 จังหวัด / 928 อำเภอ / 7,436 ตำบล
-seed/demo.sql          ประกาศตัวอย่าง 28 รายการ (ทดสอบในเครื่องเท่านั้น)
+seed/demo.sql          ประกาศตัวอย่าง 30 รายการ เขตอีสาน (สร้างจาก scripts/demo-listings.json)
 scripts/               build-geo-sql.mjs, build-demo-seed.mjs
 ```
 
@@ -109,7 +115,7 @@ npm run deploy:first        # สร้าง D1/R2/KV/Queue, migrate, นำเ
    npx wrangler secret put ADMIN_INITIAL_PASSWORD
    ```
 5. แก้ `SITE_URL` เป็นโดเมนจริง และ (แนะนำ) ผูก custom domain `img.<โดเมน>` กับ bucket แล้วตั้ง `IMG_BASE = "https://img.<โดเมน>"` ให้รูปเสิร์ฟผ่าน CDN โดยตรง
-6. Migrate + ข้อมูลภูมิศาสตร์ (**ห้ามรัน demo.sql บน production**)
+6. Migrate + ข้อมูลภูมิศาสตร์
    ```bash
    npm run db:migrate:remote
    npm run db:geo:remote

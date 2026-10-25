@@ -1,7 +1,7 @@
 /** @jsxImportSource hono/jsx */
 import { Hono, type Context } from 'hono';
 import type { Child } from 'hono/jsx';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, asc, desc, eq } from 'drizzle-orm';
 import type { AppEnv } from '../env';
 import { db } from '../db';
 import { leads, listings, priceHistory, timeline } from '../db/schema';
@@ -20,7 +20,7 @@ import { ConsignPage, ManagePage, NotFoundPage, PrivacyPage, ProvincesPage, Stat
 import { geo, provinceBySlug, districtBySlug, districtsOf, subdistrictName, districtLabel } from '../lib/geo';
 import {
   search, stats, provinceCounts, districtCounts, getListing, getImages, getTimeline, getPriceHistory, similar, imgUrl, addTimeline,
-  cardColumns, decorate, countActive, type SearchParams, type Card,
+  cardColumns, decorate, countActive, buildWhere, realFirst, demoStatus, type SearchParams, type Card,
 } from '../lib/listings';
 import { isDemo, DEALS, TYPES, formatPrice, landText, nowSec, normPhone, truncate, clampInt, type Deal, type PType } from '../lib/util';
 import { clientIp, rateLimit, sha256Hex, verifyTurnstile, sameOrigin } from '../lib/security';
@@ -67,8 +67,8 @@ pub.get('/', async (c) => {
   const d = db(c.env);
   const [g, st, pc, featuredRows, latestRows] = await Promise.all([
     geo(c.env), stats(c.env), provinceCounts(c.env),
-    d.select(cardColumns).from(listings).where(and(eq(listings.status, 'active'), eq(listings.featured, 1))).orderBy(desc(listings.approvedAt)).limit(8),
-    d.select(cardColumns).from(listings).where(eq(listings.status, 'active')).orderBy(desc(listings.approvedAt), desc(listings.id)).limit(8),
+    d.select(cardColumns).from(listings).where(and(buildWhere({}), eq(listings.featured, 1))).orderBy(asc(realFirst), desc(listings.approvedAt)).limit(8),
+    d.select(cardColumns).from(listings).where(buildWhere({})).orderBy(asc(realFirst), desc(listings.approvedAt), desc(listings.id)).limit(8),
   ]);
   const [featured, latest] = await Promise.all([decorate(c.env, featuredRows as Card[]), decorate(c.env, latestRows as Card[])]);
   return render(c, {
@@ -227,6 +227,7 @@ pub.get('/listing/:id{[0-9]+}', async (c) => {
   const id = parseInt(c.req.param('id'), 10);
   const l = await getListing(c.env, id);
   if (!l || !['active', 'sold', 'expired'].includes(l.status)) return notFound(c);
+  if (isDemo(l.ref) && (await demoStatus(c.env)).hidden) return notFound(c);
   const g = await geo(c.env);
   const prov = g.provinces.find((x) => x.code === l.provinceCode)!;
   const dist = g.districts.find((x) => x.code === l.districtCode)!;

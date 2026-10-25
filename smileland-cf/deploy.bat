@@ -1,9 +1,9 @@
 @echo off
 chcp 65001 >nul
-title SMILELAND - Deploy to Cloudflare
+title Isan Na Yoo - Deploy to Cloudflare
 cd /d "%~dp0"
 echo.
-echo ===== SMILELAND : Deploy to Cloudflare =====
+echo ===== Isan Na Yoo (SMILELAND) : Deploy to Cloudflare =====
 echo.
 where node >nul 2>nul
 if errorlevel 1 (
@@ -46,10 +46,9 @@ goto checklogin
 
 :deploy
 echo.
-echo [3/3] Creating resources, database and deploying...
+echo [3/3] Updating database and deploying...
 set SL_NONINTERACTIVE=1
-set SL_DEMO=1
-call node scripts\deploy-first-time.mjs
+call node scripts\deploy-update.mjs
 echo.
 if exist ADMIN-PASSWORD.txt (
   echo ===== Admin login - also saved in ADMIN-PASSWORD.txt =====

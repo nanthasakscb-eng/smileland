@@ -56,8 +56,27 @@ function tokenCondition(q: string): SQL | null {
   return and(...conds)!;
 }
 
+/* ---------- ประกาศตัวอย่าง: ซ่อนอัตโนมัติเมื่อประกาศจริงครบตามที่ตั้ง (settings.demo_hide_at, ค่าเริ่มต้น 20) ---------- */
+export const DEMO_HIDE_DEFAULT = 20;
+const SA = sql.raw(SERVICE_PROVINCES.join(','));
+/** เงื่อนไข SQL: ประกาศจริงแสดงเสมอ ประกาศตัวอย่างแสดงเฉพาะตอนที่ประกาศจริงยังไม่ครบเกณฑ์ */
+export const demoVisibleSql = sql`(${listings.ref} NOT LIKE 'SL-DEMO%' OR (SELECT count(*) FROM listings r WHERE r.status = 'active' AND r.ref NOT LIKE 'SL-DEMO%' AND r.province_code IN (${SA})) < coalesce((SELECT CAST(value AS INTEGER) FROM settings WHERE key = 'demo_hide_at' AND value <> ''), ${DEMO_HIDE_DEFAULT}))`;
+/** เรียงประกาศจริงขึ้นก่อนประกาศตัวอย่างเสมอ */
+export const realFirst = sql`CASE WHEN ${listings.ref} LIKE 'SL-DEMO%' THEN 1 ELSE 0 END`;
+
+export async function demoStatus(env: Bindings) {
+  const r = await env.DB.prepare(
+    `SELECT
+      (SELECT count(*) FROM listings WHERE status = 'active' AND ref NOT LIKE 'SL-DEMO%' AND province_code IN (${SERVICE_PROVINCES.join(',')})) AS real,
+      (SELECT count(*) FROM listings WHERE ref LIKE 'SL-DEMO%') AS demo,
+      coalesce((SELECT CAST(value AS INTEGER) FROM settings WHERE key = 'demo_hide_at' AND value <> ''), ${DEMO_HIDE_DEFAULT}) AS at`,
+  ).first<{ real: number; demo: number; at: number }>();
+  const s = r ?? { real: 0, demo: 0, at: DEMO_HIDE_DEFAULT };
+  return { ...s, hidden: s.real >= s.at };
+}
+
 export function buildWhere(p: SearchParams): SQL {
-  const w: SQL[] = [eq(listings.status, 'active'), inArray(listings.provinceCode, SERVICE_PROVINCES)];
+  const w: SQL[] = [eq(listings.status, 'active'), inArray(listings.provinceCode, SERVICE_PROVINCES), demoVisibleSql];
   if (p.deal) w.push(eq(listings.deal, p.deal));
   if (p.type) w.push(eq(listings.type, p.type));
   if (p.province) w.push(eq(listings.provinceCode, p.province));
@@ -91,7 +110,7 @@ export async function search(env: Bindings, p: SearchParams) {
     p.sort === 'price-asc' ? [asc(listings.price)] :
     p.sort === 'price-desc' ? [desc(listings.price)] :
     p.sort === 'size' ? [desc(sql`coalesce(${listings.landSqw}, 0) * 4 + coalesce(${listings.usableSqm}, 0)`)] :
-    [desc(listings.featured), desc(listings.approvedAt), desc(listings.id)];
+    [asc(realFirst), desc(listings.featured), desc(listings.approvedAt), desc(listings.id)];
   const [rows, total] = await Promise.all([
     d.select(cardColumns).from(listings).where(where).orderBy(...order).limit(per).offset((page - 1) * per),
     d.select({ n: count() }).from(listings).where(where),
@@ -114,14 +133,14 @@ export async function stats(env: Bindings) {
 }
 
 export async function provinceCounts(env: Bindings, deal?: string, type?: string) {
-  const w: SQL[] = [eq(listings.status, 'active'), inArray(listings.provinceCode, SERVICE_PROVINCES)];
+  const w: SQL[] = [eq(listings.status, 'active'), inArray(listings.provinceCode, SERVICE_PROVINCES), demoVisibleSql];
   if (deal) w.push(eq(listings.deal, deal as 'sale'));
   if (type) w.push(eq(listings.type, type as 'land'));
   const rows = await db(env).select({ code: listings.provinceCode, n: count() }).from(listings).where(and(...w)).groupBy(listings.provinceCode);
   return new Map(rows.map((r) => [r.code, r.n]));
 }
 export async function districtCounts(env: Bindings, provinceCode: number, deal?: string, type?: string) {
-  const w: SQL[] = [eq(listings.status, 'active'), eq(listings.provinceCode, provinceCode)];
+  const w: SQL[] = [eq(listings.status, 'active'), eq(listings.provinceCode, provinceCode), demoVisibleSql];
   if (deal) w.push(eq(listings.deal, deal as 'sale'));
   if (type) w.push(eq(listings.type, type as 'land'));
   const rows = await db(env).select({ code: listings.districtCode, n: count() }).from(listings).where(and(...w)).groupBy(listings.districtCode);
@@ -145,8 +164,8 @@ export async function getPriceHistory(env: Bindings, id: number) {
 
 export async function similar(env: Bindings, l: Listing, n = 4) {
   const rows = await db(env).select(cardColumns).from(listings)
-    .where(and(eq(listings.status, 'active'), eq(listings.deal, l.deal), eq(listings.type, l.type), eq(listings.provinceCode, l.provinceCode), sql`${listings.id} != ${l.id}`))
-    .orderBy(sql`abs(${listings.price} - ${l.price})`).limit(n);
+    .where(and(eq(listings.status, 'active'), eq(listings.deal, l.deal), eq(listings.type, l.type), eq(listings.provinceCode, l.provinceCode), sql`${listings.id} != ${l.id}`, demoVisibleSql))
+    .orderBy(asc(realFirst), sql`abs(${listings.price} - ${l.price})`).limit(n);
   return decorate(env, rows as Card[]);
 }
 

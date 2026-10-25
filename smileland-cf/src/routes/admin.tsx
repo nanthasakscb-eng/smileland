@@ -10,7 +10,7 @@ import { createSession, destroySession, ensureBootstrapAdmin, loadSession, setAd
 import { clientIp, hashPassword, rateLimit, sameOrigin, timingSafeEqual, verifyPassword, verifyTurnstile } from '../lib/security';
 import { geo } from '../lib/geo';
 import { inServiceArea } from '../lib/service-area';
-import { addTimeline, getImages, getListing, getTimeline, reindex } from '../lib/listings';
+import { addTimeline, getImages, getListing, getTimeline, reindex, demoStatus } from '../lib/listings';
 import { clampInt, formatPrice, normPhone, nowSec } from '../lib/util';
 import { PERMS, can, getUser, sendVerifyEmail } from '../lib/users';
 import type { Next } from 'hono';
@@ -250,6 +250,9 @@ admin.post('/demo/delete', need('settings'), async (c) => {
       DB.prepare(`DELETE FROM listings WHERE id IN (${qs})`).bind(...chunk),
     ]);
   }
+  // จำไว้ว่าแอดมินลบถาวรแล้ว — deploy รอบหน้าจะไม่ใส่ประกาศตัวอย่างกลับมา
+  await db(c.env).insert(settings).values({ key: 'demo_deleted', value: '1' }).onConflictDoUpdate({ target: settings.key, set: { value: '1' } });
+  invalidateSettings();
   c.executionCtx.waitUntil(c.env.JOBS.send({ kind: 'sitemap-index' }).catch(() => undefined));
   return c.redirect(`/admin/settings?ok=1&msg=${encodeURIComponent(`ลบประกาศตัวอย่างแล้ว ${ids.length} รายการ`)}`, 303);
 });
@@ -274,7 +277,14 @@ admin.post('/leads/:id{[0-9]+}', need('leads'), async (c) => {
 
 /* ---------- ตั้งค่า ---------- */
 const SETTING_KEYS = ['contact_phone', 'contact_line', 'contact_line_url', 'contact_email', 'company_name', 'company_address', 'dpo_contact', 'privacy_effective_date', 'data_retention'];
-admin.get('/settings', need('settings'), (c) => page(c, 'ตั้งค่า', 'settings', <SettingsPage admin={c.get('admin')!} s={c.get('settings')} ok={c.req.query('ok') ? (c.req.query('msg') || 'บันทึกแล้ว') : undefined} after={c.req.query('after')} />));
+admin.get('/settings', need('settings'), async (c) => page(c, 'ตั้งค่า', 'settings', <SettingsPage admin={c.get('admin')!} s={c.get('settings')} demo={await demoStatus(c.env)} ok={c.req.query('ok') ? (c.req.query('msg') || 'บันทึกแล้ว') : undefined} after={c.req.query('after')} />));
+admin.post('/demo/threshold', need('settings'), async (c) => {
+  const f = await c.req.parseBody();
+  const n = Math.min(Math.max(parseInt(String(f.demo_hide_at ?? ''), 10) || 0, 1), 10000);
+  await db(c.env).insert(settings).values({ key: 'demo_hide_at', value: String(n) }).onConflictDoUpdate({ target: settings.key, set: { value: String(n) } });
+  invalidateSettings();
+  return c.redirect(`/admin/settings?ok=1&msg=${encodeURIComponent(`ตั้งค่าแล้ว — ประกาศตัวอย่างจะซ่อนเองเมื่อมีประกาศจริงครบ ${n} รายการ`)}`, 303);
+});
 admin.post('/settings', need('settings'), async (c) => {
   const f = await c.req.parseBody();
   const d = db(c.env);
