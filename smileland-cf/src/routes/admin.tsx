@@ -9,6 +9,7 @@ import { AdminLayout, Dashboard, LeadsAdminPage, ListingAdminDetail, ListingsAdm
 import { createSession, destroySession, ensureBootstrapAdmin, loadSession, setAdminPassword, updateSession } from '../lib/session';
 import { clientIp, hashPassword, rateLimit, sameOrigin, timingSafeEqual, verifyPassword, verifyTurnstile } from '../lib/security';
 import { geo } from '../lib/geo';
+import { inServiceArea } from '../lib/service-area';
 import { addTimeline, getImages, getListing, getTimeline, reindex } from '../lib/listings';
 import { clampInt, formatPrice, normPhone, nowSec } from '../lib/util';
 import { PERMS, can, getUser, sendVerifyEmail } from '../lib/users';
@@ -33,14 +34,15 @@ admin.get('/login', async (c) => {
 
 admin.post('/login', async (c) => {
   const ip = clientIp(c);
-  const page = (error: string, status = 400) => c.html(<AdminLayout title="เข้าสู่ระบบ"><LoginPage env={c.env} error={error} /></AdminLayout>, status as 400);
+  let username = '';
+  const page = (error: string, status = 400) => c.html(<AdminLayout title="เข้าสู่ระบบ"><LoginPage env={c.env} error={error} username={username} /></AdminLayout>, status as 400);
   if (!sameOrigin(c)) return page('คำขอไม่ถูกต้อง');
   const rl = await rateLimit(c.env, `login:${ip}`, 8, 900);
   if (!rl.ok) return page('พยายามเข้าสู่ระบบบ่อยเกินไป กรุณารอ 15 นาที', 429);
   const f = await c.req.parseBody();
+  username = String(f.username || '').trim().toLowerCase().slice(0, 40);
   if (!(await verifyTurnstile(c.env, String(f['cf-turnstile-response'] || ''), ip))) return page('กรุณายืนยันว่าไม่ใช่บอท');
   await ensureBootstrapAdmin(c);
-  const username = String(f.username || '').trim().toLowerCase().slice(0, 40);
   const password = String(f.password || '').slice(0, 200);
   const r = await db(c.env).select().from(admins).where(eq(admins.username, username)).limit(1);
   const a = r[0];
@@ -184,6 +186,7 @@ admin.post('/listings/:id{[0-9]+}', need('listings.review', 'listings.edit'), as
   let msg = 'บันทึกแล้ว';
   switch (action) {
     case 'approve': {
+      if (!inServiceArea(l.provinceCode)) { msg = 'ให้บริการเฉพาะภาคอีสาน ไม่สามารถเผยแพร่ประกาศนอกพื้นที่'; break; }
       if (l.status === 'sold') break;
       await d.update(listings).set({ status: 'active', approvedAt: l.approvedAt ?? now, expiresAt: now + ttl, rejectReason: null, updatedAt: now }).where(eq(listings.id, id));
       await addTimeline(c.env, id, l.status === 'pending' ? 'approved' : 'reopened', actor);

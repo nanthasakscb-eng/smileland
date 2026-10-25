@@ -134,7 +134,7 @@ api.post('/listings', async (c) => {
   const geoData = await geo(c.env);
   const prov = geoData.provinces.find((p) => p.code === provinceCode);
   const dist = geoData.districts.find((d) => d.code === districtCode && d.provinceCode === provinceCode);
-  if (!prov) errors.provinceCode = 'เลือกจังหวัด';
+  if (!prov) errors.provinceCode = 'ให้บริการเฉพาะ 20 จังหวัดในภาคอีสาน';
   if (!dist) errors.districtCode = 'เลือกอำเภอ/เขต';
   if (subdistrictCode && Math.floor(subdistrictCode / 100) !== districtCode) errors.subdistrictCode = 'ตำบลไม่ตรงกับอำเภอ';
 
@@ -246,6 +246,7 @@ api.post('/leads', async (c) => {
   try { b = await c.req.json(); } catch { return c.json({ ok: false, error: 'ข้อมูลไม่ถูกต้อง' }, 400); }
   if (!(await verifyTurnstile(c.env, String(b['cf-turnstile-response'] || ''), ip))) return c.json({ ok: false, error: 'กรุณายืนยันว่าไม่ใช่บอท' }, 400);
   const kind = b.kind === 'consign' ? 'consign' : b.kind === 'contact' ? 'contact' : 'inquiry';
+  if (kind === 'consign' && !(await geo(c.env)).provinces.some((p) => p.nameTh === b.meta_province)) return c.json({ ok: false, error: 'รับฝากขาย/ฝากเช่าเฉพาะ 20 จังหวัดในภาคอีสาน กรุณาเลือกจังหวัด' }, 422);
   const name = str(b.name, 80);
   const phone = normPhone(String(b.phone || ''));
   if (name.length < 2) return c.json({ ok: false, error: 'กรุณาระบุชื่อ' }, 422);
@@ -255,8 +256,8 @@ api.post('/leads', async (c) => {
   if (kind === 'inquiry') {
     listingId = clampInt(b.listingId, 1, 1e9);
     if (!listingId) return c.json({ ok: false, error: 'ไม่พบประกาศ' }, 404);
-    const l = await db(c.env).select({ id: listings.id, status: listings.status, ref: listings.ref }).from(listings).where(eq(listings.id, listingId)).limit(1);
-    if (!l[0] || l[0].status !== 'active') return c.json({ ok: false, error: 'ประกาศนี้ปิดแล้ว' }, 410);
+    const l = await db(c.env).select({ id: listings.id, status: listings.status, ref: listings.ref, provinceCode: listings.provinceCode }).from(listings).where(eq(listings.id, listingId)).limit(1);
+    if (!l[0] || !(await geo(c.env)).provinces.some((p) => p.code === l[0].provinceCode) || l[0].status !== 'active') return c.json({ ok: false, error: 'ประกาศนี้ปิดแล้ว' }, 410);
     if (l[0].ref.startsWith('SL-DEMO')) return c.json({ ok: false, error: 'ประกาศตัวอย่าง ไม่รับการติดต่อ' }, 410);
   }
   const meta: Record<string, string> = {};

@@ -65,7 +65,7 @@ p { margin: 0 0 1em; }
 .brand { display: flex; align-items: center; gap: 12px; color: var(--ink); }
 .brand:hover { color: var(--ink); }
 .brand-mark { width: 38px; height: 38px; }
-.brand-name { font-family: var(--brand); font-weight: 700; letter-spacing: .14em; font-size: 19px; line-height: 1; }
+.brand-name { font-family: var(--brand); font-weight: 700; letter-spacing: 0; font-size: 19px; line-height: 1.4; }
 .brand-sub { display: block; font-family: var(--font); font-size: 12px; color: var(--muted); font-weight: 500; margin-top: 3px; }
 .nav { display: flex; gap: 4px; margin-left: auto; align-items: center; }
 .nav a { padding: 8px 14px; border-radius: 999px; font-weight: 500; font-size: 15px; color: var(--ink-2); }
@@ -422,3 +422,5 @@ table.t .thumbcell img { width: 76px; height: 56px; object-fit: cover; border-ra
 .login-card { width: 100%; max-width: 400px; background: #fff; border-radius: 20px; padding: 34px; box-shadow: var(--shadow-lg); }
 
 @media print { .header, .footer, .topbar, .side, .submit-bar { display: none !important; } }
+
+.travel-nav{position:relative}.travel-nav>summary{cursor:pointer;list-style:none;white-space:nowrap;padding:10px 0;font-weight:500}.travel-nav>summary::-webkit-details-marker{display:none}.travel-nav>summary.on{color:#a7823c}.travel-nav-panel{position:absolute;top:100%;left:0;width:460px;max-width:90vw;padding:18px;background:#fff;border:1px solid #e6dfcf;border-radius:8px;box-shadow:0 16px 45px #102a2d26;z-index:100}.travel-nav-all{display:block;padding:0 8px 14px;color:#947133;border-bottom:1px solid #ebe7df;margin-bottom:8px}.travel-nav-provinces{display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;max-height:390px;overflow:auto}.travel-nav-provinces a{display:flex;justify-content:space-between;align-items:center;padding:9px 8px;font-size:13px;gap:10px;border-radius:4px}.travel-nav-provinces a:hover{background:#f3efe5}.travel-nav-provinces small{font-size:10px;color:#8c927f;white-space:nowrap}@media(max-width:980px){.travel-nav{width:100%}.travel-nav-panel{position:static;width:100%;max-width:100%;box-shadow:none}.travel-nav>summary{padding:12px 0}}

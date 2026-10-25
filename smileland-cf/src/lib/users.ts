@@ -79,20 +79,20 @@ export async function sendVerifyEmail(c: Context<AppEnv>, u: User) {
   const url = `${origin(c)}/verify?token=${token}`;
   const m = mailTemplate('ยืนยันอีเมลเพื่อเริ่มลงประกาศ', [
     `สวัสดีคุณ${u.name}`,
-    'ขอบคุณที่สมัครสมาชิก SMILELAND กรุณากดปุ่มด้านล่างเพื่อยืนยันอีเมล หลังยืนยันแล้วคุณจะลงประกาศขาย/ให้เช่าได้ทันที',
+    'ขอบคุณที่สมัครสมาชิก อีสานน่าอยู่ กรุณากดปุ่มด้านล่างเพื่อยืนยันอีเมล หลังยืนยันแล้วคุณจะลงประกาศขาย/ให้เช่าได้ทันที',
     'ลิงก์นี้ใช้ได้ภายใน 48 ชั่วโมง',
   ], { label: 'ยืนยันอีเมล', url });
-  return sendMail(c.env, { to: u.email, subject: 'ยืนยันอีเมล SMILELAND', ...m, kind: 'verify', userId: u.id });
+  return sendMail(c.env, { to: u.email, subject: 'ยืนยันอีเมล อีสานน่าอยู่', ...m, kind: 'verify', userId: u.id });
 }
 export async function sendResetEmail(c: Context<AppEnv>, u: User) {
   const token = await issueToken(c, u.id, 'reset');
   const url = `${origin(c)}/reset?token=${token}`;
   const m = mailTemplate('ตั้งรหัสผ่านใหม่', [
     `สวัสดีคุณ${u.name}`,
-    'มีการขอตั้งรหัสผ่านใหม่สำหรับบัญชี SMILELAND ของคุณ กดปุ่มด้านล่างเพื่อตั้งรหัสใหม่ (ลิงก์ใช้ได้ 1 ชั่วโมง)',
+    'มีการขอตั้งรหัสผ่านใหม่สำหรับบัญชี อีสานน่าอยู่ ของคุณ กดปุ่มด้านล่างเพื่อตั้งรหัสใหม่ (ลิงก์ใช้ได้ 1 ชั่วโมง)',
     'หากคุณไม่ได้ขอ ไม่ต้องทำอะไร รหัสผ่านเดิมยังใช้ได้ตามปกติ',
   ], { label: 'ตั้งรหัสผ่านใหม่', url });
-  return sendMail(c.env, { to: u.email, subject: 'ตั้งรหัสผ่านใหม่ SMILELAND', ...m, kind: 'reset', userId: u.id });
+  return sendMail(c.env, { to: u.email, subject: 'ตั้งรหัสผ่านใหม่ อีสานน่าอยู่', ...m, kind: 'reset', userId: u.id });
 }
 
 /* ---------- สิทธิ์ทีมผู้ดูแล ---------- */

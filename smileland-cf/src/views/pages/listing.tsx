@@ -119,7 +119,7 @@ export const ListingPage: FC<{
                 <div class="field"><label class="req" for="ld-phone">เบอร์โทร</label><input id="ld-phone" class="input" name="phone" required inputmode="tel" maxlength={15} autocomplete="tel" /></div>
                 <div class="field"><label for="ld-line">LINE ID</label><input id="ld-line" class="input" name="line" maxlength={60} /></div>
                 <div class="field"><label for="ld-msg">ข้อความ</label><textarea id="ld-msg" class="input" name="message" maxlength={1000} style="min-height:90px">สนใจ{TYPES[l.type as PType]}{DEALS[l.deal as Deal]} รหัส {l.ref} ขอรายละเอียดเพิ่มเติมครับ/ค่ะ</textarea></div>
-                <label class="check small"><input type="checkbox" name="consent" required /> <span>ยินยอมให้ SMILELAND ใช้ข้อมูลเพื่อติดต่อกลับเรื่องทรัพย์นี้ ตาม<a href="/privacy" style="text-decoration:underline">นโยบายความเป็นส่วนตัว</a></span></label>
+                <label class="check small"><input type="checkbox" name="consent" required /> <span>ยินยอมให้ อีสานน่าอยู่ ใช้ข้อมูลเพื่อติดต่อกลับเรื่องทรัพย์นี้ ตาม<a href="/privacy" style="text-decoration:underline">นโยบายความเป็นส่วนตัว</a></span></label>
                 <div style="margin:14px 0"><Turnstile env={env} /></div>
                 <button class="btn btn-gold btn-block" type="submit"><Icon name="chat" /> ส่งข้อความถึงผู้ลงประกาศ</button>
                 <div class="form-msg" aria-live="polite"></div>

@@ -4,8 +4,10 @@ import { raw } from 'hono/html';
 import type { Bindings, UserSession } from '../env';
 import { isDemo, DEALS, TYPES, formatPrice, landText, type Deal, type PType } from '../lib/util';
 import { imgUrl, imgSrcset, placeholder, type Card } from '../lib/listings';
+import { travelProvinces, provinceTravelHref } from '../data/travel-provinces';
+import { PronetMenu } from './pronet-menu';
 
-export const ASSET_V = '20261024e';
+export const ASSET_V = '20261025-home-sections';
 
 /* ---------- icons ---------- */
 const P = { fill: 'none', stroke: 'currentColor', 'stroke-width': '1.7', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' } as const;
@@ -56,22 +58,22 @@ export type Meta = {
 };
 
 export const Brand: FC<{ sub?: boolean }> = ({ sub = true }) => (
-  <a href="/" class="brand" aria-label="SMILELAND หน้าแรก">
+  <a href="/" class="brand" aria-label="อีสานน่าอยู่ หน้าแรก">
     <img src="/assets/img/logo.svg" class="brand-mark" alt="" width="38" height="38" />
     <span>
-      <span class="brand-name">SMILELAND</span>
-      {sub && <span class="brand-sub">บ้าน · ที่ดิน · คอนโด ทั่วไทย</span>}
+      <span class="brand-name">อีสานน่าอยู่</span>
+      {sub && <span class="brand-sub">บ้าน · ที่ดิน · คอนโด เขตอีสาน</span>}
     </span>
   </a>
 );
 
 export const Layout: FC<{ env: Bindings; meta: Meta; settings: Record<string, string>; user?: UserSession; children?: Child }> = ({ env, meta, settings, user, children }) => {
   const site = env.SITE_URL.replace(/\/$/, '');
-  const title = meta.title.includes('SMILELAND') ? meta.title : `${meta.title} | SMILELAND`;
+  const title = meta.title.includes('อีสานน่าอยู่') ? meta.title : `${meta.title} | อีสานน่าอยู่`;
   const canonical = meta.canonical ? (meta.canonical.startsWith('http') ? meta.canonical : site + meta.canonical) : undefined;
   const og = meta.ogImage ? (meta.ogImage.startsWith('http') ? meta.ogImage : site + meta.ogImage) : site + '/assets/img/og.png';
   const ld = meta.jsonld ? (Array.isArray(meta.jsonld) ? meta.jsonld : [meta.jsonld]) : [];
-  const navs: [string, string, string][] = [['sale', '/sale/property', 'ซื้อ'], ['rent', '/rent/property', 'เช่า'], ['consign', '/consign', 'ฝากขาย/ฝากเช่า'], ['tools', '/tools', 'เครื่องมือ']];
+  const navs: [string, string, string][] = [['sale', '/sale/property', 'ซื้อ'], ['rent', '/rent/property', 'เช่า'], ['consign', '/consign', 'ฝากขาย/ฝากเช่า'], ['travel', '/travel/', 'เที่ยวสานกัน'], ['tools', '/tools', 'เครื่องมือ']];
   return (
     <>
       {raw('<!doctype html>')}
@@ -84,28 +86,31 @@ export const Layout: FC<{ env: Bindings; meta: Meta; settings: Record<string, st
           {canonical && <link rel="canonical" href={canonical} />}
           <meta name="robots" content={meta.noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large'} />
           <meta property="og:type" content="website" />
-          <meta property="og:site_name" content="SMILELAND" />
+          <meta property="og:site_name" content="อีสานน่าอยู่" />
           <meta property="og:locale" content="th_TH" />
           <meta property="og:title" content={title} />
           {meta.description && <meta property="og:description" content={meta.description} />}
           {canonical && <meta property="og:url" content={canonical} />}
           <meta property="og:image" content={og} />
           <meta name="twitter:card" content="summary_large_image" />
-          <meta name="theme-color" content="#0f1d2c" />
+          <meta name="theme-color" content="#8dc63f" />
           <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
           <link rel="preload" href="/assets/fonts/sarabun-thai-400-normal.woff2" as="font" type="font/woff2" crossorigin="" />
           <link rel="stylesheet" href={`/assets/css/fonts.css?v=${ASSET_V}`} />
           <link rel="stylesheet" href={`/assets/css/site.css?v=${ASSET_V}`} />
           {meta.maps && <link rel="stylesheet" href="/assets/vendor/maplibre/maplibre-gl.css" />}
           {meta.head}
+          <link rel="stylesheet" href={`/assets/css/meadow.css?v=${ASSET_V}`} />
+          <link rel="stylesheet" href={`/assets/css/pronet-menu.css?v=${ASSET_V}`} />
+          <link rel="stylesheet" href={`/assets/css/property-search.css?v=${ASSET_V}`} />
           {ld.map((j) => <script type="application/ld+json">{raw(JSON.stringify(j).replace(/</g, '\\u003c'))}</script>)}
         </head>
         <body data-page={meta.page || ''}>
           <div class="topbar">
             <div class="wrap">
-              <span>แพลตฟอร์มประกาศอสังหาฯ ทั่วประเทศ · ลงประกาศฟรี</span>
+              <span>แพลตฟอร์มประกาศอสังหาฯ เขตอีสาน · ลงประกาศฟรี</span>
               <span class="hide-m">
-                {settings.contact_line_url ? <a href={settings.contact_line_url} rel="noopener">LINE: {settings.contact_line || 'SMILELAND'}</a> : null}
+                {settings.contact_line_url ? <a href={settings.contact_line_url} rel="noopener">LINE: {settings.contact_line || 'อีสานน่าอยู่'}</a> : null}
                 {settings.contact_phone ? <> · โทร <a href={`tel:${settings.contact_phone}`}>{settings.contact_phone}</a></> : null}
                 {!settings.contact_line_url && !settings.contact_phone ? <a href="/status">ตรวจสถานะประกาศ</a> : null}
                 {!user ? <> · <a href="/register">สมัครสมาชิก</a></> : null}
@@ -117,7 +122,7 @@ export const Layout: FC<{ env: Bindings; meta: Meta; settings: Record<string, st
               <Brand />
               <button class="menu-btn" type="button" aria-label="เมนู" aria-expanded="false" data-menu><Icon name="menu" /></button>
               <nav class="nav" id="nav">
-                {navs.map(([k, href, label]) => <a href={href} class={meta.nav === k ? 'on' : ''}>{label}</a>)}
+                {navs.map(([k, href, label]) => k === 'travel' ? <details class="travel-nav"><summary class={meta.nav === k ? 'on' : ''}>เที่ยวสานกัน <span aria-hidden="true">▾</span></summary><div class="travel-nav-panel"><a class="travel-nav-all" href="/travel/">ดูบทความทั้งหมด →</a><div class="travel-nav-provinces">{travelProvinces.map(([name, slug]) => <a href={provinceTravelHref(slug)}>{name}<small>10 ที่เที่ยว</small></a>)}</div></div></details> : <a href={href} class={meta.nav === k ? 'on' : ''}>{label}</a>)}
                 {user ? <a href="/account" class={meta.nav === 'account' ? 'on' : ''}>บัญชีของฉัน{!user.verified ? ' ⚠' : ''}</a> : <a href="/login" class={meta.nav === 'login' ? 'on' : ''}>เข้าสู่ระบบ</a>}
                 <a href="/post" class="btn btn-gold btn-sm">+ ลงประกาศฟรี</a>
               </nav>
@@ -125,9 +130,11 @@ export const Layout: FC<{ env: Bindings; meta: Meta; settings: Record<string, st
           </header>
           <main>{children}</main>
           <Footer settings={settings} />
+          <PronetMenu />
           {meta.maps && <script src="/assets/vendor/maplibre/maplibre-gl.js" defer></script>}
           {meta.turnstile && <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}
           <script src={`/assets/js/app.js?v=${ASSET_V}`} defer></script>
+          {meta.nav === 'travel' && <script src={`/assets/js/travel-provinces.js?v=${ASSET_V}`} defer></script>}
         </body>
       </html>
     </>
@@ -140,7 +147,7 @@ export const Footer: FC<{ settings: Record<string, string> }> = ({ settings }) =
       <div class="footer-grid">
         <div>
           <Brand />
-          <p>แพลตฟอร์มประกาศขายและให้เช่า บ้าน ที่ดิน คอนโด ครอบคลุม 77 จังหวัด ลงประกาศฟรี ตรวจสอบประกาศก่อนเผยแพร่ทุกรายการ</p>
+          <p>แพลตฟอร์มประกาศขายและให้เช่า บ้าน ที่ดิน คอนโด ในเขตอีสาน ลงประกาศฟรี ตรวจสอบประกาศก่อนเผยแพร่ทุกรายการ</p>
           {settings.contact_email && <p class="small">อีเมล: <a href={`mailto:${settings.contact_email}`}>{settings.contact_email}</a></p>}
         </div>
         <div>
@@ -174,7 +181,7 @@ export const Footer: FC<{ settings: Record<string, string> }> = ({ settings }) =
         </div>
       </div>
       <div class="footer-bottom">
-        <span>© {new Date().getFullYear()} SMILELAND · สงวนลิขสิทธิ์</span>
+        <span>© {new Date().getFullYear()} อีสานน่าอยู่ · สงวนลิขสิทธิ์</span>
         <span><a href="/privacy">นโยบายความเป็นส่วนตัว</a> · <a href="/terms">ข้อกำหนดการใช้งาน</a></span>
       </div>
     </div>

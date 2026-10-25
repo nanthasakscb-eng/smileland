@@ -17,7 +17,7 @@ export type Bindings = {
   TURNSTILE_SECRET_KEY?: string;
   ADMIN_INITIAL_PASSWORD?: string;
   RESEND_API_KEY?: string; // ส่งอีเมลผ่าน Resend (ถ้าไม่ตั้ง อีเมลจะไปอยู่ใน /admin/outbox)
-  MAIL_FROM?: string;      // เช่น "SMILELAND <no-reply@yourdomain.com>"
+  MAIL_FROM?: string;      // เช่น "อีสานน่าอยู่ <no-reply@yourdomain.com>"
 };
 
 export type Job =

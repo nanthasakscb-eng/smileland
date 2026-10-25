@@ -4,6 +4,7 @@ import { db } from '../db';
 import { listings, listingImages, listingTokens, priceHistory, timeline, type Listing } from '../db/schema';
 import { indexTokens, queryTokens } from './thai';
 import { geo } from './geo';
+import { SERVICE_PROVINCES } from './service-area';
 import { DEALS, TYPES, DEED_TYPES, FEATURES } from './util';
 
 export type SearchParams = {
@@ -56,7 +57,7 @@ function tokenCondition(q: string): SQL | null {
 }
 
 export function buildWhere(p: SearchParams): SQL {
-  const w: SQL[] = [eq(listings.status, 'active')];
+  const w: SQL[] = [eq(listings.status, 'active'), inArray(listings.provinceCode, SERVICE_PROVINCES)];
   if (p.deal) w.push(eq(listings.deal, p.deal));
   if (p.type) w.push(eq(listings.type, p.type));
   if (p.province) w.push(eq(listings.provinceCode, p.province));
@@ -106,14 +107,14 @@ export async function countActive(env: Bindings, p: SearchParams) {
 /** สถิติสำหรับหน้าแรก/หน้า landing — เรนเดอร์ฝั่ง server (Googlebot เห็นตัวเลขจริง) */
 export async function stats(env: Bindings) {
   const rows = await db(env).select({ deal: listings.deal, type: listings.type, n: count() }).from(listings)
-    .where(eq(listings.status, 'active')).groupBy(listings.deal, listings.type);
+    .where(buildWhere({})).groupBy(listings.deal, listings.type);
   const s = { total: 0, sale: 0, rent: 0, house: 0, land: 0, condo: 0 } as Record<string, number>;
   for (const r of rows) { s.total += r.n; s[r.deal] += r.n; s[r.type] += r.n; }
   return s;
 }
 
 export async function provinceCounts(env: Bindings, deal?: string, type?: string) {
-  const w: SQL[] = [eq(listings.status, 'active')];
+  const w: SQL[] = [eq(listings.status, 'active'), inArray(listings.provinceCode, SERVICE_PROVINCES)];
   if (deal) w.push(eq(listings.deal, deal as 'sale'));
   if (type) w.push(eq(listings.type, type as 'land'));
   const rows = await db(env).select({ code: listings.provinceCode, n: count() }).from(listings).where(and(...w)).groupBy(listings.provinceCode);

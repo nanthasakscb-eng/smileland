@@ -1,4 +1,4 @@
-// SMILELAND — Drizzle schema (D1 / SQLite)
+// อีสานน่าอยู่ — Drizzle schema (D1 / SQLite)
 // ไฟล์ migration ที่ใช้งานจริงอยู่ที่ migrations/*.sql (สร้างจาก schema นี้ + trigger ที่ห้ามแก้ประวัติ)
 import { sqliteTable, text, integer, real, index, uniqueIndex, primaryKey } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';

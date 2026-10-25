@@ -1,5 +1,5 @@
 /** @jsxImportSource hono/jsx */
-// SMILELAND — Cloudflare Workers entry (Hono + Drizzle + D1 + R2 + KV + Queues + Cron)
+// อีสานน่าอยู่ — Cloudflare Workers entry (Hono + Drizzle + D1 + R2 + KV + Queues + Cron)
 import { Hono } from 'hono';
 import { secureHeaders } from 'hono/secure-headers';
 import type { AppEnv, Bindings, Job } from './env';

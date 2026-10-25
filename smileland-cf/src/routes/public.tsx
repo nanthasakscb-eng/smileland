@@ -7,6 +7,10 @@ import { db } from '../db';
 import { leads, listings, priceHistory, timeline } from '../db/schema';
 import { Layout, crumbsLd, type Meta } from '../views/ui';
 import { HomePage } from '../views/pages/home';
+import { UbonTravelPage } from '../views/pages/travel-ubon';
+import { TravelPage } from '../views/pages/travel';
+import { TravelArticlePage } from '../views/pages/travel-article';
+import { travelArticles } from '../lib/travel';
 import { SearchPage, type SubLink } from '../views/pages/search';
 import { ListingPage } from '../views/pages/listing';
 import { PostDone, PostPage } from '../views/pages/post';
@@ -33,6 +37,31 @@ export function notFound(c: Context<AppEnv>) {
 const site = (c: Context<AppEnv>) => c.env.SITE_URL.replace(/\/$/, '');
 const thaiMonthYear = () => new Intl.DateTimeFormat('th-TH', { month: 'long', year: 'numeric', timeZone: 'Asia/Bangkok' }).format(new Date());
 
+pub.get('/travel', (c) => render(c, {
+  title: 'เที่ยวสานกัน — รวมบทความเที่ยวภาคอีสาน',
+  description: 'รวมบทความเที่ยวครบ 20 จังหวัดภาคอีสาน จังหวัดละ 10 สถานที่ รวม 200 จุดหมาย พร้อมแหล่งข้อมูลและลิงก์แผนที่',
+  nav: 'travel', noindex: true,
+  head: <link rel="stylesheet" href="/assets/css/travel.css?v=ubon2" />,
+}, <TravelPage />));
+
+pub.get('/travel/ubon-ratchathani', (c) => render(c, {
+  title: '10 ที่เที่ยวอุบลราชธานี เที่ยวแล้วอยากอยู่ต่อ',
+  description: 'เที่ยวอุบลราชธานีกับ 10 สถานที่แนะนำ วัดสวย ธรรมชาติริมโขง ภาพถ่ายจริงพร้อมเครดิต แหล่งข้อมูล และลิงก์ Google Maps',
+  nav: 'travel', noindex: true,
+  head: <link rel="stylesheet" href="/assets/css/travel.css?v=ubon2" />,
+}, <UbonTravelPage />));
+
+pub.get('/travel/:province{[a-z-]+}', (c) => {
+  const article=travelArticles.find(a=>a.slug===c.req.param('province'));
+  if(!article)return notFound(c);
+  return render(c, {
+    title: `10 ที่เที่ยว${article.name} — ${article.subtitle}`,
+    description: `เที่ยว${article.name}กับ 10 สถานที่แนะนำ พร้อมแหล่งข้อมูล คำแนะนำวางแผนทริป และลิงก์ Google Maps จากเที่ยวสานกัน อีสานน่าอยู่`,
+    nav:'travel', noindex:true,
+    head:<link rel="stylesheet" href="/assets/css/travel.css?v=isan20" />,
+  }, <TravelArticlePage article={article}/>);
+});
+
 /* ================= หน้าแรก ================= */
 pub.get('/', async (c) => {
   const d = db(c.env);
@@ -43,12 +72,12 @@ pub.get('/', async (c) => {
   ]);
   const [featured, latest] = await Promise.all([decorate(c.env, featuredRows as Card[]), decorate(c.env, latestRows as Card[])]);
   return render(c, {
-    title: 'SMILELAND — ประกาศขาย/ให้เช่า บ้าน ที่ดิน คอนโด ทั่วไทย ลงประกาศฟรี',
-    description: `ค้นหาบ้าน ที่ดิน คอนโด ขายและให้เช่าทั่ว 77 จังหวัด ${formatPrice(st.total)} ประกาศที่ผ่านการตรวจสอบ ลงประกาศฟรี บริการฝากขาย/ฝากเช่า`,
+    title: 'อีสานน่าอยู่ — ประกาศขาย/ให้เช่า บ้าน ที่ดิน คอนโด เขตอีสาน ลงประกาศฟรี',
+    description: `ค้นหาบ้าน ที่ดิน คอนโด ขายและให้เช่าในเขตอีสาน ${formatPrice(st.total)} ประกาศที่ผ่านการตรวจสอบ ลงประกาศฟรี บริการฝากขาย/ฝากเช่า`,
     canonical: '/', page: 'home',
     jsonld: [
-      { '@context': 'https://schema.org', '@type': 'WebSite', name: 'SMILELAND', url: site(c) + '/', potentialAction: { '@type': 'SearchAction', target: site(c) + '/search?q={q}', 'query-input': 'required name=q' } },
-      { '@context': 'https://schema.org', '@type': 'Organization', name: 'SMILELAND', url: site(c) + '/', logo: site(c) + '/assets/img/logo.svg' },
+      { '@context': 'https://schema.org', '@type': 'WebSite', name: 'อีสานน่าอยู่', url: site(c) + '/', potentialAction: { '@type': 'SearchAction', target: site(c) + '/search?q={q}', 'query-input': 'required name=q' } },
+      { '@context': 'https://schema.org', '@type': 'Organization', name: 'อีสานน่าอยู่', url: site(c) + '/', logo: site(c) + '/assets/img/logo.svg' },
     ],
   }, <HomePage env={c.env} provinces={g.provinces} featured={featured} latest={latest} stats={st} pcounts={pc} />);
 });
@@ -123,7 +152,7 @@ async function renderListingSearch(c: Context<AppEnv>, p: SearchParams, landing:
   const dealTh = DEALS[p.deal || 'sale'];
   const typeTh = p.type ? TYPES[p.type] : 'อสังหาฯ ';
   const dealWord = p.deal === 'rent' ? 'ให้เช่า' : 'ขาย';
-  const place = dist && prov ? `${districtLabel(prov.code)}${dist.nameTh} ${prov.nameTh}` : prov ? prov.nameTh : 'ทั่วประเทศ';
+  const place = dist && prov ? `${districtLabel(prov.code)}${dist.nameTh} ${prov.nameTh}` : prov ? prov.nameTh : 'เขตอีสาน';
   const h1 = landing ? `${typeTh}${dealWord} ${place}` : p.q ? `ผลการค้นหา "${p.q}"` : `${typeTh}${dealWord} ${place}`;
   const typeSlug = p.type || 'property';
   const base = `/${p.deal || 'sale'}/${typeSlug}`;
@@ -166,12 +195,12 @@ async function renderListingSearch(c: Context<AppEnv>, p: SearchParams, landing:
   };
   const priceText = result.items.length ? ` ราคาเริ่มต้น ฿${formatPrice(Math.min(...result.items.map((x) => x.price)))}` : '';
   // meta description สร้างจากชื่อพื้นที่จริงของหน้านั้นเสมอ (กันปัญหาชื่อจังหวัดผิดจากการคัดลอก template)
-  const description = `${typeTh}${dealWord} ${place} ${formatPrice(result.total)} ประกาศ${priceText} อัปเดต ${thaiMonthYear()} ค้นหาพร้อมแผนที่ ติดต่อผู้ลงประกาศได้ทันที ลงประกาศฟรีที่ SMILELAND`;
+  const description = `${typeTh}${dealWord} ${place} ${formatPrice(result.total)} ประกาศ${priceText} อัปเดต ${thaiMonthYear()} ค้นหาพร้อมแผนที่ ติดต่อผู้ลงประกาศได้ทันที ลงประกาศฟรีที่ อีสานน่าอยู่`;
   const seo: Child = landing ? (
     <>
       <h2>{typeTh}{dealWord} {place}</h2>
       <p>รวมประกาศ{typeTh}{dealWord}ใน{place} จากเจ้าของและนายหน้า ทุกประกาศผ่านการตรวจสอบก่อนเผยแพร่ ปัจจุบันมี {formatPrice(result.total)} ประกาศ{priceText ? ` ${priceText.trim()}` : ''} สามารถกรองตามราคา จำนวนห้องนอน และดูตำแหน่งบนแผนที่ได้</p>
-      <p>มีทรัพย์ใน{place}ที่ต้องการ{p.deal === 'rent' ? 'ปล่อยเช่า' : 'ขาย'}? <a href="/post" style="text-decoration:underline">ลงประกาศฟรี</a> หรือใช้บริการ <a href="/consign" style="text-decoration:underline">ฝากขาย/ฝากเช่า</a> กับ SMILELAND</p>
+      <p>มีทรัพย์ใน{place}ที่ต้องการ{p.deal === 'rent' ? 'ปล่อยเช่า' : 'ขาย'}? <a href="/post" style="text-decoration:underline">ลงประกาศฟรี</a> หรือใช้บริการ <a href="/consign" style="text-decoration:underline">ฝากขาย/ฝากเช่า</a> กับ อีสานน่าอยู่</p>
     </>
   ) : undefined;
 
@@ -201,6 +230,7 @@ pub.get('/listing/:id{[0-9]+}', async (c) => {
   const g = await geo(c.env);
   const prov = g.provinces.find((x) => x.code === l.provinceCode)!;
   const dist = g.districts.find((x) => x.code === l.districtCode)!;
+  if (!prov || !dist) return notFound(c);
   const [images, tl, prices, sim, sub] = await Promise.all([
     getImages(c.env, id), getTimeline(c.env, id), getPriceHistory(c.env, id),
     l.status === 'active' ? similar(c.env, l) : Promise.resolve([]), subdistrictName(c.env, l.subdistrictCode),
@@ -250,7 +280,7 @@ pub.get('/post', async (c) => {
   if (!me.emailVerifiedAt) return render(c, { title: 'ยืนยันอีเมลก่อนลงประกาศ', noindex: true }, <NeedVerify user={s} />);
   const g = await geo(c.env);
   return render(c, {
-    title: 'ลงประกาศขาย/ให้เช่า บ้าน ที่ดิน คอนโด ฟรี', description: 'ลงประกาศขายหรือให้เช่า บ้าน ที่ดิน คอนโด ฟรี ทั่วประเทศ ทีมงานตรวจสอบก่อนเผยแพร่ ไม่เปิดเผยเบอร์โทรเจ้าของบนหน้าเว็บ',
+    title: 'ลงประกาศขาย/ให้เช่า บ้าน ที่ดิน คอนโด ฟรี', description: 'ลงประกาศขายหรือให้เช่า บ้าน ที่ดิน คอนโด ฟรี เขตอีสาน ทีมงานตรวจสอบก่อนเผยแพร่ ไม่เปิดเผยเบอร์โทรเจ้าของบนหน้าเว็บ',
     canonical: '/post', maps: true, turnstile: true, page: 'post', nav: 'post',
   }, <><PostPage env={c.env} provinces={g.provinces} consign={c.req.query('consign') === '1'} me={me} /><PostDone /></>);
 });
@@ -332,7 +362,7 @@ pub.post('/manage/:token', async (c) => {
 pub.get('/consign', async (c) => {
   const g = await geo(c.env);
   return render(c, {
-    title: 'บริการฝากขาย ฝากเช่า บ้าน ที่ดิน คอนโด', description: 'ฝากขาย ฝากเช่า บ้าน ที่ดิน คอนโด กับ SMILELAND ทีมงานดูแลการประกาศ คัดกรองผู้สนใจ และประสานนัดชมทรัพย์แทนคุณ ทั่วประเทศ',
+    title: 'บริการฝากขาย ฝากเช่า บ้าน ที่ดิน คอนโด', description: 'ฝากขาย ฝากเช่า บ้าน ที่ดิน คอนโด กับ อีสานน่าอยู่ ทีมงานดูแลการประกาศ คัดกรองผู้สนใจ และประสานนัดชมทรัพย์แทนคุณ เขตอีสาน',
     canonical: '/consign', turnstile: true, nav: 'consign', page: 'consign',
   }, <ConsignPage env={c.env} provinces={g.provinces} />);
 });
@@ -342,7 +372,7 @@ pub.get('/tools', (c) => render(c, {
 }, <ToolsPage />));
 pub.get('/provinces', async (c) => {
   const [g, pc] = await Promise.all([geo(c.env), provinceCounts(c.env)]);
-  return render(c, { title: 'อสังหาริมทรัพย์ทุกจังหวัด 77 จังหวัด', description: 'ค้นหาบ้าน ที่ดิน คอนโด ขายและให้เช่า แยกตาม 77 จังหวัดทั่วประเทศไทย', canonical: '/provinces' },
+  return render(c, { title: 'อสังหาริมทรัพย์เขตอีสาน', description: 'ค้นหาบ้าน ที่ดิน คอนโด ขายและให้เช่า ครบ 20 จังหวัดในภาคอีสาน', canonical: '/provinces' },
     <ProvincesPage provinces={g.provinces} counts={pc} />);
 });
 pub.get('/privacy', (c) => render(c, { title: 'นโยบายความเป็นส่วนตัว', canonical: '/privacy' }, <PrivacyPage s={c.get('settings')} />));

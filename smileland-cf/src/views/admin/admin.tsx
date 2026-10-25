@@ -18,7 +18,7 @@ export const AdminLayout: FC<{ title: string; admin?: AdminSession; nav?: string
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="robots" content="noindex, nofollow" />
-        <title>{title} · SMILELAND Admin</title>
+        <title>{title} · อีสานน่าอยู่ Admin</title>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="stylesheet" href={`/assets/css/fonts.css?v=${ASSET_V}`} />
         <link rel="stylesheet" href={`/assets/css/site.css?v=${ASSET_V}`} />
@@ -55,13 +55,13 @@ export const AdminLayout: FC<{ title: string; admin?: AdminSession; nav?: string
   </>
 );
 
-export const LoginPage: FC<{ env: Bindings; error?: string }> = ({ env, error }) => (
+export const LoginPage: FC<{ env: Bindings; error?: string; username?: string }> = ({ env, error, username }) => (
   <div class="login-wrap">
     <form class="login-card" method="post" action="/admin/login">
       <div style="margin-bottom:22px"><Brand sub={false} /></div>
       <h1 style="font-size:24px">เข้าสู่ระบบผู้ดูแล</h1>
       {error && <div class="alert alert-bad">{error}</div>}
-      <div class="field"><label for="a-user">ชื่อผู้ใช้</label><input id="a-user" class="input" name="username" required autocomplete="username" maxlength={40} /></div>
+      <div class="field"><label for="a-user">ชื่อผู้ใช้หรืออีเมลผู้ดูแล</label><input id="a-user" class="input" name="username" value={username || ''} required autocomplete="username" autocapitalize="none" spellcheck={false} maxlength={40} /></div>
       <div class="field"><label for="a-pass">รหัสผ่าน</label><input id="a-pass" class="input" type="password" name="password" required autocomplete="current-password" maxlength={200} /></div>
       <div class="cf-turnstile" data-sitekey={env.TURNSTILE_SITE_KEY} data-language="th" style="margin-bottom:14px"></div>
       <button class="btn btn-ink btn-block" type="submit">เข้าสู่ระบบ</button>

@@ -197,7 +197,7 @@ export const PostPage: FC<{ env: Bindings; provinces: Province[]; consign?: bool
             <label for="p-deedno">เลขที่โฉนด <span class="muted small">(ไม่บังคับ · เก็บเป็นความลับ ใช้ตรวจสอบเท่านั้น)</span></label>
             <input id="p-deedno" class="input" name="deedNo" maxlength={40} />
           </div>
-          <label class="check" style="margin-bottom:12px"><input type="checkbox" name="consign" value="1" checked={consign} /> <span>สนใจบริการ <b>ฝากขาย/ฝากเช่า</b> ให้ทีม SMILELAND ช่วยดูแลประกาศและคัดกรองผู้สนใจ</span></label>
+          <label class="check" style="margin-bottom:12px"><input type="checkbox" name="consign" value="1" checked={consign} /> <span>สนใจบริการ <b>ฝากขาย/ฝากเช่า</b> ให้ทีม อีสานน่าอยู่ ช่วยดูแลประกาศและคัดกรองผู้สนใจ</span></label>
           <label class="check"><input type="checkbox" name="consent" value="1" required /> <span>ข้าพเจ้ายืนยันว่าข้อมูลเป็นความจริง มีสิทธิ์ประกาศทรัพย์นี้ และยินยอมตาม<a href="/terms" target="_blank" style="text-decoration:underline">ข้อกำหนด</a>และ<a href="/privacy" target="_blank" style="text-decoration:underline">นโยบายความเป็นส่วนตัว</a></span></label>
           <div style="margin-top:18px"><Turnstile env={env} /></div>
         </section>
