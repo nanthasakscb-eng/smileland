@@ -7,7 +7,7 @@ import { imgUrl, imgSrcset, placeholder, type Card } from '../lib/listings';
 import { travelProvinces, provinceTravelHref } from '../data/travel-provinces';
 import { PronetMenu } from './pronet-menu';
 
-export const ASSET_V = '20261025-demo30';
+export const ASSET_V = '20261026-guide';
 
 /* ---------- icons ---------- */
 const P = { fill: 'none', stroke: 'currentColor', 'stroke-width': '1.7', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' } as const;
@@ -73,7 +73,7 @@ export const Layout: FC<{ env: Bindings; meta: Meta; settings: Record<string, st
   const canonical = meta.canonical ? (meta.canonical.startsWith('http') ? meta.canonical : site + meta.canonical) : undefined;
   const og = meta.ogImage ? (meta.ogImage.startsWith('http') ? meta.ogImage : site + meta.ogImage) : site + '/assets/img/og.png';
   const ld = meta.jsonld ? (Array.isArray(meta.jsonld) ? meta.jsonld : [meta.jsonld]) : [];
-  const navs: [string, string, string][] = [['sale', '/sale/property', 'ซื้อ'], ['rent', '/rent/property', 'เช่า'], ['consign', '/consign', 'ฝากขาย/ฝากเช่า'], ['travel', '/travel/', 'เที่ยวสานกัน'], ['tools', '/tools', 'เครื่องมือ']];
+  const navs: [string, string, string][] = [['sale', '/sale/property', 'ซื้อ'], ['rent', '/rent/property', 'เช่า'], ['consign', '/consign', 'ฝากขาย/ฝากเช่า'], ['travel', '/travel/', 'เที่ยวสานกัน'], ['guide', '/guide', 'คู่มือ'], ['tools', '/tools', 'เครื่องมือ']];
   return (
     <>
       {raw('<!doctype html>')}
@@ -176,6 +176,7 @@ export const Footer: FC<{ settings: Record<string, string> }> = ({ settings }) =
             <li><a href="/consign">ฝากขาย / ฝากเช่า</a></li>
             <li><a href="/status">ตรวจสถานะประกาศ</a></li>
             <li><a href="/tools">เครื่องมือคำนวณ</a></li>
+            <li><a href="/guide">คู่มือซื้อขายบ้าน-ที่ดิน</a></li>
             <li><a href="/provinces">ทุกจังหวัด</a></li>
           </ul>
         </div>

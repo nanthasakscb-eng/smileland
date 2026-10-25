@@ -4,6 +4,8 @@ import { db } from '../db';
 import { listings, listingTokens, timeline } from '../db/schema';
 import { geo } from './geo';
 import { nowSec } from './util';
+import { guides } from '../data/guides';
+import { travelProvinces } from '../data/travel-provinces';
 
 const xmlEsc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const iso = (sec: number) => new Date(sec * 1000).toISOString().slice(0, 10);
@@ -54,7 +56,9 @@ export async function writeProvinceSitemap(env: Bindings, provinceCode: number) 
 export function staticSitemap(env: Bindings) {
   const base = site(env);
   const paths = ['/', '/provinces', '/post', '/consign', '/tools',
-    ...['sale', 'rent'].flatMap((d) => ['property', 'house', 'land', 'condo'].map((t) => `/${d}/${t}`))];
+    ...['sale', 'rent'].flatMap((d) => ['property', 'house', 'land', 'condo'].map((t) => `/${d}/${t}`)),
+    '/guide', ...guides.map((g) => `/guide/${g.slug}`),
+    '/travel/', ...travelProvinces.map(([, slug]) => `/travel/${slug}/`)];
   return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
     paths.map((p) => `<url><loc>${xmlEsc(base + p)}</loc></url>`).join('\n') + '\n</urlset>\n';
 }

@@ -11,6 +11,9 @@ import { UbonTravelPage } from '../views/pages/travel-ubon';
 import { TravelPage } from '../views/pages/travel';
 import { TravelArticlePage } from '../views/pages/travel-article';
 import { travelArticles } from '../lib/travel';
+import { GuideIndexPage, GuidePage, type ProvinceStats } from '../views/pages/guide';
+import { guides, guideBySlug, guideForProvince } from '../data/guides';
+import { plain } from '../lib/md';
 import { SearchPage, type SubLink } from '../views/pages/search';
 import { ListingPage } from '../views/pages/listing';
 import { PostDone, PostPage } from '../views/pages/post';
@@ -40,14 +43,14 @@ const thaiMonthYear = () => new Intl.DateTimeFormat('th-TH', { month: 'long', ye
 pub.get('/travel', (c) => render(c, {
   title: 'เที่ยวสานกัน — รวมบทความเที่ยวภาคอีสาน',
   description: 'รวมบทความเที่ยวครบ 20 จังหวัดภาคอีสาน จังหวัดละ 10 สถานที่ รวม 200 จุดหมาย พร้อมแหล่งข้อมูลและลิงก์แผนที่',
-  nav: 'travel', noindex: true,
+  nav: 'travel', canonical: '/travel/',
   head: <link rel="stylesheet" href="/assets/css/travel.css?v=ubon2" />,
 }, <TravelPage />));
 
 pub.get('/travel/ubon-ratchathani', (c) => render(c, {
   title: '10 ที่เที่ยวอุบลราชธานี เที่ยวแล้วอยากอยู่ต่อ',
   description: 'เที่ยวอุบลราชธานีกับ 10 สถานที่แนะนำ วัดสวย ธรรมชาติริมโขง ภาพถ่ายจริงพร้อมเครดิต แหล่งข้อมูล และลิงก์ Google Maps',
-  nav: 'travel', noindex: true,
+  nav: 'travel', canonical: '/travel/ubon-ratchathani/',
   head: <link rel="stylesheet" href="/assets/css/travel.css?v=ubon2" />,
 }, <UbonTravelPage />));
 
@@ -57,9 +60,50 @@ pub.get('/travel/:province{[a-z-]+}', (c) => {
   return render(c, {
     title: `10 ที่เที่ยว${article.name} — ${article.subtitle}`,
     description: `เที่ยว${article.name}กับ 10 สถานที่แนะนำ พร้อมแหล่งข้อมูล คำแนะนำวางแผนทริป และลิงก์ Google Maps จากเที่ยวสานกัน อีสานน่าอยู่`,
-    nav:'travel', noindex:true,
+    nav:'travel', canonical:`/travel/${article.slug}/`,
     head:<link rel="stylesheet" href="/assets/css/travel.css?v=isan20" />,
   }, <TravelArticlePage article={article}/>);
+});
+
+/* ================= คู่มือ ================= */
+const guideHead = <link rel="stylesheet" href="/assets/css/guide.css?v=2" />;
+pub.get('/guide', (c) => render(c, {
+  title: 'คู่มือซื้อ ขาย เช่า บ้านและที่ดินในอีสาน',
+  description: 'คู่มือทำเลน่าอยู่รายจังหวัดในอีสาน ค่าโอนและภาษี 2569 เอกสารสิทธิ์ที่ดิน สีผังเมือง ซื้อที่นา และวิธีขายบ้านเอง จากทีมงานอีสานน่าอยู่',
+  canonical: '/guide', nav: 'guide', head: guideHead,
+  jsonld: [crumbsLd(site(c), [['หน้าแรก', '/'], ['คู่มือ']]), { '@context': 'https://schema.org', '@type': 'ItemList', itemListElement: guides.map((g, i) => ({ '@type': 'ListItem', position: i + 1, url: `${site(c)}/guide/${g.slug}`, name: g.title })) }],
+}, <GuideIndexPage />));
+
+async function provinceStats(c: Context<AppEnv>, code: number): Promise<ProvinceStats> {
+  const g = await geo(c.env);
+  const prov = g.provinces.find((p) => p.code === code);
+  if (!prov) return null;
+  const rows = (await c.env.DB.prepare(
+    "SELECT deal, type, price FROM listings WHERE status = 'active' AND province_code = ? AND ref NOT LIKE 'SL-DEMO%' ORDER BY price",
+  ).bind(code).all<{ deal: string; type: string; price: number }>()).results;
+  const groups: [string, string, string][] = [['sale', 'house', 'บ้านขาย'], ['sale', 'land', 'ที่ดินขาย'], ['sale', 'condo', 'คอนโดขาย'], ['rent', 'house', 'บ้านให้เช่า'], ['rent', 'condo', 'คอนโดให้เช่า']];
+  const byType = groups.map(([deal, type, label]) => {
+    const ps = rows.filter((r) => r.deal === deal && r.type === type).map((r) => r.price);
+    const median = ps.length >= 3 ? ps[Math.floor(ps.length / 2)] : null;
+    return { key: `${deal}-${type}`, label, n: ps.length, median, href: `/${deal}/${type}/${prov.slug}` };
+  }).filter((t) => t.n > 0);
+  return { name: prov.nameTh, slug: prov.slug, total: rows.length, byType };
+}
+
+pub.get('/guide/:slug{[a-z0-9-]+}', async (c) => {
+  const gd = guideBySlug(c.req.param('slug'));
+  if (!gd) return notFound(c);
+  const stats = gd.provinceCode ? await provinceStats(c, gd.provinceCode) : null;
+  const url = `${site(c)}/guide/${gd.slug}`;
+  return render(c, {
+    title: gd.title, description: gd.description, canonical: `/guide/${gd.slug}`, nav: 'guide', head: guideHead,
+    jsonld: [
+      crumbsLd(site(c), [['หน้าแรก', '/'], ['คู่มือ', '/guide'], [gd.title]]),
+      { '@context': 'https://schema.org', '@type': 'Article', headline: gd.title, description: gd.description, datePublished: gd.published, dateModified: gd.updated, mainEntityOfPage: url, inLanguage: 'th',
+        author: { '@type': 'Organization', name: 'อีสานน่าอยู่', url: site(c) + '/' }, publisher: { '@type': 'Organization', name: 'อีสานน่าอยู่', logo: { '@type': 'ImageObject', url: site(c) + '/assets/img/logo.svg' } } },
+      ...(gd.faq.length ? [{ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: gd.faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: plain(f.a) } })) }] : []),
+    ],
+  }, <GuidePage g={gd} stats={stats} />);
 });
 
 /* ================= หน้าแรก ================= */
@@ -201,6 +245,10 @@ async function renderListingSearch(c: Context<AppEnv>, p: SearchParams, landing:
       <h2>{typeTh}{dealWord} {place}</h2>
       <p>รวมประกาศ{typeTh}{dealWord}ใน{place} จากเจ้าของและนายหน้า ทุกประกาศผ่านการตรวจสอบก่อนเผยแพร่ ปัจจุบันมี {formatPrice(result.total)} ประกาศ{priceText ? ` ${priceText.trim()}` : ''} สามารถกรองตามราคา จำนวนห้องนอน และดูตำแหน่งบนแผนที่ได้</p>
       <p>มีทรัพย์ใน{place}ที่ต้องการ{p.deal === 'rent' ? 'ปล่อยเช่า' : 'ขาย'}? <a href="/post" style="text-decoration:underline">ลงประกาศฟรี</a> หรือใช้บริการ <a href="/consign" style="text-decoration:underline">ฝากขาย/ฝากเช่า</a> กับ อีสานน่าอยู่</p>
+      {prov && (() => { const gp = guideForProvince(prov.code); const tr = travelArticles.some((a) => a.slug === prov.slug) || prov.slug === 'ubon-ratchathani'; return (gp || tr) ? (
+        <p>{gp && <>อ่าน <a href={`/guide/${gp.slug}`} style="text-decoration:underline">{gp.title}</a></>}{gp && tr ? ' · ' : ''}{tr && <>ยังไม่รู้จัก{prov.nameTh}? <a href={`/travel/${prov.slug}/`} style="text-decoration:underline">10 ที่เที่ยว{prov.nameTh}</a></>}</p>
+      ) : null; })()}
+      <p><a href="/guide" style="text-decoration:underline">คู่มือซื้อขายบ้านและที่ดินในอีสาน</a>: ค่าโอนและภาษี 2569 · เอกสารสิทธิ์ที่ดิน · สีผังเมือง</p>
     </>
   ) : undefined;
 

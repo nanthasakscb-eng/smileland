@@ -1,4 +1,7 @@
 /** @jsxImportSource hono/jsx */
+import { guides } from '../../data/guides';
+const SLUG2CODE: Record<string, number> = { 'nakhon-ratchasima': 30, 'khon-kaen': 40, 'udon-thani': 41, 'ubon-ratchathani': 34 };
+const guideForProvinceSlug = (slug: string) => guides.find((g) => g.provinceCode && g.provinceCode === SLUG2CODE[slug]);
 import { travelPhoto, travelKindNames, travelKindTips, travelSummaries, type TravelArticle, type TravelPhoto } from '../../lib/travel';
 
 const PhotoCredit = ({ photo }: { photo: TravelPhoto }) => <figcaption>ภาพ: <a href={photo.source} target="_blank" rel="noopener noreferrer">{photo.artist}</a> · <a href={photo.licenseUrl} target="_blank" rel="noopener noreferrer">{photo.license}</a> · จัดกรอบภาพเพื่อแสดงผล{photo.license.includes('BY-SA') ? ' · ภาพที่จัดกรอบใช้ใบอนุญาตเดียวกับต้นฉบับ' : ''}{photo.placeName ? ` · ${photo.placeName}` : ''}</figcaption>;
@@ -28,7 +31,7 @@ export const TravelArticlePage = ({ article }: { article: TravelArticle }) => {
       <section class="ut-source-notes ut-editorial-sources" id="sources"><h2>แหล่งข้อมูลประกอบ</h2><p>ข้อมูลพื้นฐานระดับจังหวัดและสถานที่จากแหล่งด้านล่าง คำแนะนำการจัดทริปเป็นเนื้อหาเรียบเรียงของอีสานน่าอยู่ ลิงก์แผนที่เป็นการค้นหาชื่อสถานที่ ควรตรวจจุดหมายอีกครั้งก่อนเริ่มนำทาง</p><ul>{article.sources.map((url,i)=><li><a href={url} target="_blank" rel="noopener noreferrer">{new URL(url).hostname} · แหล่งข้อมูล {i+1} ↗</a></li>)}</ul><p>ใช้เฉพาะภาพ Wikimedia Commons ที่ระบุ CC BY หรือ CC BY-SA พร้อมชื่อผู้ถ่าย ต้นฉบับ ใบอนุญาต และการจัดกรอบ ภาพที่ยังหาไม่ได้ตามเงื่อนไขจะงดแสดง เพื่อไม่ใช้ภาพผิดสถานที่หรือผิดสิทธิ์</p></section>
       <section class="ut-more-provinces"><p class="ut-kicker">KEEP EXPLORING</p><h2>เที่ยวสานกันต่อ จังหวัดไหนดี?</h2><div>{travelSummaries.filter(p=>p.slug!==article.slug).slice(0,6).map(p=><a href={`/travel/${p.slug}/`}>{p.name} ↗</a>)}<a href="/travel/">เลือกทุกจังหวัด →</a></div></section>
       <section id="advertise" class="ut-ad-contact"><div><p class="ut-kicker">GROW WITH OUR COMMUNITY</p><h2>มีธุรกิจใน{article.name}?</h2><p>พื้นที่โฆษณา 2 ช่องด้านบนสำหรับร้านค้า ที่พัก และธุรกิจท้องถิ่น</p></div><a href="/consign" class="ut-gold">ติดต่อทีมงาน ↗</a><small>พื้นที่โฆษณาว่าง ยังไม่ได้กำหนดราคาและยังไม่มีผู้ลงโฆษณา</small></section>
-      <aside class="ut-own-banner"><img src="/assets/img/logo.svg" alt="" width="64" height="64"/><div><p class="ut-kicker">อีสานน่าอยู่</p><h2>เที่ยวแล้วถูกใจ<br />ลองหาที่อยู่ในอีสาน</h2><p>บ้าน ที่ดิน คอนโด ซื้อ–เช่า เฉพาะ 20 จังหวัดภาคอีสาน</p></div><div class="ut-own-actions"><a class="ut-gold" href="/sale/property">ค้นหาอสังหาฯ ในอีสาน ↗</a><a href="/post">มีทรัพย์ในอีสาน? ลงประกาศฟรี</a></div></aside>
+      <aside class="ut-own-banner"><img src="/assets/img/logo.svg" alt="" width="64" height="64"/><div><p class="ut-kicker">อีสานน่าอยู่</p><h2>เที่ยวแล้วถูกใจ<br />ลองหาที่อยู่ใน{article.name}</h2><p>บ้าน ที่ดิน คอนโด ซื้อ–เช่า เฉพาะ 20 จังหวัดภาคอีสาน</p></div><div class="ut-own-actions"><a class="ut-gold" href={`/sale/property/${article.slug}`}>บ้าน ที่ดิน คอนโด ใน{article.name} ↗</a>{guideForProvinceSlug(article.slug) && <a href={`/guide/${guideForProvinceSlug(article.slug)!.slug}`}>อ่านคู่มือซื้อบ้าน{article.name}</a>}<a href="/post">มีทรัพย์ในอีสาน? ลงประกาศฟรี</a></div></aside>
     </div>
   </div>;
 };
