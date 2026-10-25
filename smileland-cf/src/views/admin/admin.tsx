@@ -309,7 +309,7 @@ export const SettingsPage: FC<{ admin: AdminSession; s: Record<string, string>; 
         </p>
         <form method="post" action="/admin/demo/threshold" style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px">
           <input type="hidden" name="csrf" value={admin.csrf} />
-          <div class="field" style="margin:0"><label for="demo-at">ซ่อนประกาศตัวอย่างเมื่อมีประกาศจริงครบ (รายการ)</label><input id="demo-at" class="input" name="demo_hide_at" type="number" min={1} max={10000} value={String(demo.at)} style="max-width:160px" /></div>
+          <div class="field" style="margin:0;flex:0 0 auto"><label for="demo-at">ซ่อนประกาศตัวอย่างเมื่อมีประกาศจริงครบ (รายการ)</label><input id="demo-at" class="input" name="demo_hide_at" type="number" min={1} max={10000} value={String(demo.at)} style="max-width:160px" /></div>
           <button class="btn btn-ink" type="submit">บันทึก</button>
         </form>
         <form method="post" action="/admin/demo/delete" data-confirm="ลบประกาศตัวอย่าง (SL-DEMO…) ทั้งหมดถาวร? ประกาศจริงจะไม่ถูกลบ">
