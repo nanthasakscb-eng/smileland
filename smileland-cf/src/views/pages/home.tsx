@@ -11,9 +11,7 @@ const HERO_SLIDES: { src: string; w: number; alt: string; caption: string; credi
   { src: '/assets/hero/landmark-ubon', w: 1280, alt: 'วัดสิรินธรวรารามภูพร้าว จังหวัดอุบลราชธานี', caption: 'วัดสิรินธรวรารามภูพร้าว · อุบลราชธานี', credit: { by: 'Supanut Arunoprayote', url: 'https://commons.wikimedia.org/wiki/File:Wat_Sirindhorn_Wararam_Phu_Phrao_20251227_(II).jpg', license: 'CC BY 4.0' } },
   { src: '/assets/hero/estate', w: 1600, alt: 'ถนนในโครงการบ้านเดี่ยว', caption: 'ภาพจำลอง · บ้านเดี่ยวในโครงการ' },
   { src: '/assets/hero/shop', w: 1600, alt: 'อาคารพาณิชย์ 3 ชั้นริมถนน', caption: 'ภาพจำลอง · อาคารพาณิชย์' },
-  { src: '/assets/hero/condo_ext', w: 1600, alt: 'คอนโดพร้อมสระว่ายน้ำ', caption: 'ภาพจำลอง · คอนโด' },
   { src: '/assets/hero/condo_int', w: 1600, alt: 'ห้องนั่งเล่นในคอนโด', caption: 'ภาพจำลอง · ภายในคอนโด' },
-  { src: '/assets/hero/aerial', w: 1600, alt: 'มุมสูงโครงการบ้านจัดสรร', caption: 'ภาพจำลอง · มุมสูงโครงการ' },
 ];
 
 const HeroSlides: FC = () => (
