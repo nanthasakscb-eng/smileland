@@ -1,6 +1,6 @@
 /** @jsxImportSource hono/jsx */
 import type { FC } from 'hono/jsx';
-import { HERO_SLIDES, BAND_SLIDES, CONSIGN_SLIDES, GUIDE_SLIDES } from '../../data/photos';
+import { HERO_SLIDES, BAND_SLIDES, CONSIGN_SLIDES, GUIDE_SLIDES, TOOLS_SLIDES } from '../../data/photos';
 import { Crumbs } from '../ui';
 
 /** หน้าเครดิตภาพ — แสดงข้อมูลตามเงื่อนไข Creative Commons (ผู้สร้าง ชื่อภาพ ต้นฉบับ สัญญาอนุญาต และการดัดแปลง) */
@@ -19,7 +19,7 @@ export const CreditsPage: FC = () => (
       <table style="width:100%;border-collapse:collapse;font-size:15px;min-width:600px">
         <thead><tr style="text-align:left;border-bottom:1px solid var(--line-2)"><th style="padding:8px">ภาพ</th><th style="padding:8px">สถานที่</th><th style="padding:8px">ผู้สร้างสรรค์</th><th style="padding:8px">สัญญาอนุญาต</th></tr></thead>
         <tbody>
-          {[...HERO_SLIDES, ...BAND_SLIDES, ...CONSIGN_SLIDES, ...GUIDE_SLIDES].map((h) => (
+          {[...HERO_SLIDES, ...BAND_SLIDES, ...CONSIGN_SLIDES, ...GUIDE_SLIDES, ...TOOLS_SLIDES].map((h) => (
             <tr style="border-bottom:1px solid var(--line-2);vertical-align:top">
               <td style="padding:8px"><a href={h.credit.url} target="_blank" rel="noopener noreferrer"><img src={`${h.src}-${h.src.includes('/band-') ? 800 : 960}.webp`} alt={h.alt} width="160" height="90" loading="lazy" style="border-radius:8px;object-fit:cover" /></a></td>
               <td style="padding:8px">{h.caption}<br /><a href={h.credit.url} target="_blank" rel="noopener noreferrer" style="text-decoration:underline;font-size:13px">ดูต้นฉบับบน Wikimedia Commons ↗</a></td>

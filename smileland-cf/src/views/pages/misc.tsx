@@ -4,7 +4,7 @@ import type { Bindings } from '../../env';
 import type { Lead, Listing, Province } from '../../db/schema';
 import { Crumbs, Icon, StatusBadge, Turnstile } from '../ui';
 import { RegionLinks, HeroSlides } from './home';
-import { CONSIGN_SLIDES } from '../../data/photos';
+import { CONSIGN_SLIDES, TOOLS_SLIDES } from '../../data/photos';
 import { DEALS, TYPES, formatPrice, thaiDate, thaiDateTime, type Deal, type PType } from '../../lib/util';
 import { TL_LABEL } from './listing';
 
@@ -151,9 +151,18 @@ export const ProvincesPage: FC<{ provinces: Province[]; counts: Map<number, numb
 
 /* ---------- เครื่องมือ ---------- */
 export const ToolsPage: FC = () => (
-  <div class="wrap">
+  <>
+  <section class="hero hero-photo">
+    <HeroSlides slides={TOOLS_SLIDES} />
+    <script src="/assets/js/hero.js?v=2"></script>
+    <div class="wrap" style="padding-bottom:64px">
+      <div class="eyebrow">เครื่องมือ · อีสานน่าอยู่</div>
+      <h1>เครื่องมือคำนวณ <em style="white-space:nowrap">อสังหาฯ</em></h1>
+      <p class="lead">แปลงหน่วยที่ดิน คำนวณค่างวด และประมาณค่าใช้จ่ายวันโอน</p>
+    </div>
+  </section>
+  <div class="wrap" style="padding-bottom:48px">
     <Crumbs items={[['หน้าแรก', '/'], ['เครื่องมือคำนวณ']]} />
-    <div class="page-head"><h1>เครื่องมือคำนวณอสังหาฯ</h1><p class="muted">แปลงหน่วยที่ดิน คำนวณค่างวด และประมาณค่าใช้จ่ายวันโอน</p></div>
     <div class="tool-grid" data-tools>
       <div class="form-card">
         <h2>แปลงหน่วยที่ดิน</h2>
@@ -187,6 +196,7 @@ export const ToolsPage: FC = () => (
       </div>
     </div>
   </div>
+  </>
 );
 
 /* ---------- นโยบาย / ข้อกำหนด ---------- */
