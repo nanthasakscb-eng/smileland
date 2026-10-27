@@ -7,13 +7,13 @@ import { Cards, Icon } from '../ui';
 import { REGIONS, REGION_ORDER, formatPrice } from '../../lib/util';
 
 /* ภาพสไลด์หน้าแรก — สุ่มลำดับฝั่งเบราว์เซอร์ (assets/js/hero.js) */
-const HERO_SLIDES: { src: string; w: number; alt: string; caption: string; credit?: { by: string; url: string; license: string } }[] = [
-  { src: '/assets/hero/landmark-ubon', w: 1280, alt: 'วัดสิรินธรวรารามภูพร้าว จังหวัดอุบลราชธานี', caption: 'วัดสิรินธรวรารามภูพร้าว · อุบลราชธานี', credit: { by: 'Supanut Arunoprayote', url: 'https://commons.wikimedia.org/wiki/File:Wat_Sirindhorn_Wararam_Phu_Phrao_20251227_(II).jpg', license: 'CC BY 4.0' } },
-  { src: '/assets/hero/landmark-chanadai', w: 1280, alt: 'ผาชะนะได มองเห็นแม่น้ำโขง จังหวัดอุบลราชธานี', caption: 'ผาชะนะได · อุบลราชธานี', credit: { by: 'Supanut Arunoprayote', url: 'https://commons.wikimedia.org/wiki/File:Cha_Na_Dai_Cliff_20251226.jpg', license: 'CC BY 4.0' } },
-  { src: '/assets/hero/paddy', w: 1600, alt: 'ทุ่งนาเขียวยามเย็น', caption: 'ภาพจำลอง · ทุ่งนายามเย็น' },
-  { src: '/assets/hero/estate', w: 1600, alt: 'ถนนในโครงการบ้านเดี่ยว', caption: 'ภาพจำลอง · บ้านเดี่ยวในโครงการ' },
-  { src: '/assets/hero/shop', w: 1600, alt: 'อาคารพาณิชย์ 3 ชั้นริมถนน', caption: 'ภาพจำลอง · อาคารพาณิชย์' },
-  { src: '/assets/hero/condo_int', w: 1600, alt: 'ห้องนั่งเล่นในคอนโด', caption: 'ภาพจำลอง · ภายในคอนโด' },
+const BY4 = 'https://creativecommons.org/licenses/by/4.0/';
+const HERO_SLIDES: { src: string; w: number; alt: string; caption: string; credit: { by: string; url: string; license: string; licenseUrl: string } }[] = [
+  { src: '/assets/hero/landmark-ubon', w: 1280, alt: 'วัดสิรินธรวรารามภูพร้าว จังหวัดอุบลราชธานี', caption: 'วัดสิรินธรวรารามภูพร้าว · อุบลราชธานี', credit: { by: 'Supanut Arunoprayote', url: 'https://commons.wikimedia.org/wiki/File:Wat_Sirindhorn_Wararam_Phu_Phrao_20251227_(II).jpg', license: 'CC BY 4.0', licenseUrl: BY4 } },
+  { src: '/assets/hero/landmark-chanadai', w: 1280, alt: 'ผาชะนะได มองเห็นแม่น้ำโขง จังหวัดอุบลราชธานี', caption: 'ผาชะนะได · อุบลราชธานี', credit: { by: 'Supanut Arunoprayote', url: 'https://commons.wikimedia.org/wiki/File:Cha_Na_Dai_Cliff_20251226.jpg', license: 'CC BY 4.0', licenseUrl: BY4 } },
+  { src: '/assets/hero/landmark-muangtam', w: 1280, alt: 'ปราสาทเมืองต่ำ จังหวัดบุรีรัมย์', caption: 'ปราสาทเมืองต่ำ · บุรีรัมย์', credit: { by: 'Yakuzakorat', url: 'https://commons.wikimedia.org/wiki/File:%E0%B8%9B%E0%B8%A3%E0%B8%B2%E0%B8%AA%E0%B8%B2%E0%B8%97%E0%B9%80%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B8%87%E0%B8%95%E0%B9%88%E0%B8%B3_4.JPG', license: 'CC BY-SA 3.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/3.0/' } },
+  { src: '/assets/hero/landmark-phukradueng', w: 1280, alt: 'ผาหล่มสัก อุทยานแห่งชาติภูกระดึง จังหวัดเลย', caption: 'ผาหล่มสัก ภูกระดึง · เลย', credit: { by: 'Supanut Arunoprayote', url: 'https://commons.wikimedia.org/wiki/File:Lom_Sak_Cliff_(I).jpg', license: 'CC BY 4.0', licenseUrl: BY4 } },
+  { src: '/assets/hero/landmark-saithong', w: 1280, alt: 'ทุ่งดอกกระเจียว อุทยานแห่งชาติไทรทอง จังหวัดชัยภูมิ', caption: 'อุทยานแห่งชาติไทรทอง · ชัยภูมิ', credit: { by: 'KOSIN SUKHUM', url: 'https://commons.wikimedia.org/wiki/File:Sai_Thong_National_Park_Chaiyaphum_Thailand.jpg', license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/' } },
 ];
 
 const HeroSlides: FC = () => (
@@ -22,7 +22,7 @@ const HeroSlides: FC = () => (
       <figure class="hero-slide">
         <img src={`${h.src}-${h.w}.webp`} srcset={`${h.src}-960.webp 960w, ${h.src}-${h.w}.webp ${h.w}w`} sizes="100vw" alt={h.alt}
           width={h.w} height={Math.round(h.w * 9 / 16)} loading={i === 0 ? 'eager' : 'lazy'} decoding="async" fetchpriority={i === 0 ? 'high' : undefined} />
-        <figcaption>{h.caption}{h.credit && <> · ภาพ <a href={h.credit.url} target="_blank" rel="noopener noreferrer">{h.credit.by}</a> / {h.credit.license}</>}</figcaption>
+        <figcaption>{h.caption} · ภาพ <a href={h.credit.url} target="_blank" rel="noopener noreferrer">{h.credit.by}</a> / <a href={h.credit.licenseUrl} target="_blank" rel="noopener noreferrer license">{h.credit.license}</a> (ครอบภาพ)</figcaption>
       </figure>
     ))}
   </div>
