@@ -1,4 +1,5 @@
 /** ภาพสถานที่ท่องเที่ยวประจำจังหวัด (หัวคู่มือจังหวัด) — ภาพจาก Wikimedia Commons ตามสัญญาอนุญาต CC เท่านั้น สร้างด้วย scripts/build-province-photos.py */
+// มหาสารคาม 2-3, มุกดาหาร 2-3, หนองบัวลำภู 3, สกลนคร 3 เพิ่มด้วยมือ (ดาวน์โหลดจาก Wikimedia Commons ผ่านเบราว์เซอร์ 27 ต.ค. 2569) — ถ้ารันสคริปต์ใหม่ต้องคงรายการเหล่านี้ไว้
 import type { PhotoSlide } from './photos';
 
 export const PROVINCE_SLIDES: Record<number, PhotoSlide[]> = {
@@ -49,6 +50,7 @@ export const PROVINCE_SLIDES: Record<number, PhotoSlide[]> = {
   39: [
     { src: '/assets/hero/p/nong-bua-lam-phu-1', w: 1280, alt: 'วัดถ้ำกลองเพล จังหวัดหนองบัวลำภู', caption: 'วัดถ้ำกลองเพล · หนองบัวลำภู', credit: { by: 'Thanongsuk harakunno', url: 'https://commons.wikimedia.org/wiki/File:%E0%B8%A7%E0%B8%B1%E0%B8%94%E0%B8%96%E0%B9%88%E0%B8%B3%E0%B8%81%E0%B8%A5%E0%B8%AD%E0%B8%87%E0%B9%80%E0%B8%9E%E0%B8%A5.jpg', license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/' } },
     { src: '/assets/hero/p/nong-bua-lam-phu-2', w: 1280, alt: 'ถ้ำเอราวัณ จังหวัดหนองบัวลำภู', caption: 'ถ้ำเอราวัณ · หนองบัวลำภู', credit: { by: 'Thanongsuk harakunno', url: 'https://commons.wikimedia.org/wiki/File:Erawan_Caves_Nongbualamphu_Thailand.jpg', license: 'CC BY-SA 3.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/3.0/' } },
+    { src: '/assets/hero/p/nong-bua-lam-phu-3', w: 1280, alt: 'พระธาตุ วัดพระธาตุหาญเทาว์ จังหวัดหนองบัวลำภู', caption: 'วัดพระธาตุหาญเทาว์ · หนองบัวลำภู', credit: { by: 'อภิชิต พีรทิตยา', url: 'https://commons.wikimedia.org/wiki/File:%E0%B8%9E%E0%B8%A3%E0%B8%B0%E0%B9%80%E0%B8%88%E0%B8%94%E0%B8%B5%E0%B8%A2%E0%B9%8C_(%E0%B8%9E%E0%B8%A3%E0%B8%B0%E0%B8%98%E0%B8%B2%E0%B8%95%E0%B8%B8)_%E0%B8%A7%E0%B8%B1%E0%B8%94%E0%B8%9E%E0%B8%A3%E0%B8%B0%E0%B8%98%E0%B8%B2%E0%B8%95%E0%B8%B8%E0%B8%AB%E0%B8%B2%E0%B8%8D%E0%B9%80%E0%B8%97%E0%B8%B2%E0%B8%A7%E0%B9%8C_%E0%B8%88%E0%B8%B1%E0%B8%87%E0%B8%AB%E0%B8%A7%E0%B8%B1%E0%B8%94%E0%B8%AB%E0%B8%99%E0%B8%AD%E0%B8%87%E0%B8%9A%E0%B8%B1%E0%B8%A7%E0%B8%A5%E0%B8%B3%E0%B8%A0%E0%B8%B9_04.jpg', license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/' } },
   ],
   40: [
     { src: '/assets/hero/p/khon-kaen-1', w: 1280, alt: 'เขื่อนอุบลรัตน์ จังหวัดขอนแก่น', caption: 'เขื่อนอุบลรัตน์ · ขอนแก่น', credit: { by: 'TrapperFrank', url: 'https://commons.wikimedia.org/wiki/File:Ubol_Ratana_Dam.jpg', license: 'CC BY 2.5', licenseUrl: 'https://creativecommons.org/licenses/by/2.5/' } },
@@ -72,6 +74,8 @@ export const PROVINCE_SLIDES: Record<number, PhotoSlide[]> = {
   ],
   44: [
     { src: '/assets/hero/p/maha-sarakham-1', w: 1280, alt: 'บรรยากาศเมืองมหาสารคาม จังหวัดมหาสารคาม', caption: 'บรรยากาศเมืองมหาสารคาม · มหาสารคาม', credit: { by: 'Otzaza12', url: 'https://commons.wikimedia.org/wiki/File:%E0%B8%96%E0%B8%99%E0%B8%99%E0%B9%81%E0%B8%88%E0%B9%89%E0%B8%87%E0%B8%AA%E0%B8%99%E0%B8%B4%E0%B8%97_%E0%B8%88.%E0%B8%A1%E0%B8%AB%E0%B8%B2%E0%B8%AA%E0%B8%B2%E0%B8%A3%E0%B8%84%E0%B8%B2%E0%B8%A1.jpg', license: 'CC BY 4.0', licenseUrl: 'https://creativecommons.org/licenses/by/4.0/' } },
+    { src: '/assets/hero/p/maha-sarakham-2', w: 1280, alt: 'วัดโพธาราม จังหวัดมหาสารคาม', caption: 'วัดโพธาราม · มหาสารคาม', credit: { by: 'Peter4940', url: 'https://commons.wikimedia.org/wiki/File:Wat_Photaram_in_Maha_Sarakham.jpg', license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/' } },
+    { src: '/assets/hero/p/maha-sarakham-3', w: 1280, alt: 'อาคารคณะวิทยาศาสตร์ชีวภาพ มหาวิทยาลัยมหาสารคาม', caption: 'มหาวิทยาลัยมหาสารคาม · มหาสารคาม', credit: { by: 'Tonnamth', url: 'https://commons.wikimedia.org/wiki/File:%E0%B8%AD%E0%B8%B2%E0%B8%84%E0%B8%B2%E0%B8%A3%E0%B8%84%E0%B8%93%E0%B8%B0%E0%B8%A7%E0%B8%B4%E0%B8%97%E0%B8%A2%E0%B8%B2%E0%B8%A8%E0%B8%B2%E0%B8%AA%E0%B8%95%E0%B8%A3%E0%B9%8C%E0%B8%8A%E0%B8%B5%E0%B8%A7%E0%B8%A0%E0%B8%B2%E0%B8%9E.jpg', license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/' } },
   ],
   45: [
     { src: '/assets/hero/p/roi-et-1', w: 1280, alt: 'บึงพลาญชัย จังหวัดร้อยเอ็ด', caption: 'บึงพลาญชัย · ร้อยเอ็ด', credit: { by: 'Seksan Phonsuwan', url: 'https://commons.wikimedia.org/wiki/File:Roi-Et_-_panoramio_-_Seksan_Phonsuwan_(9).jpg', license: 'CC BY 3.0', licenseUrl: 'https://creativecommons.org/licenses/by/3.0/' } },
@@ -86,6 +90,7 @@ export const PROVINCE_SLIDES: Record<number, PhotoSlide[]> = {
   47: [
     { src: '/assets/hero/p/sakon-nakhon-1', w: 1280, alt: 'หนองหาร จังหวัดสกลนคร', caption: 'หนองหาร · สกลนคร', credit: { by: 'nakhon100', url: 'https://commons.wikimedia.org/wiki/File:Nong_Han_Lake_(2499138321).jpg', license: 'CC BY 2.0', licenseUrl: 'https://creativecommons.org/licenses/by/2.0/' } },
     { src: '/assets/hero/p/sakon-nakhon-2', w: 1280, alt: 'วัดป่าอุดมสมพร จังหวัดสกลนคร', caption: 'วัดป่าอุดมสมพร · สกลนคร', credit: { by: 'Seksan Phonsuwan', url: 'https://commons.wikimedia.org/wiki/File:Wat_Pa_Udom_Somporn_-_panoramio.jpg', license: 'CC BY 3.0', licenseUrl: 'https://creativecommons.org/licenses/by/3.0/' } },
+    { src: '/assets/hero/p/sakon-nakhon-3', w: 1280, alt: 'พระธาตุนารายณ์เจงเวง จังหวัดสกลนคร', caption: 'พระธาตุนารายณ์เจงเวง · สกลนคร', credit: { by: 'nakhon100', url: 'https://commons.wikimedia.org/wiki/File:Sakon_Nakhon_(3723269786).jpg', license: 'CC BY 2.0', licenseUrl: 'https://creativecommons.org/licenses/by/2.0/' } },
   ],
   48: [
     { src: '/assets/hero/p/nakhon-phanom-1', w: 1280, alt: 'วัดพระธาตุพนมวรมหาวิหาร จังหวัดนครพนม', caption: 'วัดพระธาตุพนมวรมหาวิหาร · นครพนม', credit: { by: 'Mastertongapollo', url: 'https://commons.wikimedia.org/wiki/File:%E0%B8%9E%E0%B8%A3%E0%B8%B0%E0%B8%98%E0%B8%B2%E0%B8%95%E0%B8%B8%E0%B8%9E%E0%B8%99%E0%B8%A1_%E0%B8%A7%E0%B8%B1%E0%B8%94%E0%B8%9E%E0%B8%A3%E0%B8%B0%E0%B8%98%E0%B8%B2%E0%B8%95%E0%B8%B8%E0%B8%9E%E0%B8%99%E0%B8%A1%E0%B8%A7%E0%B8%A3%E0%B8%A1%E0%B8%AB%E0%B8%B2%E0%B8%A7%E0%B8%B4%E0%B8%AB%E0%B8%B2%E0%B8%A3.jpg', license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/' } },
@@ -94,5 +99,7 @@ export const PROVINCE_SLIDES: Record<number, PhotoSlide[]> = {
   ],
   49: [
     { src: '/assets/hero/p/mukdahan-1', w: 1280, alt: 'อุทยานแห่งชาติภูผาเทิบ จังหวัดมุกดาหาร', caption: 'อุทยานแห่งชาติภูผาเทิบ · มุกดาหาร', credit: { by: 'Formcruz', url: 'https://commons.wikimedia.org/wiki/File:%E0%B8%AD%E0%B8%B8%E0%B8%97%E0%B8%A2%E0%B8%B2%E0%B8%99%E0%B9%81%E0%B8%AB%E0%B9%88%E0%B8%87%E0%B8%8A%E0%B8%B2%E0%B8%95%E0%B8%B4%E0%B8%A0%E0%B8%B9%E0%B8%9C%E0%B8%B2%E0%B9%80%E0%B8%97%E0%B8%B4%E0%B8%9A.jpg', license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/' } },
+    { src: '/assets/hero/p/mukdahan-2', w: 1280, alt: 'ริมแม่น้ำโขง ตัวเมืองมุกดาหาร', caption: 'ริมแม่น้ำโขง · มุกดาหาร', credit: { by: 'Seksan Phonsuwan', url: 'https://commons.wikimedia.org/wiki/File:Mukdahan_,_%E0%B8%A1%E0%B8%B8%E0%B8%81%E0%B8%94%E0%B8%B2%E0%B8%AB%E0%B8%B2%E0%B8%A3_-_panoramio.jpg', license: 'CC BY 3.0', licenseUrl: 'https://creativecommons.org/licenses/by/3.0/' } },
+    { src: '/assets/hero/p/mukdahan-3', w: 1280, alt: 'สะพานมิตรภาพไทย–ลาว แห่งที่ 2 มุกดาหาร', caption: 'สะพานมิตรภาพไทย–ลาว แห่งที่ 2 · มุกดาหาร', credit: { by: 'Premica Pata', url: 'https://commons.wikimedia.org/wiki/File:Second_Thai%E2%80%93Lao_Friendship_Bridge.JPG', license: 'CC BY-SA 3.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/3.0/' } },
   ],
 };
