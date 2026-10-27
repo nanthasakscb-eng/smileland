@@ -100,3 +100,4 @@ body{background:var(--bg)}
 .property-search-hero.has-photo .property-hero-notes .ico{color:#cfeaa4}
 @media (prefers-reduced-motion:reduce){.band-slide,.band-slide img{transition:none}.band-slide.on img{transform:none}}
 @media (max-width:640px){.property-search-hero.has-photo{min-height:220px;padding-bottom:48px!important}.band-slide figcaption{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.band-slides::after{background:linear-gradient(180deg,rgba(10,20,8,.55),rgba(10,20,8,.8))}.band-slide figcaption{font-size:10.5px;right:8px;bottom:6px}}
+@media (max-width:640px){.hero-photo>.wrap{padding-bottom:84px!important}}

@@ -5,14 +5,14 @@ import type { Card } from '../../lib/listings';
 import type { Province } from '../../db/schema';
 import { Cards, Icon } from '../ui';
 import { REGIONS, REGION_ORDER, formatPrice } from '../../lib/util';
-import { HERO_SLIDES } from '../../data/photos';
+import { HERO_SLIDES, type PhotoSlide } from '../../data/photos';
 
 /* ภาพสไลด์หน้าแรก — สุ่มลำดับฝั่งเบราว์เซอร์ (assets/js/hero.js) */
 
 
-const HeroSlides: FC = () => (
+export const HeroSlides: FC<{ slides?: PhotoSlide[] }> = ({ slides = HERO_SLIDES }) => (
   <div class="hero-slides" data-slides>
-    {HERO_SLIDES.map((h, i) => (
+    {slides.map((h, i) => (
       <figure class="hero-slide">
         <img src={`${h.src}-${h.w}.webp`} srcset={`${h.src}-960.webp 960w, ${h.src}-${h.w}.webp ${h.w}w`} sizes="100vw" alt={h.alt}
           width={h.w} height={Math.round(h.w * 9 / 16)} loading={i === 0 ? 'eager' : 'lazy'} decoding="async" fetchpriority={i === 0 ? 'high' : undefined} />

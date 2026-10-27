@@ -3,7 +3,8 @@ import type { FC } from 'hono/jsx';
 import type { Bindings } from '../../env';
 import type { Lead, Listing, Province } from '../../db/schema';
 import { Crumbs, Icon, StatusBadge, Turnstile } from '../ui';
-import { RegionLinks } from './home';
+import { RegionLinks, HeroSlides } from './home';
+import { CONSIGN_SLIDES } from '../../data/photos';
 import { DEALS, TYPES, formatPrice, thaiDate, thaiDateTime, type Deal, type PType } from '../../lib/util';
 import { TL_LABEL } from './listing';
 
@@ -87,7 +88,10 @@ export const ManagePage: FC<{ l: Listing; token: string; leads: Lead[]; msg?: st
 /* ---------- ฝากขาย ---------- */
 export const ConsignPage: FC<{ env: Bindings; provinces: Province[] }> = ({ env, provinces }) => (
   <>
-    <section class="hero"><div class="wrap" style="padding-bottom:64px">
+    <section class="hero hero-photo">
+      <HeroSlides slides={CONSIGN_SLIDES} />
+      <script src="/assets/js/hero.js?v=2"></script>
+      <div class="wrap" style="padding-bottom:64px">
       <div class="eyebrow">บริการฝากขาย · ฝากเช่า</div>
       <h1>ให้ อีสานน่าอยู่ <em>ดูแลทรัพย์</em><br />ของคุณแบบครบวงจร</h1>
       <p class="lead">เหมาะสำหรับเจ้าของที่ไม่สะดวกตอบสาย นัดชม หรืออยู่ต่างจังหวัด เราดูแลตั้งแต่ประกาศจนถึงคัดกรองผู้ซื้อ</p>
