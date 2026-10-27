@@ -6,6 +6,28 @@ import type { Province } from '../../db/schema';
 import { Cards, Icon } from '../ui';
 import { REGIONS, REGION_ORDER, formatPrice } from '../../lib/util';
 
+/* ภาพสไลด์หน้าแรก — สุ่มลำดับฝั่งเบราว์เซอร์ (assets/js/hero.js) */
+const HERO_SLIDES: { src: string; w: number; alt: string; caption: string; credit?: { by: string; url: string; license: string } }[] = [
+  { src: '/assets/hero/landmark-ubon', w: 1280, alt: 'วัดสิรินธรวรารามภูพร้าว จังหวัดอุบลราชธานี', caption: 'วัดสิรินธรวรารามภูพร้าว · อุบลราชธานี', credit: { by: 'Supanut Arunoprayote', url: 'https://commons.wikimedia.org/wiki/File:Wat_Sirindhorn_Wararam_Phu_Phrao_20251227_(II).jpg', license: 'CC BY 4.0' } },
+  { src: '/assets/hero/estate', w: 1600, alt: 'ถนนในโครงการบ้านเดี่ยว', caption: 'ภาพจำลอง · บ้านเดี่ยวในโครงการ' },
+  { src: '/assets/hero/shop', w: 1600, alt: 'อาคารพาณิชย์ 3 ชั้นริมถนน', caption: 'ภาพจำลอง · อาคารพาณิชย์' },
+  { src: '/assets/hero/condo_ext', w: 1600, alt: 'คอนโดพร้อมสระว่ายน้ำ', caption: 'ภาพจำลอง · คอนโด' },
+  { src: '/assets/hero/condo_int', w: 1600, alt: 'ห้องนั่งเล่นในคอนโด', caption: 'ภาพจำลอง · ภายในคอนโด' },
+  { src: '/assets/hero/aerial', w: 1600, alt: 'มุมสูงโครงการบ้านจัดสรร', caption: 'ภาพจำลอง · มุมสูงโครงการ' },
+];
+
+const HeroSlides: FC = () => (
+  <div class="hero-slides" id="hero-slides">
+    {HERO_SLIDES.map((h, i) => (
+      <figure class="hero-slide">
+        <img src={`${h.src}-${h.w}.webp`} srcset={`${h.src}-960.webp 960w, ${h.src}-${h.w}.webp ${h.w}w`} sizes="100vw" alt={h.alt}
+          width={h.w} height={Math.round(h.w * 9 / 16)} loading={i === 0 ? 'eager' : 'lazy'} decoding="async" fetchpriority={i === 0 ? 'high' : undefined} />
+        <figcaption>{h.caption}{h.credit && <> · ภาพ <a href={h.credit.url} target="_blank" rel="noopener noreferrer">{h.credit.by}</a> / {h.credit.license}</>}</figcaption>
+      </figure>
+    ))}
+  </div>
+);
+
 export const SearchPanel: FC<{ provinces: Province[]; deal?: string }> = ({ provinces, deal = 'sale' }) => (
   <form class="search-panel" action="/search" method="get" role="search">
     <div class="seg" role="radiogroup" aria-label="ประเภทประกาศ">
@@ -51,7 +73,9 @@ export const HomePage: FC<{
   stats: Record<string, number>; pcounts: Map<number, number>;
 }> = ({ env, provinces, featured, latest, stats, pcounts }) => (
   <>
-    <section class="hero">
+    <section class="hero hero-photo">
+      <HeroSlides />
+      <script src="/assets/js/hero.js?v=1"></script>
       <div class="wrap">
         <div class="eyebrow">อีสานน่าอยู่ · บ้าน ที่ดิน คอนโด</div>
         <h1>บ้าน ที่ดิน คอนโด <em>เขตอีสาน</em><br />ในที่เดียว</h1>
