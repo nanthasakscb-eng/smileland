@@ -37,25 +37,53 @@ function ask(q, hidden = false) {
   });
 }
 
+const fail = () => { process.exitCode = 1; };
+const LOC = process.env.SL_LOCAL ? '--local' : '--remote';
+const interactive = (cmd) => spawnSync(cmd, { shell: true, env, stdio: 'inherit' }).status === 0;
+
+async function checkAccount() {
+  if (process.env.SL_LOCAL) return true;
+  for (;;) {
+    const who = run('npx wrangler whoami');
+    if (!who.ok || /not authenticated|You are not/i.test(who.out)) {
+      console.log('\nยังไม่ได้ล็อกอิน Cloudflare — กำลังเปิดเบราว์เซอร์ ให้ล็อกอินด้วยอีเมลเจ้าของเว็บแล้วกด Allow');
+      interactive('npx wrangler login');
+      continue;
+    }
+    const email = (who.out.match(/associated with the email\s+([^\s.]+@[^\s]+?)\.?\s/i) || who.out.match(/([\w.+-]+@[\w-]+\.[\w.-]+)/) || [])[1] || '(ไม่ทราบอีเมล)';
+    console.log(`\nตอนนี้ล็อกอิน Cloudflare ด้วย: ${email}`);
+    const a = (await ask('ใช่บัญชีเจ้าของเว็บไหม? พิมพ์ Y = ใช่ / N = ออกจากระบบแล้วล็อกอินบัญชีอื่น: ')).trim().toLowerCase();
+    if (a === 'y' || a === '') return true;
+    console.log('\nกำลังออกจากระบบ... ในเบราว์เซอร์ให้ออกจาก dash.cloudflare.com ก่อน แล้วล็อกอินด้วยอีเมลที่ถูกต้อง จากนั้นกด Allow');
+    interactive('npx wrangler logout');
+    interactive('npx wrangler login');
+  }
+}
+
+async function main() {
+  if (!(await checkAccount())) return fail();
 console.log('\nกำลังอ่านรายชื่อผู้ดูแลจากเว็บจริง...');
-const q = run(`npx wrangler d1 execute smileland-db ${process.env.SL_LOCAL ? "--local" : "--remote"} --json --command "SELECT username, is_owner FROM admins ORDER BY id"`);
-if (!q.ok) { console.error('✘ เชื่อมต่อฐานข้อมูลไม่ได้ — ตรวจว่าล็อกอิน Cloudflare บัญชีที่ถูกต้อง (npx wrangler whoami)\n' + q.out.slice(-800)); process.exit(1); }
-let rows = [];
-try { rows = JSON.parse(q.out.slice(q.out.search(/[\[{]/)))?.[0]?.results ?? []; } catch { /* ignore */ }
-console.log(rows.length ? 'ผู้ดูแลที่มีอยู่: ' + rows.map((r) => r.username + (r.is_owner ? ' (เจ้าของระบบ)' : '')).join(', ') : 'ยังไม่มีผู้ดูแลในระบบ');
-
-const username = ((await ask('\nชื่อผู้ใช้ที่จะตั้งรหัสใหม่ (Enter = admin): ')).trim() || 'admin').toLowerCase();
-if (!/^[a-z0-9._-]{3,30}$/.test(username)) { console.error('✘ ชื่อผู้ใช้ใช้ได้เฉพาะ a-z 0-9 . _ - ยาว 3–30 ตัว'); process.exit(1); }
-const pw = await ask('รหัสผ่านใหม่ (อย่างน้อย 10 ตัว ตัวอักษรจะแสดงเป็น *): ', true);
-const pw2 = await ask('พิมพ์รหัสผ่านอีกครั้ง: ', true);
-if (pw.length < 10) { console.error('✘ รหัสผ่านต้องมีอย่างน้อย 10 ตัวอักษร'); process.exit(1); }
-if (pw !== pw2) { console.error('✘ รหัสผ่านสองช่องไม่ตรงกัน'); process.exit(1); }
-
-const salt = crypto.getRandomValues(new Uint8Array(16));
-const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveBits']);
-const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations: 100000 }, key, 256);
-const sql = `INSERT INTO admins (username, pass_hash, salt, iterations, must_change, is_owner, permissions) VALUES ('${username}', '${hex(bits)}', '${hex(salt)}', 100000, 0, 1, '[]') ON CONFLICT(username) DO UPDATE SET pass_hash = excluded.pass_hash, salt = excluded.salt, iterations = excluded.iterations, must_change = 0, is_owner = 1`;
-const w = run(`npx wrangler d1 execute smileland-db ${process.env.SL_LOCAL ? "--local" : "--remote"} --command "${sql}"`);
-if (!w.ok) { console.error('✘ บันทึกไม่สำเร็จ\n' + w.out.slice(-800)); process.exit(1); }
-const site = (run('node -e "process.stdout.write(require(\'fs\').readFileSync(\'wrangler.toml\',\'utf8\').match(/SITE_URL\\s*=\\s*\\"([^\\"]+)/)[1])"').out || '').trim();
-console.log(`\n✅ ตั้งรหัสผ่านของ "${username}" แล้ว (สิทธิ์เจ้าของระบบ)\n   เข้าหน้าแอดมินที่: ${site ? site + '/admin' : '/admin'}\n   ถ้าเพิ่งใส่รหัสผิดหลายครั้ง ระบบอาจล็อกชั่วคราว 15 นาที`);
+  const q = run(`npx wrangler d1 execute smileland-db ${LOC} --json --command "SELECT username, is_owner FROM admins ORDER BY id"`);
+  if (!q.ok) { console.error(/7403|not authorized/.test(q.out) ? '✘ บัญชี Cloudflare ที่ล็อกอินอยู่ไม่ใช่บัญชีที่เก็บฐานข้อมูลเว็บ — รันใหม่แล้วตอบ N เพื่อสลับไปบัญชีเจ้าของเว็บ' : '✘ เชื่อมต่อฐานข้อมูลไม่ได้\n' + q.out.slice(-800)); return fail(); }
+  let rows = [];
+  try { rows = JSON.parse(q.out.slice(q.out.search(/[\[{]/)))?.[0]?.results ?? []; } catch { /* ignore */ }
+  console.log(rows.length ? 'ผู้ดูแลที่มีอยู่: ' + rows.map((r) => r.username + (r.is_owner ? ' (เจ้าของระบบ)' : '')).join(', ') : 'ยังไม่มีผู้ดูแลในระบบ');
+  
+  const username = ((await ask('\nชื่อผู้ใช้ที่จะตั้งรหัสใหม่ (Enter = admin): ')).trim() || 'admin').toLowerCase();
+  if (!/^[a-z0-9._-]{3,30}$/.test(username)) { console.error('✘ ชื่อผู้ใช้ใช้ได้เฉพาะ a-z 0-9 . _ - ยาว 3–30 ตัว'); return fail(); }
+  const pw = await ask('รหัสผ่านใหม่ (อย่างน้อย 10 ตัว ตัวอักษรจะแสดงเป็น *): ', true);
+  const pw2 = await ask('พิมพ์รหัสผ่านอีกครั้ง: ', true);
+  if (pw.length < 10) { console.error('✘ รหัสผ่านต้องมีอย่างน้อย 10 ตัวอักษร'); return fail(); }
+  if (pw !== pw2) { console.error('✘ รหัสผ่านสองช่องไม่ตรงกัน'); return fail(); }
+  
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations: 100000 }, key, 256);
+  const sql = `INSERT INTO admins (username, pass_hash, salt, iterations, must_change, is_owner, permissions) VALUES ('${username}', '${hex(bits)}', '${hex(salt)}', 100000, 0, 1, '[]') ON CONFLICT(username) DO UPDATE SET pass_hash = excluded.pass_hash, salt = excluded.salt, iterations = excluded.iterations, must_change = 0, is_owner = 1`;
+  const w = run(`npx wrangler d1 execute smileland-db ${LOC} --command "${sql}"`);
+  if (!w.ok) { console.error('✘ บันทึกไม่สำเร็จ\n' + w.out.slice(-800)); return fail(); }
+  const site = (run('node -e "process.stdout.write(require(\'fs\').readFileSync(\'wrangler.toml\',\'utf8\').match(/SITE_URL\\s*=\\s*\\"([^\\"]+)/)[1])"').out || '').trim();
+  console.log(`\n✅ ตั้งรหัสผ่านของ "${username}" แล้ว (สิทธิ์เจ้าของระบบ)\n   เข้าหน้าแอดมินที่: ${site ? site + '/admin' : '/admin'}\n   ถ้าเพิ่งใส่รหัสผิดหลายครั้ง ระบบอาจล็อกชั่วคราว 15 นาที`);
+}
+await main();
+stdin.destroy();
