@@ -540,3 +540,5 @@ table.t .thumbcell img { width: 76px; height: 56px; object-fit: cover; border-ra
 .btn-danger-ghost:hover{background:#fff1ee;color:#a52c1f}
 @media (max-width:960px){.odash{grid-template-columns:1fr}}
 @media (max-width:640px){.odash{padding:18px 16px}.odash-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.odash-stats .odash-tile:first-child{grid-column:1/-1}.odash-actions{justify-content:stretch}.odash-actions>*{flex:1}.odash-actions .btn{width:100%}}
+.danger-zone{border-color:#f0c4bc!important;background:#fffafa}
+.danger-zone h2{color:#a52c1f}

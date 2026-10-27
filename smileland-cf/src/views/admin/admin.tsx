@@ -162,12 +162,13 @@ export const LeadTable: FC<{ rows: (Lead & { listingRef?: string | null })[]; cs
   </div>
 );
 
-export const ListingsAdminPage: FC<{ env: Bindings; rows: (Listing & { provinceName?: string })[]; status: string; q: string; page: number; pages: number; total: number }> = ({ env, rows, status, q, page, pages, total }) => (
+export const ListingsAdminPage: FC<{ env: Bindings; rows: (Listing & { provinceName?: string })[]; status: string; q: string; page: number; pages: number; total: number; ok?: string }> = ({ env, rows, status, q, page, pages, total, ok }) => (
   <>
-    <h1>{status === 'pending' ? 'รอตรวจสอบ' : 'ประกาศทั้งหมด'} <span class="muted" style="font-size:16px">({formatPrice(total)})</span></h1>
+    {ok && <div class="alert alert-ok">{ok}</div>}
+    <h1>{status === 'pending' ? 'รอตรวจสอบ' : status === 'deleted' ? 'ประกาศที่ผู้โพสต์ลบแล้ว' : 'ประกาศทั้งหมด'} <span class="muted" style="font-size:16px">({formatPrice(total)})</span></h1>
     <form class="toolbar" method="get">
       <select class="input" name="status" data-autosubmit>
-        {[['', 'ทุกสถานะ'], ['pending', 'รอตรวจสอบ'], ['active', 'เผยแพร่'], ['rejected', 'ไม่อนุมัติ'], ['sold', 'ปิดการขาย'], ['expired', 'หมดอายุ'], ['closed', 'ปิดประกาศ']].map(([v, t]) => <option value={v} selected={status === v}>{t}</option>)}
+        {[['', 'ทุกสถานะ'], ['pending', 'รอตรวจสอบ'], ['active', 'เผยแพร่'], ['rejected', 'ไม่อนุมัติ'], ['sold', 'ปิดการขาย'], ['expired', 'หมดอายุ'], ['closed', 'ปิดประกาศ'], ['deleted', 'ผู้โพสต์ลบแล้ว']].map(([v, t]) => <option value={v} selected={status === v}>{t}</option>)}
       </select>
       <input class="input" name="q" value={q} placeholder="ค้นหา รหัส / หัวข้อ / เบอร์" />
       <button class="btn btn-ink btn-sm" type="submit">ค้นหา</button>
@@ -176,6 +177,8 @@ export const ListingsAdminPage: FC<{ env: Bindings; rows: (Listing & { provinceN
     {pages > 1 && <nav class="pager">{Array.from({ length: pages }, (_, i) => i + 1).slice(0, 50).map((n) => n === page ? <span class="on">{n}</span> : <a href={`?status=${status}&q=${encodeURIComponent(q)}&page=${n}`}>{n}</a>)}</nav>}
   </>
 );
+
+export const canPurge = (l: Pick<Listing, 'deletedAt' | 'status'>) => !!l.deletedAt || ['closed', 'rejected', 'expired'].includes(l.status);
 
 export const ListingAdminDetail: FC<{
   env: Bindings; admin: AdminSession; l: Listing; images: { keyBase: string; ext: string }[]; loc: string;
@@ -206,14 +209,19 @@ export const ListingAdminDetail: FC<{
       })()}
       <div class="form-card" style="margin-top:16px">
         <h2 style="font-size:18px">การดำเนินการ</h2>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        {l.deletedAt ? (
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            {can(admin, 'listings.edit') && act('restore', '↺ กู้คืนประกาศ', 'btn-ok', undefined, 'กู้คืนประกาศนี้ให้กลับไปอยู่ในบัญชีผู้โพสต์ตามสถานะเดิม?')}
+            <span class="small muted">กู้คืนแล้วประกาศจะกลับไปอยู่ในบัญชีผู้โพสต์ตามสถานะก่อนลบ (ถ้าเคยเผยแพร่และยังไม่หมดอายุ จะขึ้นเว็บทันที)</span>
+          </div>
+        ) : <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
           {can(admin, 'listings.review') && l.status !== 'active' && !['sold'].includes(l.status) && act('approve', '✓ อนุมัติและเผยแพร่', 'btn-ok')}
           {can(admin, 'listings.review') && l.status === 'pending' && act('reject', 'ไม่อนุมัติ', 'btn-danger', <input class="input" name="reason" required placeholder="เหตุผล (แจ้งผู้ลงประกาศ)" style="width:260px" maxlength={300} />)}
           {can(admin, 'listings.edit') && l.status === 'active' && act('sold', 'ปิดการขาย/เช่า', 'btn-line')}
           {can(admin, 'listings.edit') && !['closed'].includes(l.status) && act('close', 'ปิดประกาศ', 'btn-line', undefined, 'ยืนยันปิดประกาศนี้?')}
-        </div>
+        </div>}
       </div>
-      {can(admin, 'listings.edit') && l.status === 'active' && <ZoneForm admin={admin} l={l} />}
+      {can(admin, 'listings.edit') && l.status === 'active' && !l.deletedAt && <ZoneForm admin={admin} l={l} />}
       <div class="grid2" style="gap:20px;align-items:start">
         <div class="form-card">
           <h2 style="font-size:18px">ข้อมูลประกาศ</h2>
@@ -265,6 +273,21 @@ export const ListingAdminDetail: FC<{
         <h2 style="font-size:18px">จดหมายเหตุ</h2>
         <ul class="tl">{timeline.map((t) => <li><time>{thaiDateTime(t.createdAt)} · {t.actor}</time>{TL_LABEL[t.event] || t.event}{t.note ? ` — ${t.note}` : ''}</li>)}</ul>
       </div>
+      {can(admin, 'listings.edit') && (
+        <div class="form-card danger-zone">
+          <h2 style="font-size:18px">ลบถาวร</h2>
+          {canPurge(l) ? (
+            <form method="post" action={`/admin/listings/${l.id}`} data-confirm={`ลบ ${l.ref} ถาวร? ข้อมูลประกาศและรูปทั้งหมดจะหายไป กู้คืนไม่ได้`}>
+              <input type="hidden" name="csrf" value={admin.csrf} /><input type="hidden" name="action" value="purge" />
+              <p class="small">ลบข้อมูลประกาศ รูปภาพ และดัชนีค้นหาออกจากระบบ <b>กู้คืนไม่ได้</b> · ระบบเก็บเพียงบันทึกจดหมายเหตุว่าใครลบเมื่อไร</p>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <input class="input" name="confirm_ref" required autocomplete="off" placeholder={`พิมพ์ ${l.ref} เพื่อยืนยัน`} style="width:240px" />
+                <button class="btn btn-sm btn-danger" type="submit">ลบถาวร</button>
+              </div>
+            </form>
+          ) : <p class="small muted" style="margin:0">ลบถาวรได้เฉพาะประกาศที่ผู้โพสต์ลบแล้ว หรือสถานะ ปิดประกาศ / ไม่อนุมัติ / หมดอายุ — ถ้าต้องการลบประกาศนี้ ให้กด "ปิดประกาศ" ก่อน</p>}
+        </div>
+      )}
     </>
   );
 };

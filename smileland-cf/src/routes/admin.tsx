@@ -1,11 +1,11 @@
 /** @jsxImportSource hono/jsx */
 import { Hono, type Context } from 'hono';
 import type { Child } from 'hono/jsx';
-import { and, count, desc, eq, gte, like, or, sql, type SQL } from 'drizzle-orm';
+import { and, count, desc, eq, gte, isNotNull, like, or, sql, type SQL } from 'drizzle-orm';
 import type { AppEnv, AdminSession } from '../env';
 import { db } from '../db';
-import { admins, leads, listings, listingTokens, outbox, priceHistory, settings, timeline, users } from '../db/schema';
-import { AdminLayout, ZonesPage, Dashboard, LeadsAdminPage, ListingAdminDetail, ListingsAdminPage, LoginPage, MembersPage, NoPermPage, OutboxPage, PasswordPage, SettingsPage, StaffPage } from '../views/admin/admin';
+import { admins, leads, listingImages, listings, listingTokens, outbox, priceHistory, settings, timeline, users } from '../db/schema';
+import { AdminLayout, ZonesPage, canPurge, Dashboard, LeadsAdminPage, ListingAdminDetail, ListingsAdminPage, LoginPage, MembersPage, NoPermPage, OutboxPage, PasswordPage, SettingsPage, StaffPage } from '../views/admin/admin';
 import { createSession, destroySession, ensureBootstrapAdmin, loadSession, setAdminPassword, updateSession } from '../lib/session';
 import { clientIp, hashPassword, rateLimit, sameOrigin, timingSafeEqual, verifyPassword, verifyTurnstile } from '../lib/security';
 import { geo } from '../lib/geo';
@@ -140,6 +140,7 @@ admin.get('/listings', need('listings.review', 'listings.edit'), async (c) => {
   const per = 30;
   const w: SQL[] = [];
   if (['pending', 'active', 'rejected', 'sold', 'expired', 'closed'].includes(status)) w.push(eq(listings.status, status as 'pending'));
+  if (status === 'deleted') w.push(isNotNull(listings.deletedAt));
   if (q) {
     const ph = normPhone(q);
     w.push(or(eq(listings.ref, q.toUpperCase()), like(listings.title, `%${q}%`), eq(listings.ownerEmail, q.toLowerCase()), ...(ph.length >= 9 ? [eq(listings.ownerPhone, ph)] : []))!);
@@ -153,7 +154,7 @@ admin.get('/listings', need('listings.review', 'listings.edit'), async (c) => {
   const g = await geo(c.env);
   const pm = new Map(g.provinces.map((p) => [p.code, p.nameTh]));
   return page(c, 'ประกาศ', status === 'pending' ? 'pending' : 'listings',
-    <ListingsAdminPage env={c.env} rows={rows.map((r) => ({ ...r, provinceName: pm.get(r.provinceCode) }))} status={status} q={q} page={pg} pages={Math.ceil(total[0].n / per)} total={total[0].n} />);
+    <ListingsAdminPage env={c.env} rows={rows.map((r) => ({ ...r, provinceName: pm.get(r.provinceCode) }))} status={status} q={q} page={pg} pages={Math.ceil(total[0].n / per)} total={total[0].n} ok={c.req.query('ok') || undefined} />);
 });
 
 admin.get('/listings/:id{[0-9]+}', need('listings.review', 'listings.edit'), async (c) => {
@@ -203,6 +204,34 @@ admin.post('/listings/:id{[0-9]+}', need('listings.review', 'listings.edit'), as
       c.executionCtx.waitUntil(sendListingDecisionEmail(c, l, 'rejected', reason).catch(() => null));
       msg = 'ไม่อนุมัติประกาศแล้ว · แจ้งเหตุผลให้ผู้โพสต์แก้ไขแล้ว';
       break;
+    }
+    case 'restore': {
+      if (!l.deletedAt) { msg = 'ประกาศนี้ไม่ได้ถูกลบ'; break; }
+      const tl = await getTimeline(c.env, id);
+      const prev = (([...tl].reverse().find((t) => t.event === 'deleted')?.note || '').match(/สถานะก่อนลบ: (\w+)/) || [])[1] || 'closed';
+      let st = (['pending', 'active', 'rejected', 'sold', 'expired', 'closed'].includes(prev) ? prev : 'closed') as typeof l.status;
+      if (st === 'active' && l.expiresAt && l.expiresAt <= now) st = 'expired';
+      await d.update(listings).set({ deletedAt: null, status: st, updatedAt: now }).where(eq(listings.id, id));
+      await addTimeline(c.env, id, 'restored', actor, `กลับเป็นสถานะ: ${st}`);
+      if (st === 'active') await reindex(c.env, { ...l, status: 'active' });
+      const TH: Record<string, string> = { pending: 'รอตรวจสอบ', active: 'เผยแพร่', rejected: 'ไม่อนุมัติ', sold: 'ขายแล้ว', expired: 'หมดอายุ', closed: 'ปิดประกาศ' };
+      msg = `กู้คืน ${l.ref} แล้ว (สถานะ: ${TH[st] || st})`;
+      break;
+    }
+    case 'purge': {
+      if (!canPurge(l)) { msg = 'ลบถาวรได้เฉพาะประกาศที่ลบแล้ว/ปิด/ไม่อนุมัติ/หมดอายุ'; break; }
+      if (String(f.confirm_ref || '').trim().toUpperCase() !== l.ref) { msg = 'พิมพ์รหัสประกาศไม่ตรง — ยังไม่ได้ลบ'; break; }
+      const imgs = await getImages(c.env, id);
+      const keys = imgs.filter((im) => !im.keyBase.startsWith('/')).flatMap((im) => [400, 800, 1600].map((sz) => `${im.keyBase}-${sz}.${im.ext}`));
+      await d.batch([
+        d.insert(timeline).values({ listingId: id, event: 'purged', actor, note: `${l.ref} · ${l.title}`.slice(0, 200) }),
+        d.delete(listingImages).where(eq(listingImages.listingId, id)),
+        d.delete(listingTokens).where(eq(listingTokens.listingId, id)),
+        d.delete(listings).where(eq(listings.id, id)),
+      ]);
+      if (keys.length) c.executionCtx.waitUntil(c.env.UPLOADS.delete(keys).catch(() => undefined));
+      c.executionCtx.waitUntil(c.env.JOBS.send({ kind: 'sitemap', provinceCode: l.provinceCode }).catch(() => undefined));
+      return c.redirect(`/admin/listings?status=deleted&ok=${encodeURIComponent(`ลบ ${l.ref} ถาวรแล้ว`)}`, 303);
     }
     case 'zone': {
       const z = (['A', 'B', 'C'] as const).find((k) => k === f.zone) ?? null;
