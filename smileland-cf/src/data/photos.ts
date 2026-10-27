@@ -20,3 +20,8 @@ export const CONSIGN_SLIDES: PhotoSlide[] = [
   { src: '/assets/hero/consign-lampao', w: 1280, alt: 'อ่างเก็บน้ำเขื่อนลำปาว จังหวัดกาฬสินธุ์', caption: 'เขื่อนลำปาว · กาฬสินธุ์', credit: { by: 'Kaoavi', url: 'https://commons.wikimedia.org/wiki/File:Lam_Pao_Dam_05.jpg', license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/' } },
   { src: '/assets/hero/consign-burapha', w: 1280, alt: 'พระพุทธรัตนมงคลมหามุนี (หลวงพ่อใหญ่) วัดบูรพาภิราม จังหวัดร้อยเอ็ด', caption: 'วัดบูรพาภิราม · ร้อยเอ็ด', credit: { by: 'Supanut Arunoprayote', url: 'https://commons.wikimedia.org/wiki/File:Wat_Burapha_Phiram,_Roi_Et_(I).jpg', license: 'CC BY 4.0', licenseUrl: BY4 } },
 ];
+export const GUIDE_SLIDES: PhotoSlide[] = [
+  { src: '/assets/hero/guide-phutok', w: 960, alt: 'ภูทอก วัดเจติยาคีรีวิหาร จังหวัดบึงกาฬ', caption: 'ภูทอก · บึงกาฬ', credit: { by: 'Carly 64', url: 'https://commons.wikimedia.org/wiki/File:Wat_Phu_Tok.jpg', license: 'CC BY-SA 3.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/3.0/' } },
+  { src: '/assets/hero/guide-pahinngam', w: 1280, alt: 'โขดหินรูปร่างแปลกตา อุทยานแห่งชาติป่าหินงาม จังหวัดชัยภูมิ', caption: 'อุทยานแห่งชาติป่าหินงาม · ชัยภูมิ', credit: { by: 'Kawpodmd', url: 'https://commons.wikimedia.org/wiki/File:Pahin02.jpg', license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/' } },
+  { src: '/assets/hero/guide-lankhuad', w: 1280, alt: 'วัดป่ามหาเจดีย์แก้ว (วัดล้านขวด) จังหวัดศรีสะเกษ', caption: 'วัดล้านขวด · ศรีสะเกษ', credit: { by: 'Mark Fischer', url: 'https://commons.wikimedia.org/wiki/File:Million_Bottle_Temple_(7447377506).jpg', license: 'CC BY-SA 2.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/2.0/' } },
+];

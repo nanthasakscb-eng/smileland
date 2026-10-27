@@ -4,6 +4,8 @@ import type { Guide } from '../../data/guides';
 import { guides, guideBySlug } from '../../data/guides';
 import { md } from '../../lib/md';
 import { Crumbs } from '../ui';
+import { HeroSlides } from './home';
+import { GUIDE_SLIDES } from '../../data/photos';
 import { formatPrice } from '../../lib/util';
 
 export type ProvinceStats = { name: string; slug: string; total: number; byType: { key: string; label: string; n: number; median: number | null; href: string }[] } | null;
@@ -27,13 +29,18 @@ export const GuideIndexPage: FC = () => {
   const prov = guides.filter((g) => g.kind === 'province');
   const know = guides.filter((g) => g.kind === 'knowledge');
   return (
+    <>
+    <section class="hero hero-photo">
+      <HeroSlides slides={GUIDE_SLIDES} />
+      <script src="/assets/js/hero.js?v=2"></script>
+      <div class="wrap" style="padding-bottom:64px">
+        <div class="eyebrow">คู่มือ · อีสานน่าอยู่</div>
+        <h1>คู่มือซื้อ ขาย เช่า <em>บ้านและที่ดิน</em><br />ในอีสาน</h1>
+        <p class="lead">ทำเลน่าอยู่รายจังหวัด ค่าโอนและภาษี เอกสารสิทธิ์ที่ดิน และวิธีขายบ้านเอง เขียนให้คนอีสานและคนที่กำลังจะย้ายมาอยู่อีสานอ่านแล้วใช้ได้จริง</p>
+      </div>
+    </section>
     <div class="wrap g-wrap">
       <Crumbs items={[['หน้าแรก', '/'], ['คู่มือซื้อขายบ้าน-ที่ดินอีสาน']]} />
-      <header class="g-hero">
-        <span class="g-kicker">คู่มือ · อีสานน่าอยู่</span>
-        <h1>คู่มือซื้อ ขาย เช่า บ้านและที่ดินในอีสาน</h1>
-        <p>ทำเลน่าอยู่รายจังหวัด ค่าโอนและภาษี เอกสารสิทธิ์ที่ดิน และวิธีขายบ้านเอง เขียนให้คนอีสานและคนที่กำลังจะย้ายมาอยู่อีสานอ่านแล้วใช้ได้จริง</p>
-      </header>
       <section class="g-group">
         <h2>คู่มือรายจังหวัด</h2>
         <div class="g-grid">{prov.map((g) => <Card g={g} />)}</div>
@@ -44,6 +51,7 @@ export const GuideIndexPage: FC = () => {
         <div class="g-grid">{know.map((g) => <Card g={g} />)}</div>
       </section>
     </div>
+    </>
   );
 };
 
