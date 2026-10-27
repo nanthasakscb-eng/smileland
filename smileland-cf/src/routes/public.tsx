@@ -12,6 +12,7 @@ import { TravelPage } from '../views/pages/travel';
 import { TravelArticlePage } from '../views/pages/travel-article';
 import { travelArticles } from '../lib/travel';
 import { GuideIndexPage, GuidePage, type ProvinceStats } from '../views/pages/guide';
+import { CreditsPage } from '../views/pages/credits';
 import { guides, guideBySlug, guideForProvince } from '../data/guides';
 import { plain } from '../lib/md';
 import { SearchPage, type SubLink } from '../views/pages/search';
@@ -64,6 +65,8 @@ pub.get('/travel/:province{[a-z-]+}', (c) => {
     head:<link rel="stylesheet" href="/assets/css/travel.css?v=isan20" />,
   }, <TravelArticlePage article={article}/>);
 });
+
+pub.get('/credits', (c) => render(c, { title: 'เครดิตภาพ', description: 'เครดิตและสัญญาอนุญาตของภาพถ่ายที่ใช้บนอีสานน่าอยู่', canonical: '/credits' }, <CreditsPage />));
 
 /* ================= คู่มือ ================= */
 const guideHead = <link rel="stylesheet" href="/assets/css/guide.css?v=2" />;

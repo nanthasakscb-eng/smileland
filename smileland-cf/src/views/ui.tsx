@@ -183,7 +183,7 @@ export const Footer: FC<{ settings: Record<string, string> }> = ({ settings }) =
       </div>
       <div class="footer-bottom">
         <span>© {new Date().getFullYear()} อีสานน่าอยู่ · สงวนลิขสิทธิ์</span>
-        <span><a href="/privacy">นโยบายความเป็นส่วนตัว</a> · <a href="/terms">ข้อกำหนดการใช้งาน</a></span>
+        <span><a href="/privacy">นโยบายความเป็นส่วนตัว</a> · <a href="/terms">ข้อกำหนดการใช้งาน</a> · <a href="/credits">เครดิตภาพ</a></span>
       </div>
     </div>
   </footer>

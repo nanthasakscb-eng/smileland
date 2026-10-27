@@ -8,7 +8,7 @@ import { REGIONS, REGION_ORDER, formatPrice } from '../../lib/util';
 
 /* ภาพสไลด์หน้าแรก — สุ่มลำดับฝั่งเบราว์เซอร์ (assets/js/hero.js) */
 const BY4 = 'https://creativecommons.org/licenses/by/4.0/';
-const HERO_SLIDES: { src: string; w: number; alt: string; caption: string; credit: { by: string; url: string; license: string; licenseUrl: string } }[] = [
+export const HERO_SLIDES: { src: string; w: number; alt: string; caption: string; credit: { by: string; url: string; license: string; licenseUrl: string } }[] = [
   { src: '/assets/hero/landmark-ubon', w: 1280, alt: 'วัดสิรินธรวรารามภูพร้าว จังหวัดอุบลราชธานี', caption: 'วัดสิรินธรวรารามภูพร้าว · อุบลราชธานี', credit: { by: 'Supanut Arunoprayote', url: 'https://commons.wikimedia.org/wiki/File:Wat_Sirindhorn_Wararam_Phu_Phrao_20251227_(II).jpg', license: 'CC BY 4.0', licenseUrl: BY4 } },
   { src: '/assets/hero/landmark-chanadai', w: 1280, alt: 'ผาชะนะได มองเห็นแม่น้ำโขง จังหวัดอุบลราชธานี', caption: 'ผาชะนะได · อุบลราชธานี', credit: { by: 'Supanut Arunoprayote', url: 'https://commons.wikimedia.org/wiki/File:Cha_Na_Dai_Cliff_20251226.jpg', license: 'CC BY 4.0', licenseUrl: BY4 } },
   { src: '/assets/hero/landmark-muangtam', w: 1280, alt: 'ปราสาทเมืองต่ำ จังหวัดบุรีรัมย์', caption: 'ปราสาทเมืองต่ำ · บุรีรัมย์', credit: { by: 'Yakuzakorat', url: 'https://commons.wikimedia.org/wiki/File:%E0%B8%9B%E0%B8%A3%E0%B8%B2%E0%B8%AA%E0%B8%B2%E0%B8%97%E0%B9%80%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B8%87%E0%B8%95%E0%B9%88%E0%B8%B3_4.JPG', license: 'CC BY-SA 3.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/3.0/' } },
@@ -22,7 +22,7 @@ const HeroSlides: FC = () => (
       <figure class="hero-slide">
         <img src={`${h.src}-${h.w}.webp`} srcset={`${h.src}-960.webp 960w, ${h.src}-${h.w}.webp ${h.w}w`} sizes="100vw" alt={h.alt}
           width={h.w} height={Math.round(h.w * 9 / 16)} loading={i === 0 ? 'eager' : 'lazy'} decoding="async" fetchpriority={i === 0 ? 'high' : undefined} />
-        <figcaption>{h.caption} · ภาพ <a href={h.credit.url} target="_blank" rel="noopener noreferrer">{h.credit.by}</a> / <a href={h.credit.licenseUrl} target="_blank" rel="noopener noreferrer license">{h.credit.license}</a> (ครอบภาพ)</figcaption>
+        <figcaption>{h.caption} · ภาพ <a href={h.credit.url} target="_blank" rel="noopener noreferrer">{h.credit.by}</a> / <a href={h.credit.licenseUrl} target="_blank" rel="noopener noreferrer license">{h.credit.license}</a> (ครอบภาพ) · <a href="/credits">เครดิตภาพ</a></figcaption>
       </figure>
     ))}
   </div>
