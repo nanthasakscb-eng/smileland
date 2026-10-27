@@ -9,7 +9,8 @@ import { AccountPage, CheckEmailPage, ForgotPage, LoginPage, MessagePage, Regist
 import { clientIp, hashPassword, rateLimit, sameOrigin, timingSafeEqual, verifyPassword, verifyTurnstile } from '../lib/security';
 import { consumeToken, createUserSession, destroyUserSession, getUser, normEmail, refreshUserSession, sendResetEmail, sendVerifyEmail } from '../lib/users';
 import { clampInt, formatPrice, isEmail, isThaiPhone, normPhone, nowSec, str } from '../lib/util';
-import { addTimeline } from '../lib/listings';
+import { addTimeline, getImages, imgUrl } from '../lib/listings';
+import { PostPage } from '../views/pages/post';
 import { geo } from '../lib/geo';
 
 export const account = new Hono<AppEnv>();
@@ -178,6 +179,23 @@ account.post('/account/password', async (c) => {
 });
 
 /* ---------- จัดการประกาศของตัวเอง ---------- */
+/* ---------- แก้ไขประกาศแล้วส่งตรวจอีกครั้ง ---------- */
+account.get('/account/listings/:id{[0-9]+}/edit', async (c) => {
+  const s = c.get('user');
+  const id = parseInt(c.req.param('id')!, 10);
+  if (!s) return c.redirect('/login?next=' + encodeURIComponent(`/account/listings/${id}/edit`), 303);
+  const me = await getUser(c, s.userId);
+  if (!me) return c.redirect('/login', 303);
+  const l = (await db(c.env).select().from(listings).where(and(eq(listings.id, id), eq(listings.userId, me.id))).limit(1))[0];
+  if (!l) return c.redirect('/account?error=' + encodeURIComponent('ไม่พบประกาศ'), 303);
+  if (!['pending', 'rejected'].includes(l.status)) return c.redirect('/account?error=' + encodeURIComponent(`ประกาศ ${l.ref} อยู่ในสถานะที่แก้ไขทั้งหมดไม่ได้ (ปรับราคาได้จากตาราง)`), 303);
+  const [g, imgs] = await Promise.all([geo(c.env), getImages(c.env, id)]);
+  const images = imgs.map((im) => ({ idx: im.idx, url: imgUrl(c.env, `${im.keyBase}:${im.ext}`, 400) || '' }));
+  return render(c, { title: `แก้ไขประกาศ ${l.ref}`, noindex: true, maps: true, turnstile: true, page: 'post', nav: 'account' },
+    <PostPage env={c.env} provinces={g.provinces} consign={!!l.consign} edit={{ l, images }}
+      me={{ name: l.ownerName, phone: l.ownerPhone, line: l.ownerLine, email: me.email }} />);
+});
+
 account.post('/account/listings/:id{[0-9]+}', async (c: Context<AppEnv>) => {
   const s = c.get('user')!;
   const id = parseInt(c.req.param('id')!, 10);

@@ -1,10 +1,10 @@
 /** @jsxImportSource hono/jsx */
 import type { FC } from 'hono/jsx';
 import type { Bindings } from '../../env';
-import type { Card } from '../../lib/listings';
+import { imgUrl, imgSrcset, placeholder, type Card } from '../../lib/listings';
 import type { Province } from '../../db/schema';
-import { Cards, Icon } from '../ui';
-import { REGIONS, REGION_ORDER, formatPrice } from '../../lib/util';
+import { Cards, CardSpecs, Icon } from '../ui';
+import { REGIONS, REGION_ORDER, formatPrice, DEALS, TYPES, isDemo, type Deal, type PType } from '../../lib/util';
 import { HERO_SLIDES, type PhotoSlide } from '../../data/photos';
 
 /* ภาพสไลด์หน้าแรก — สุ่มลำดับฝั่งเบราว์เซอร์ (assets/js/hero.js) */
@@ -20,6 +20,41 @@ export const HeroSlides: FC<{ slides?: PhotoSlide[] }> = ({ slides = HERO_SLIDES
       </figure>
     ))}
   </div>
+);
+
+/* โซน A — ทรัพย์โชว์เด่น (Admin เลือก สูงสุด 3) */
+export const Showcase: FC<{ env: Bindings; items: Card[] }> = ({ env, items }) => (
+  <section class="section showcase-sec">
+    <div class="wrap">
+      <div class="section-head lux-head">
+        <div><div class="eyebrow">Spotlight · ทรัพย์เด่น</div><h2>ทรัพย์โชว์เด่นประจำสัปดาห์</h2></div>
+        <p class="lux-sub">คัดโดยทีมงานอีสานน่าอยู่ ตรวจสอบข้อมูลก่อนเผยแพร่ทุกประกาศ</p>
+      </div>
+      <div class={`showcase n${items.length}`}>
+        {items.map((l, i) => {
+          const src = imgUrl(env, l.coverKey, 1600) || imgUrl(env, l.coverKey, 800) || placeholder(l.type);
+          return (
+            <a class="sc-card" href={`/listing/${l.id}`}>
+              <img src={src} srcset={imgSrcset(env, l.coverKey)} sizes={i === 0 ? '(max-width: 860px) 100vw, 66vw' : '(max-width: 860px) 100vw, 33vw'} alt={l.title} loading="lazy" decoding="async" width="800" height="600" />
+              <div class="sc-top">
+                <span class={`badge b-${l.deal}`}>{DEALS[l.deal as Deal]}</span>
+                <span class="badge b-type">{TYPES[l.type as PType]}</span>
+                {isDemo(l.ref) ? <span class="badge b-demo">ตัวอย่าง</span> : null}
+              </div>
+              <div class="sc-body">
+                <div class="sc-loc"><Icon name="pin" /> {l.districtName}{l.provinceName ? `, ${l.provinceName}` : ''}</div>
+                <h3>{l.title}</h3>
+                <div class="sc-row">
+                  <div class="sc-price">฿{formatPrice(l.price)}{l.deal === 'rent' && <small> /เดือน</small>}</div>
+                  <CardSpecs l={l} />
+                </div>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  </section>
 );
 
 export const SearchPanel: FC<{ provinces: Province[]; deal?: string }> = ({ provinces, deal = 'sale' }) => (
@@ -63,9 +98,9 @@ export const SearchPanel: FC<{ provinces: Province[]; deal?: string }> = ({ prov
 );
 
 export const HomePage: FC<{
-  env: Bindings; provinces: Province[]; featured: Card[]; latest: Card[];
+  env: Bindings; provinces: Province[]; showcase?: Card[]; featured: Card[]; latest: Card[];
   stats: Record<string, number>; pcounts: Map<number, number>;
-}> = ({ env, provinces, featured, latest, stats, pcounts }) => (
+}> = ({ env, provinces, showcase = [], featured, latest, stats, pcounts }) => (
   <>
     <section class="hero hero-photo">
       <HeroSlides />
@@ -82,6 +117,8 @@ export const HomePage: FC<{
         </div>
       </div>
     </section>
+
+    {showcase.length > 0 && <Showcase env={env} items={showcase} />}
 
     <section class="section">
       <div class="wrap">

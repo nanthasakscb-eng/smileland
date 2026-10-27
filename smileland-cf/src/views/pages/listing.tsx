@@ -103,7 +103,7 @@ export const ListingPage: FC<{
           <p class="small muted">บันทึกความเคลื่อนไหวของประกาศแบบต่อท้าย แก้ไขย้อนหลังไม่ได้</p>
           <ul class="tl">
             {prices.length > 1 && prices.map((p, i) => i > 0 ? <li><time>{thaiDate(p.changedAt)}</time>ปรับราคาเป็น ฿{formatPrice(p.price)} (เดิม ฿{formatPrice(prices[i - 1].price)})</li> : null)}
-            {timeline.filter((t) => t.event !== 'price').map((t) => <li><time>{thaiDate(t.createdAt)}</time>{TL_LABEL[t.event] || t.event}{t.note && t.event !== 'rejected' ? ` — ${t.note}` : ''}</li>)}
+            {timeline.filter((t) => !['price', 'zone', 'featured', 'unfeatured', 'resubmitted', 'rejected'].includes(t.event)).map((t) => <li><time>{thaiDate(t.createdAt)}</time>{TL_LABEL[t.event] || t.event}{t.note && t.event !== 'rejected' ? ` — ${t.note}` : ''}</li>)}
           </ul>
         </article>
 
@@ -164,4 +164,5 @@ export const TL_LABEL: Record<string, string> = {
   submitted: 'ส่งประกาศเข้าระบบ', approved: 'ผ่านการตรวจสอบและเผยแพร่', rejected: 'ไม่ผ่านการตรวจสอบ', price: 'ปรับราคา',
   sold: 'ปิดการขาย/เช่าแล้ว', closed: 'ปิดประกาศ', expired: 'ประกาศหมดอายุ', renewed: 'ต่ออายุประกาศ', edited: 'แก้ไขรายละเอียด',
   featured: 'ตั้งเป็นประกาศแนะนำ', unfeatured: 'ยกเลิกประกาศแนะนำ', reopened: 'เปิดประกาศอีกครั้ง',
+  resubmitted: 'แก้ไขและส่งตรวจอีกครั้ง', zone: 'จัดตำแหน่งแสดงผล',
 };

@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
 import { and, eq, gte } from 'drizzle-orm';
 import type { AppEnv } from '../env';
 import { db } from '../db';
@@ -96,30 +96,20 @@ function sniff(buf: Uint8Array): 'webp' | 'jpg' | null {
   return null;
 }
 
-api.post('/listings', async (c) => {
-  const ip = clientIp(c);
-  const sess = c.get('user');
-  if (!sess) return c.json({ ok: false, error: 'กรุณาเข้าสู่ระบบก่อนลงประกาศ', login: true }, 401);
-  const me = await getUser(c, sess.userId);
-  if (!me || me.status !== 'active') return c.json({ ok: false, error: 'บัญชีนี้ไม่สามารถลงประกาศได้ กรุณาติดต่อทีมงาน' }, 403);
-  if (!me.emailVerifiedAt) return c.json({ ok: false, error: 'กรุณายืนยันอีเมลก่อนลงประกาศ (ดูลิงก์ในอีเมล หรือกดส่งอีกครั้งที่บัญชีของฉัน)' }, 403);
-  if (!(await rateLimit(c.env, `postu:${me.id}`, 20, 86400)).ok) return c.json({ ok: false, error: 'ลงประกาศครบจำนวนต่อวันแล้ว กรุณาลองใหม่พรุ่งนี้' }, 429);
-  const rl = await rateLimit(c.env, `post:${ip}`, 6, 3600);
-  if (!rl.ok) return c.json({ ok: false, error: 'ส่งประกาศบ่อยเกินไป กรุณาลองใหม่ภายหลัง' }, 429);
-
-  let form: FormData;
-  try { form = await c.req.formData(); } catch { return c.json({ ok: false, error: 'ข้อมูลไม่ถูกต้อง' }, 400); }
+type ListingUp = { idx: number; ext: 'webp' | 'jpg'; files: Record<number, ArrayBuffer>; w: number | null; h: number | null };
+/** ตรวจและแปลงฟอร์มประกาศ (ใช้ทั้งลงประกาศใหม่และแก้ไขแล้วส่งใหม่) */
+async function parseListingForm(c: Context<AppEnv>, form: FormData, me: { email: string }, ip: string) {
   const g = (k: string) => form.get(k);
   const errors: Record<string, string> = {};
 
-  if (!(await verifyTurnstile(c.env, String(g('cf-turnstile-response') || ''), ip))) return c.json({ ok: false, error: 'กรุณายืนยันว่าไม่ใช่บอท (Turnstile)' }, 400);
+  if (!(await verifyTurnstile(c.env, String(g('cf-turnstile-response') || ''), ip))) return { fatal: 'กรุณายืนยันว่าไม่ใช่บอท (Turnstile)' as string };
   if (g('consent') !== '1') errors.consent = 'กรุณายืนยันข้อกำหนดและนโยบายความเป็นส่วนตัว';
 
-  const deal = g('deal') === 'rent' ? 'rent' : g('deal') === 'sale' ? 'sale' : null;
+  const deal: 'sale' | 'rent' | null = g('deal') === 'rent' ? 'rent' : g('deal') === 'sale' ? 'sale' : null;
   const type = (['house', 'land', 'condo'] as const).find((t) => t === g('type')) ?? null;
   if (!deal) errors.deal = 'เลือกขายหรือให้เช่า';
   if (!type) errors.type = 'เลือกประเภททรัพย์';
-  const posterRole = g('posterRole') === 'agent' ? 'agent' : 'owner';
+  const posterRole: 'agent' | 'owner' = g('posterRole') === 'agent' ? 'agent' : 'owner';
   const title = str(g('title'), 120);
   const description = str(g('description'), 5000);
   const price = clampInt(g('price'), 1, 10_000_000_000);
@@ -162,8 +152,7 @@ api.post('/listings', async (c) => {
   const zoningColor = str(g('zoningColor'), 20);
 
   // รูปภาพ
-  type Up = { idx: number; ext: 'webp' | 'jpg'; files: Record<number, ArrayBuffer>; w: number | null; h: number | null };
-  const ups: Up[] = [];
+  const ups: ListingUp[] = [];
   let totalBytes = 0;
   for (let i = 0; i < MAX_IMAGES; i++) {
     const files: Record<number, ArrayBuffer> = {};
@@ -188,18 +177,8 @@ api.post('/listings', async (c) => {
   }
   if (totalBytes > 40 * 1024 * 1024) errors.images = 'ขนาดรูปรวมเกิน 40MB';
 
-  if (Object.keys(errors).length) return c.json({ ok: false, error: 'กรุณาตรวจสอบข้อมูลที่กรอก', errors }, 422);
-
-  const d = db(c.env);
-  // กันส่งซ้ำ: เบอร์ + หัวข้อเดิมภายใน 24 ชม.
-  const dup = await d.select({ id: listings.id }).from(listings)
-    .where(and(eq(listings.ownerPhone, ownerPhone), eq(listings.title, title), gte(listings.createdAt, nowSec() - 86400))).limit(1);
-  if (dup.length) return c.json({ ok: false, error: 'คุณส่งประกาศนี้ไปแล้ว กำลังรอการตรวจสอบ' }, 409);
-
-  const token = randomToken(32);
-  const ref = newRef();
-  const inserted = await d.insert(listings).values({
-    ref, deal: deal!, type: type!, status: 'pending', title, description, price: price!,
+  const vals = {
+    deal: deal!, type: type!, title, description, price: price!,
     provinceCode: provinceCode!, districtCode: districtCode!, subdistrictCode: subdistrictCode ?? null,
     addressNote: str(g('addressNote'), 160) || null, lat, lng,
     landRai, landNgan, landWah, landSqw,
@@ -212,7 +191,40 @@ api.post('/listings', async (c) => {
     depositMonths: deal === 'rent' ? clampInt(g('depositMonths'), 0, 24) : null, minContractMonths: deal === 'rent' ? clampInt(g('minContractMonths'), 1, 120) : null,
     furnished: deal === 'rent' && g('furnished') !== '' && g('furnished') != null ? (g('furnished') === '1' ? 1 : 0) : null,
     features: JSON.stringify(features), posterRole, ownerName, ownerPhone, ownerLine: str(g('ownerLine'), 60) || null, ownerEmail: ownerEmail || null,
-    deedNo: type !== 'condo' ? str(g('deedNo'), 40) || null : null, consign: g('consign') === '1' ? 1 : 0, manageTokenHash: await sha256Hex(token), userId: me.id,
+    deedNo: type !== 'condo' ? str(g('deedNo'), 40) || null : null, consign: g('consign') === '1' ? 1 : 0,
+  };
+  return { errors, vals, ups };
+}
+
+api.post('/listings', async (c) => {
+  const ip = clientIp(c);
+  const sess = c.get('user');
+  if (!sess) return c.json({ ok: false, error: 'กรุณาเข้าสู่ระบบก่อนลงประกาศ', login: true }, 401);
+  const me = await getUser(c, sess.userId);
+  if (!me || me.status !== 'active') return c.json({ ok: false, error: 'บัญชีนี้ไม่สามารถลงประกาศได้ กรุณาติดต่อทีมงาน' }, 403);
+  if (!me.emailVerifiedAt) return c.json({ ok: false, error: 'กรุณายืนยันอีเมลก่อนลงประกาศ (ดูลิงก์ในอีเมล หรือกดส่งอีกครั้งที่บัญชีของฉัน)' }, 403);
+  if (!(await rateLimit(c.env, `postu:${me.id}`, 20, 86400)).ok) return c.json({ ok: false, error: 'ลงประกาศครบจำนวนต่อวันแล้ว กรุณาลองใหม่พรุ่งนี้' }, 429);
+  const rl = await rateLimit(c.env, `post:${ip}`, 6, 3600);
+  if (!rl.ok) return c.json({ ok: false, error: 'ส่งประกาศบ่อยเกินไป กรุณาลองใหม่ภายหลัง' }, 429);
+
+  let form: FormData;
+  try { form = await c.req.formData(); } catch { return c.json({ ok: false, error: 'ข้อมูลไม่ถูกต้อง' }, 400); }
+  const pr = await parseListingForm(c, form, me, ip);
+  if ('fatal' in pr) return c.json({ ok: false, error: pr.fatal }, 400);
+  const { errors, vals, ups } = pr;
+  const { title, ownerPhone, price } = vals;
+  if (Object.keys(errors).length) return c.json({ ok: false, error: 'กรุณาตรวจสอบข้อมูลที่กรอก', errors }, 422);
+
+  const d = db(c.env);
+  // กันส่งซ้ำ: เบอร์ + หัวข้อเดิมภายใน 24 ชม.
+  const dup = await d.select({ id: listings.id }).from(listings)
+    .where(and(eq(listings.ownerPhone, ownerPhone), eq(listings.title, title), gte(listings.createdAt, nowSec() - 86400))).limit(1);
+  if (dup.length) return c.json({ ok: false, error: 'คุณส่งประกาศนี้ไปแล้ว กำลังรอการตรวจสอบ' }, 409);
+
+  const token = randomToken(32);
+  const ref = newRef();
+  const inserted = await d.insert(listings).values({
+    ...vals, ref, status: 'pending', manageTokenHash: await sha256Hex(token), userId: me.id,
   }).returning({ id: listings.id });
   const id = inserted[0].id;
 
@@ -235,6 +247,76 @@ api.post('/listings', async (c) => {
   await d.batch(stmts as never);
 
   return c.json({ ok: true, ref, manageUrl: `${new URL(c.req.url).origin}/manage/${token}` });
+});
+
+/* ---------- ผู้โพสต์แก้ไขประกาศ แล้วส่งตรวจอีกครั้ง ---------- */
+export const EDITABLE = ['pending', 'rejected'] as const;
+api.post('/listings/:id{[0-9]+}', async (c) => {
+  const ip = clientIp(c);
+  const sess = c.get('user');
+  if (!sess) return c.json({ ok: false, error: 'กรุณาเข้าสู่ระบบ', login: true }, 401);
+  const me = await getUser(c, sess.userId);
+  if (!me || me.status !== 'active') return c.json({ ok: false, error: 'บัญชีนี้ไม่สามารถแก้ไขประกาศได้ กรุณาติดต่อทีมงาน' }, 403);
+  const id = parseInt(c.req.param('id'), 10);
+  const d = db(c.env);
+  const l = (await d.select().from(listings).where(and(eq(listings.id, id), eq(listings.userId, me.id))).limit(1))[0];
+  if (!l) return c.json({ ok: false, error: 'ไม่พบประกาศ' }, 404);
+  if (!(EDITABLE as readonly string[]).includes(l.status)) return c.json({ ok: false, error: 'ประกาศนี้แก้ไขทั้งหมดไม่ได้ในสถานะปัจจุบัน (ปรับราคาได้ที่บัญชีของฉัน)' }, 409);
+  if (!(await rateLimit(c.env, `editu:${me.id}`, 30, 86400)).ok) return c.json({ ok: false, error: 'แก้ไขบ่อยเกินไป กรุณาลองใหม่พรุ่งนี้' }, 429);
+
+  let form: FormData;
+  try { form = await c.req.formData(); } catch { return c.json({ ok: false, error: 'ข้อมูลไม่ถูกต้อง' }, 400); }
+  const pr = await parseListingForm(c, form, me, ip);
+  if ('fatal' in pr) return c.json({ ok: false, error: pr.fatal }, 400);
+  const { errors, vals, ups } = pr;
+
+  // ลำดับรูปสุดท้าย: k:<idx เดิม> = เก็บรูปเดิม, n:<ลำดับรูปใหม่>
+  const old = await d.select().from(listingImages).where(eq(listingImages.listingId, id));
+  const oldBy = new Map(old.map((im) => [im.idx, im]));
+  const newBy = new Map(ups.map((u) => [u.idx, u]));
+  const order = form.getAll('order').map(String).slice(0, MAX_IMAGES * 2);
+  const plan: ({ kind: 'k'; im: (typeof old)[number] } | { kind: 'n'; up: ListingUp })[] = [];
+  const usedOld = new Set<number>();
+  for (const o of order) {
+    const [k, v] = o.split(':'); const n = parseInt(v, 10);
+    if (k === 'k' && oldBy.has(n) && !usedOld.has(n)) { plan.push({ kind: 'k', im: oldBy.get(n)! }); usedOld.add(n); }
+    else if (k === 'n' && newBy.has(n)) { plan.push({ kind: 'n', up: newBy.get(n)! }); newBy.delete(n); }
+  }
+  if (plan.length > MAX_IMAGES) errors.images = `รูปภาพสูงสุด ${MAX_IMAGES} รูป`;
+  if (Object.keys(errors).length) return c.json({ ok: false, error: 'กรุณาตรวจสอบข้อมูลที่กรอก', errors }, 422);
+
+  const rev = l.status === 'rejected' ? l.revision + 1 : l.revision;
+  const stamp = String(Math.floor(Date.now() / 1000)); // ชื่อไฟล์ต้องเป็นตัวเลขล้วน (เส้นทาง /img ตรวจรูปแบบ)
+  const rows: (typeof listingImages.$inferInsert)[] = [];
+  try {
+    await Promise.all(plan.flatMap((p, i) => p.kind === 'n' ? SIZES.map((sz) => c.env.UPLOADS.put(`listings/${id}/${stamp}${String(i).padStart(2, '0')}-${sz}.${p.up.ext}`, p.up.files[sz], {
+      httpMetadata: { contentType: p.up.ext === 'webp' ? 'image/webp' : 'image/jpeg', cacheControl: 'public, max-age=31536000, immutable' },
+    })) : []));
+  } catch (e) {
+    console.error('r2 upload failed', e);
+    return c.json({ ok: false, error: 'อัปโหลดรูปไม่สำเร็จ กรุณาลองใหม่' }, 502);
+  }
+  plan.forEach((p, i) => rows.push(p.kind === 'k'
+    ? { listingId: id, idx: i, keyBase: p.im.keyBase, ext: p.im.ext, width: p.im.width, height: p.im.height }
+    : { listingId: id, idx: i, keyBase: `listings/${id}/${stamp}${String(i).padStart(2, '0')}`, ext: p.up.ext, width: p.up.w, height: p.up.h }));
+  const removed = old.filter((im) => !usedOld.has(im.idx));
+
+  const now = nowSec();
+  const stmts: unknown[] = [
+    d.update(listings).set({
+      ...vals, status: 'pending', rejectReason: null, revision: rev, updatedAt: now,
+      imageCount: rows.length, coverKey: rows[0] ? `${rows[0].keyBase}:${rows[0].ext}` : null,
+    }).where(eq(listings.id, id)),
+    d.delete(listingImages).where(eq(listingImages.listingId, id)),
+    d.insert(timeline).values({ listingId: id, event: l.status === 'rejected' ? 'resubmitted' : 'edited', actor: 'owner', note: l.status === 'rejected' ? `ครั้งที่ ${rev}` : null }),
+  ];
+  if (rows.length) stmts.push(d.insert(listingImages).values(rows));
+  if (vals.price !== l.price) stmts.push(d.insert(priceHistory).values({ listingId: id, price: vals.price }));
+  await d.batch(stmts as never);
+  if (removed.length) c.executionCtx.waitUntil(c.env.UPLOADS.delete(removed.flatMap((im) => SIZES.map((sz) => `${im.keyBase}-${sz}.${im.ext}`))).catch(() => undefined));
+
+  const msg = l.status === 'rejected' ? `ส่งประกาศ ${l.ref} ให้ทีมงานตรวจอีกครั้งแล้ว` : `บันทึกการแก้ไข ${l.ref} แล้ว (รอตรวจสอบ)`;
+  return c.json({ ok: true, ref: l.ref, redirect: '/account?ok=' + encodeURIComponent(msg) });
 });
 
 /* ---------- ผู้สนใจ / ฝากขาย ---------- */

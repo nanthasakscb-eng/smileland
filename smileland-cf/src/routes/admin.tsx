@@ -5,14 +5,14 @@ import { and, count, desc, eq, gte, like, or, sql, type SQL } from 'drizzle-orm'
 import type { AppEnv, AdminSession } from '../env';
 import { db } from '../db';
 import { admins, leads, listings, listingTokens, outbox, priceHistory, settings, timeline, users } from '../db/schema';
-import { AdminLayout, Dashboard, LeadsAdminPage, ListingAdminDetail, ListingsAdminPage, LoginPage, MembersPage, NoPermPage, OutboxPage, PasswordPage, SettingsPage, StaffPage } from '../views/admin/admin';
+import { AdminLayout, ZonesPage, Dashboard, LeadsAdminPage, ListingAdminDetail, ListingsAdminPage, LoginPage, MembersPage, NoPermPage, OutboxPage, PasswordPage, SettingsPage, StaffPage } from '../views/admin/admin';
 import { createSession, destroySession, ensureBootstrapAdmin, loadSession, setAdminPassword, updateSession } from '../lib/session';
 import { clientIp, hashPassword, rateLimit, sameOrigin, timingSafeEqual, verifyPassword, verifyTurnstile } from '../lib/security';
 import { geo } from '../lib/geo';
 import { inServiceArea } from '../lib/service-area';
-import { addTimeline, getImages, getListing, getTimeline, reindex, demoStatus } from '../lib/listings';
+import { addTimeline, getImages, getListing, getTimeline, reindex, demoStatus, ZONES, zoneLive, type ZoneKey } from '../lib/listings';
 import { clampInt, formatPrice, normPhone, nowSec } from '../lib/util';
-import { PERMS, can, getUser, sendVerifyEmail } from '../lib/users';
+import { PERMS, can, getUser, sendVerifyEmail, sendListingDecisionEmail } from '../lib/users';
 import type { Next } from 'hono';
 import { invalidateSettings } from '../lib/settings';
 
@@ -191,7 +191,8 @@ admin.post('/listings/:id{[0-9]+}', need('listings.review', 'listings.edit'), as
       await d.update(listings).set({ status: 'active', approvedAt: l.approvedAt ?? now, expiresAt: now + ttl, rejectReason: null, updatedAt: now }).where(eq(listings.id, id));
       await addTimeline(c.env, id, l.status === 'pending' ? 'approved' : 'reopened', actor);
       await reindex(c.env, { ...l, status: 'active' });
-      msg = 'อนุมัติและเผยแพร่แล้ว';
+      if (l.status === 'pending') c.executionCtx.waitUntil(sendListingDecisionEmail(c, l, 'approved').catch(() => null));
+      msg = 'อนุมัติและเผยแพร่แล้ว' + (l.status === 'pending' ? ' · ส่งอีเมลแจ้งผู้โพสต์แล้ว' : '');
       break;
     }
     case 'reject': {
@@ -199,7 +200,24 @@ admin.post('/listings/:id{[0-9]+}', need('listings.review', 'listings.edit'), as
       if (!reason) { msg = 'กรุณาระบุเหตุผล'; break; }
       await d.update(listings).set({ status: 'rejected', rejectReason: reason, updatedAt: now }).where(eq(listings.id, id));
       await addTimeline(c.env, id, 'rejected', actor, reason);
-      msg = 'ไม่อนุมัติประกาศแล้ว';
+      c.executionCtx.waitUntil(sendListingDecisionEmail(c, l, 'rejected', reason).catch(() => null));
+      msg = 'ไม่อนุมัติประกาศแล้ว · แจ้งเหตุผลให้ผู้โพสต์แก้ไขแล้ว';
+      break;
+    }
+    case 'zone': {
+      const z = (['A', 'B', 'C'] as const).find((k) => k === f.zone) ?? null;
+      if (z && l.status !== 'active') { msg = 'จัดโซนได้เฉพาะประกาศที่เผยแพร่อยู่'; break; }
+      const order = clampInt(f.order, 0, 99) ?? 0;
+      const keep = f.days === 'keep' && z === l.zone && l.zoneUntil;
+      const days = clampInt(f.days, 0, 365) ?? 0;
+      const until = !z ? null : keep ? l.zoneUntil : days ? now + days * 86400 : null;
+      await d.update(listings).set({ zone: z, zoneOrder: z ? order : 0, zoneUntil: until, featured: z ? 1 : 0, updatedAt: now }).where(eq(listings.id, id));
+      await addTimeline(c.env, id, 'zone', actor, z ? `${ZONES[z].label} ลำดับ ${order}${keep ? ' · คงเวลาเดิม' : days ? ` · ${days} วัน` : ' · ไม่กำหนดเวลา'}` : 'นำออกจากโซน');
+      msg = z ? `จัดเข้า ${ZONES[z].label} แล้ว` : 'นำออกจากโซนแล้ว';
+      if (z && ZONES[z].max) {
+        const n = await d.select({ n: count() }).from(listings).where(and(eq(listings.status, 'active'), zoneLive(z)));
+        if (n[0].n > ZONES[z].max) msg += ` · โซนนี้มี ${n[0].n} รายการ แต่แสดงได้ ${ZONES[z].max} (เรียงตามลำดับ)`;
+      }
       break;
     }
     case 'feature': case 'unfeature':
@@ -224,7 +242,20 @@ admin.post('/listings/:id{[0-9]+}', need('listings.review', 'listings.edit'), as
     }
   }
   c.executionCtx.waitUntil(c.env.JOBS.send({ kind: 'sitemap', provinceCode: l.provinceCode }).catch(() => undefined));
-  return c.redirect(`/admin/listings/${id}?ok=${encodeURIComponent(msg)}`, 303);
+  const back = String(f.back || '') === 'zones' ? `/admin/zones?ok=${encodeURIComponent(msg)}` : `/admin/listings/${id}?ok=${encodeURIComponent(msg)}`;
+  return c.redirect(back, 303);
+});
+
+/* ---------- จัดโซนหน้าแรก ---------- */
+admin.get('/zones', need('listings.edit'), async (c) => {
+  const d = db(c.env);
+  const cols = { id: listings.id, ref: listings.ref, title: listings.title, price: listings.price, deal: listings.deal, type: listings.type, coverKey: listings.coverKey, provinceCode: listings.provinceCode, zone: listings.zone, zoneOrder: listings.zoneOrder, zoneUntil: listings.zoneUntil, featured: listings.featured };
+  const g = await geo(c.env);
+  const pm = new Map(g.provinces.map((p) => [p.code, p.nameTh]));
+  const get = async (z: ZoneKey) => (await d.select(cols).from(listings).where(and(eq(listings.status, 'active'), zoneLive(z))).orderBy(sql`${listings.ref} LIKE 'SL-DEMO%'`, listings.zoneOrder, desc(listings.approvedAt)).limit(60)).map((r) => ({ ...r, provinceName: pm.get(r.provinceCode) }));
+  const [A, B, C, expired] = await Promise.all([get('A'), get('B'), get('C'),
+    d.select(cols).from(listings).where(and(sql`${listings.zone} IS NOT NULL`, sql`${listings.zoneUntil} IS NOT NULL AND ${listings.zoneUntil} <= unixepoch()`)).orderBy(desc(listings.zoneUntil)).limit(20)]);
+  return page(c, 'จัดโซนหน้าแรก', 'zones', <ZonesPage env={c.env} admin={c.get('admin')!} zones={{ A, B, C }} expired={expired} ok={c.req.query('ok') || undefined} />);
 });
 
 /* ---------- สร้างดัชนีค้นหาใหม่ (เช่น หลังนำเข้าข้อมูลเดิม) ---------- */

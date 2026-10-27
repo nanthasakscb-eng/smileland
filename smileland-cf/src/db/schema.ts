@@ -92,6 +92,10 @@ export const listings = sqliteTable('listings', {
   userId: integer('user_id'),
 
   featured: integer('featured').notNull().default(0),
+  revision: integer('revision').notNull().default(0),
+  zone: text('zone'),
+  zoneOrder: integer('zone_order').notNull().default(0),
+  zoneUntil: integer('zone_until'),
   views: integer('views').notNull().default(0),
   createdAt: integer('created_at').notNull().default(now),
   updatedAt: integer('updated_at').notNull().default(now),

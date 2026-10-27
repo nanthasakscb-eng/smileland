@@ -7,7 +7,7 @@ import { outbox } from '../../db/schema';
 import { PERMS, can } from '../../lib/users';
 import { ASSET_V, Brand, Icon, StatusBadge } from '../ui';
 import { DEALS, DEED_TYPES, FEATURES, TYPES, ZONING, formatPrice, landText, thaiDate, thaiDateTime, type Deal, type PType } from '../../lib/util';
-import { imgUrl, placeholder } from '../../lib/listings';
+import { imgUrl, placeholder, ZONES, type ZoneKey } from '../../lib/listings';
 import { TL_LABEL } from '../pages/listing';
 
 export const AdminLayout: FC<{ title: string; admin?: AdminSession; nav?: string; counts?: { pending: number; leads: number }; children?: Child }> = ({ title, admin, nav, counts, children }) => (
@@ -32,6 +32,7 @@ export const AdminLayout: FC<{ title: string; admin?: AdminSession; nav?: string
                 <a href="/admin" class={nav === 'dash' ? 'on' : ''}>ภาพรวม</a>
                 {can(admin, 'listings.review') && <a href="/admin/listings?status=pending" class={nav === 'pending' ? 'on' : ''}>รอตรวจสอบ {counts?.pending ? <span class="n">{counts.pending}</span> : null}</a>}
                 {(can(admin, 'listings.review') || can(admin, 'listings.edit')) && <a href="/admin/listings" class={nav === 'listings' ? 'on' : ''}>ประกาศทั้งหมด</a>}
+                {can(admin, 'listings.edit') && <a href="/admin/zones" class={nav === 'zones' ? 'on' : ''}>จัดโซนหน้าแรก</a>}
                 {can(admin, 'leads') && <a href="/admin/leads" class={nav === 'leads' ? 'on' : ''}>ผู้สนใจ / ฝากขาย {counts?.leads ? <span class="n">{counts.leads}</span> : null}</a>}
                 {can(admin, 'members') && <a href="/admin/members" class={nav === 'members' ? 'on' : ''}>สมาชิก</a>}
                 {can(admin, 'members') && <a href="/admin/outbox" class={nav === 'outbox' ? 'on' : ''}>กล่องอีเมลขาออก</a>}
@@ -113,7 +114,7 @@ export const ListingTable: FC<{ rows: (Listing & { provinceName?: string })[]; e
         {rows.map((l) => (
           <tr>
             <td class="thumbcell"><img src={(env && imgUrl(env, l.coverKey, 400)) || placeholder(l.type)} alt="" loading="lazy" /></td>
-            <td><a href={`/admin/listings/${l.id}`}><b>{l.ref}</b></a>{l.featured ? <span class="badge b-feat" style="margin-left:4px">แนะนำ</span> : null}{l.consign ? <span class="badge b-sold" style="margin-left:4px">ฝากขาย</span> : null}<div class="small">{l.title}</div></td>
+            <td><a href={`/admin/listings/${l.id}`}><b>{l.ref}</b></a>{l.zone || l.featured ? <span class="badge b-feat" style="margin-left:4px">{l.zone ? `โซน ${l.zone}` : 'แนะนำ'}</span> : null}{l.revision ? <span class="badge b-pending" style="margin-left:4px">ส่งแก้ไขครั้งที่ {l.revision}</span> : null}{l.consign ? <span class="badge b-sold" style="margin-left:4px">ฝากขาย</span> : null}<div class="small">{l.title}</div></td>
             <td class="nowrap">{TYPES[l.type as PType]}{DEALS[l.deal as Deal]}</td>
             <td class="nowrap">฿{formatPrice(l.price)}</td>
             <td class="nowrap">{l.provinceName}</td>
@@ -198,16 +199,20 @@ export const ListingAdminDetail: FC<{
         <div style="display:flex;gap:8px;align-items:center"><StatusBadge s={l.status} />{l.status === 'active' && <a class="btn btn-line btn-sm" href={`/listing/${l.id}`} target="_blank">ดูหน้าเว็บ ↗</a>}</div>
       </div>
       {msg && <div class="alert alert-ok" style="margin-top:12px">{msg}</div>}
+      {l.revision > 0 && l.status === 'pending' && (() => {
+        const prev = [...timeline].reverse().find((t) => t.event === 'rejected');
+        return <div class="alert alert-warn" style="margin-top:12px"><b>ผู้โพสต์แก้ไขแล้วส่งตรวจใหม่ (ครั้งที่ {l.revision})</b>{prev?.note ? <> — เหตุผลที่ไม่อนุมัติครั้งก่อน: “{prev.note}”</> : null}</div>;
+      })()}
       <div class="form-card" style="margin-top:16px">
         <h2 style="font-size:18px">การดำเนินการ</h2>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
           {can(admin, 'listings.review') && l.status !== 'active' && !['sold'].includes(l.status) && act('approve', '✓ อนุมัติและเผยแพร่', 'btn-ok')}
           {can(admin, 'listings.review') && l.status === 'pending' && act('reject', 'ไม่อนุมัติ', 'btn-danger', <input class="input" name="reason" required placeholder="เหตุผล (แจ้งผู้ลงประกาศ)" style="width:260px" maxlength={300} />)}
-          {can(admin, 'listings.edit') && l.status === 'active' && act(l.featured ? 'unfeature' : 'feature', l.featured ? 'ยกเลิกแนะนำ' : '★ ตั้งเป็นประกาศแนะนำ', 'btn-gold')}
           {can(admin, 'listings.edit') && l.status === 'active' && act('sold', 'ปิดการขาย/เช่า', 'btn-line')}
           {can(admin, 'listings.edit') && !['closed'].includes(l.status) && act('close', 'ปิดประกาศ', 'btn-line', undefined, 'ยืนยันปิดประกาศนี้?')}
         </div>
       </div>
+      {can(admin, 'listings.edit') && l.status === 'active' && <ZoneForm admin={admin} l={l} />}
       <div class="grid2" style="gap:20px;align-items:start">
         <div class="form-card">
           <h2 style="font-size:18px">ข้อมูลประกาศ</h2>
@@ -259,6 +264,99 @@ export const ListingAdminDetail: FC<{
         <h2 style="font-size:18px">จดหมายเหตุ</h2>
         <ul class="tl">{timeline.map((t) => <li><time>{thaiDateTime(t.createdAt)} · {t.actor}</time>{TL_LABEL[t.event] || t.event}{t.note ? ` — ${t.note}` : ''}</li>)}</ul>
       </div>
+    </>
+  );
+};
+
+const zoneLeft = (until: number | null) => {
+  if (!until) return 'ไม่กำหนดเวลา';
+  const d = Math.ceil((until - Date.now() / 1000) / 86400);
+  return d > 0 ? `เหลือ ${d} วัน (ถึง ${thaiDate(until)})` : `หมดเวลาแล้ว (${thaiDate(until)})`;
+};
+
+export const ZoneForm: FC<{ admin: AdminSession; l: Pick<Listing, 'id' | 'zone' | 'zoneOrder' | 'zoneUntil' | 'featured'>; back?: string; compact?: boolean }> = ({ admin, l, back, compact }) => {
+  const cur = (l.zone || (l.featured ? 'B' : '')) as ZoneKey | '';
+  return (
+    <form method="post" action={`/admin/listings/${l.id}`} class={compact ? 'zone-form compact' : 'form-card zone-form'}>
+      <input type="hidden" name="csrf" value={admin.csrf} />
+      <input type="hidden" name="action" value="zone" />
+      {back && <input type="hidden" name="back" value={back} />}
+      {!compact && <h2 style="font-size:18px">ตำแหน่งแสดงผลหน้าแรก</h2>}
+      {!compact && <div class="zone-pick">
+        {([['', 'ปกติ', 'แสดงตามลำดับเวลาเหมือนประกาศทั่วไป'], ...(Object.keys(ZONES) as ZoneKey[]).map((k) => [k, ZONES[k].label, ZONES[k].where + (ZONES[k].max ? ` · สูงสุด ${ZONES[k].max} ช่อง` : '')])] as [string, string, string][]).map(([k, t, d]) => (
+          <label class={`zone-opt z-${k || 'none'}`}><input type="radio" name="zone" value={k} checked={cur === k} /><span><b>{t}</b><small>{d}</small></span></label>
+        ))}
+      </div>}
+      {compact && <input type="hidden" name="zone" value={cur} />}
+      <div class="zone-row">
+        <label>ลำดับ <input class="input" name="order" type="number" min="0" max="99" value={String(l.zoneOrder || 0)} style="width:80px" /></label>
+        <label>ระยะเวลา <select class="input" name="days">
+          {l.zone && l.zoneUntil ? <option value="keep" selected>คงเดิม</option> : null}
+          <option value="0">ไม่กำหนด</option>
+          {[7, 15, 30, 60, 90].map((n) => <option value={String(n)}>{n} วัน</option>)}
+        </select></label>
+        {l.zone && l.zoneUntil ? <span class="small muted">{zoneLeft(l.zoneUntil)}</span> : null}
+        <button class="btn btn-sm btn-gold" type="submit">{compact ? 'บันทึก' : 'บันทึกตำแหน่ง'}</button>
+      </div>
+      {!compact && <p class="small muted" style="margin:8px 0 0">ลำดับน้อยขึ้นก่อน · ครบกำหนดแล้วทรัพย์จะหลุดจากโซนเองอัตโนมัติ</p>}
+    </form>
+  );
+};
+
+type ZRow = { id: number; ref: string; title: string; price: number; deal: string; type: string; coverKey: string | null; provinceName?: string; zone: string | null; zoneOrder: number; zoneUntil: number | null; featured: number };
+
+export const ZonesPage: FC<{ env: Bindings; admin: AdminSession; zones: Record<ZoneKey, ZRow[]>; expired: ZRow[]; ok?: string }> = ({ env, admin, zones, expired, ok }) => {
+  const remove = (r: ZRow) => (
+    <form method="post" action={`/admin/listings/${r.id}`} style="display:inline">
+      <input type="hidden" name="csrf" value={admin.csrf} /><input type="hidden" name="action" value="zone" /><input type="hidden" name="zone" value="" /><input type="hidden" name="back" value="zones" />
+      <button class="btn btn-sm btn-line" type="submit">เอาออก</button>
+    </form>
+  );
+  const Slot: FC<{ r?: ZRow; i: number; z: ZoneKey }> = ({ r, i, z }) => r ? (
+    <div class={`zslot ${ZONES[z].max && i >= ZONES[z].max ? 'over' : ''}`}>
+      <img src={imgUrl(env, r.coverKey, 400) || placeholder(r.type)} alt="" loading="lazy" />
+      <div class="zslot-body">
+        <div class="small"><b>#{i + 1}</b> · <a href={`/admin/listings/${r.id}`}>{r.ref}</a>{r.ref.startsWith('SL-DEMO') ? ' · ตัวอย่าง' : ''}{ZONES[z].max && i >= ZONES[z].max ? ' · ไม่แสดง (เกินจำนวนช่อง)' : ''}</div>
+        <div class="zslot-title">{r.title}</div>
+        <div class="small muted">฿{formatPrice(r.price)} · {r.provinceName} · {zoneLeft(r.zoneUntil)}</div>
+        <div class="zslot-act"><ZoneForm admin={admin} l={{ ...r, zone: r.zone || (r.featured ? 'B' : null) }} back="zones" compact />{remove(r)}</div>
+      </div>
+    </div>
+  ) : <div class="zslot empty"><span>ช่องว่าง #{i + 1}</span><small>ไปที่ประกาศที่ต้องการ แล้วเลือก "{ZONES[z].label}"</small></div>;
+  const block = (z: ZoneKey) => {
+    const rows = zones[z];
+    const slots = ZONES[z].max ? Math.max(ZONES[z].max, rows.length) : Math.max(rows.length, 1);
+    return (
+      <section class={`zblock zb-${z}`}>
+        <header><span class="ztag">{z}</span><div><h2>{ZONES[z].label}</h2><p>{ZONES[z].where}{ZONES[z].max ? ` · ${rows.length}/${ZONES[z].max} ช่อง` : ` · ${rows.length} รายการ`}</p></div></header>
+        <div class={`zslots zs-${z}`}>{Array.from({ length: slots }, (_, i) => (rows[i] || i < (ZONES[z].max || 1)) ? <Slot r={rows[i]} i={i} z={z} /> : null)}</div>
+      </section>
+    );
+  };
+  return (
+    <>
+      <h1>จัดโซนหน้าแรก</h1>
+      <p class="muted">ผังตำแหน่งแสดงผลบนเว็บ · เพิ่มทรัพย์เข้าโซนได้จากหน้ารายละเอียดประกาศ (เฉพาะประกาศที่เผยแพร่อยู่)</p>
+      {ok && <div class="alert alert-ok">{ok}</div>}
+      <div class="zmap">
+        <div class="zmap-page">
+          <div class="zm-bar">หน้าแรก</div>
+          <div class="zm-hero">ภาพหลัก + ช่องค้นหา</div>
+          <div class="zm-A">A · โชว์เด่น</div>
+          <div class="zm-plain">เลือกตามประเภท</div>
+          <div class="zm-B">B · ประกาศแนะนำ</div>
+          <div class="zm-plain">ประกาศใหม่</div>
+        </div>
+        <div class="zmap-page">
+          <div class="zm-bar">หน้าค้นหา / จังหวัด</div>
+          <div class="zm-plain">ตัวกรอง</div>
+          <div class="zm-C">C · ปักหมุดบนสุด</div>
+          <div class="zm-plain">ผลค้นหาปกติ</div>
+        </div>
+      </div>
+      {block('A')}{block('B')}{block('C')}
+      {expired.length > 0 && <section class="zblock"><header><span class="ztag">⏱</span><div><h2>ครบกำหนดแล้ว</h2><p>หลุดจากโซนอัตโนมัติ ต่อเวลาได้</p></div></header>
+        <div class="zslots">{expired.map((r, i) => <Slot r={r} i={i} z={(r.zone || 'B') as ZoneKey} />)}</div></section>}
     </>
   );
 };

@@ -25,6 +25,7 @@ import { geo, provinceBySlug, districtBySlug, districtsOf, subdistrictName, dist
 import {
   search, stats, provinceCounts, districtCounts, getListing, getImages, getTimeline, getPriceHistory, similar, imgUrl, addTimeline,
   cardColumns, decorate, countActive, buildWhere, realFirst, demoStatus, type SearchParams, type Card,
+  zoneLive, ZONES,
 } from '../lib/listings';
 import { isDemo, DEALS, TYPES, formatPrice, landText, nowSec, normPhone, truncate, clampInt, type Deal, type PType } from '../lib/util';
 import { clientIp, rateLimit, sha256Hex, verifyTurnstile, sameOrigin } from '../lib/security';
@@ -112,12 +113,13 @@ pub.get('/guide/:slug{[a-z0-9-]+}', async (c) => {
 /* ================= หน้าแรก ================= */
 pub.get('/', async (c) => {
   const d = db(c.env);
-  const [g, st, pc, featuredRows, latestRows] = await Promise.all([
+  const [g, st, pc, showcaseRows, featuredRows, latestRows] = await Promise.all([
     geo(c.env), stats(c.env), provinceCounts(c.env),
-    d.select(cardColumns).from(listings).where(and(buildWhere({}), eq(listings.featured, 1))).orderBy(asc(realFirst), desc(listings.approvedAt)).limit(8),
+    d.select(cardColumns).from(listings).where(and(buildWhere({}), zoneLive('A'))).orderBy(asc(listings.zoneOrder), desc(listings.approvedAt)).limit(ZONES.A.max),
+    d.select(cardColumns).from(listings).where(and(buildWhere({}), zoneLive('B'))).orderBy(asc(realFirst), asc(listings.zoneOrder), desc(listings.approvedAt)).limit(ZONES.B.max),
     d.select(cardColumns).from(listings).where(buildWhere({})).orderBy(asc(realFirst), desc(listings.approvedAt), desc(listings.id)).limit(8),
   ]);
-  const [featured, latest] = await Promise.all([decorate(c.env, featuredRows as Card[]), decorate(c.env, latestRows as Card[])]);
+  const [showcase, featured, latest] = await Promise.all([decorate(c.env, showcaseRows as Card[]), decorate(c.env, featuredRows as Card[]), decorate(c.env, latestRows as Card[])]);
   return render(c, {
     title: 'อีสานน่าอยู่ — ประกาศขาย/ให้เช่า บ้าน ที่ดิน คอนโด เขตอีสาน ลงประกาศฟรี',
     description: `ค้นหาบ้าน ที่ดิน คอนโด ขายและให้เช่าในเขตอีสาน ${formatPrice(st.total)} ประกาศที่ผ่านการตรวจสอบ ลงประกาศฟรี บริการฝากขาย/ฝากเช่า`,
@@ -126,7 +128,7 @@ pub.get('/', async (c) => {
       { '@context': 'https://schema.org', '@type': 'WebSite', name: 'อีสานน่าอยู่', url: site(c) + '/', potentialAction: { '@type': 'SearchAction', target: site(c) + '/search?q={q}', 'query-input': 'required name=q' } },
       { '@context': 'https://schema.org', '@type': 'Organization', name: 'อีสานน่าอยู่', url: site(c) + '/', logo: site(c) + '/assets/img/logo.svg' },
     ],
-  }, <HomePage env={c.env} provinces={g.provinces} featured={featured} latest={latest} stats={st} pcounts={pc} />);
+  }, <HomePage env={c.env} provinces={g.provinces} showcase={showcase} featured={featured} latest={latest} stats={st} pcounts={pc} />);
 });
 
 /* ================= ค้นหา (query string) ================= */

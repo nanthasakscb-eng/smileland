@@ -75,6 +75,20 @@ export async function demoStatus(env: Bindings) {
   return { ...s, hidden: s.real >= s.at };
 }
 
+/* ---------- โซนแสดงผล (Admin จัด) ---------- */
+export type ZoneKey = 'A' | 'B' | 'C';
+export const ZONES: Record<ZoneKey, { label: string; where: string; max: number }> = {
+  A: { label: 'โซน A · โชว์เด่น', where: 'การ์ดใหญ่ใต้ภาพหลักหน้าแรก', max: 3 },
+  B: { label: 'โซน B · ประกาศแนะนำ', where: 'แถวประกาศแนะนำหน้าแรก', max: 8 },
+  C: { label: 'โซน C · ปักหมุด', where: 'บนสุดของหน้าค้นหา/หน้าจังหวัดที่ตรงกับทรัพย์', max: 0 },
+};
+/** ทรัพย์อยู่ในโซนนี้และยังไม่หมดเวลา (โซน B รวมประกาศแนะนำแบบเดิมที่ยังไม่ได้จัดโซน) */
+export const zoneLive = (z: ZoneKey) => z === 'B'
+  ? sql`((${listings.zone} = 'B' OR (${listings.zone} IS NULL AND ${listings.featured} = 1)) AND (${listings.zoneUntil} IS NULL OR ${listings.zoneUntil} > unixepoch()))`
+  : sql`(${listings.zone} = ${z} AND (${listings.zoneUntil} IS NULL OR ${listings.zoneUntil} > unixepoch()))`;
+const pinC = sql`CASE WHEN ${listings.zone} = 'C' AND (${listings.zoneUntil} IS NULL OR ${listings.zoneUntil} > unixepoch()) THEN 1 ELSE 0 END`;
+const pinOrder = sql`CASE WHEN ${listings.zone} = 'C' THEN ${listings.zoneOrder} ELSE 0 END`;
+
 export function buildWhere(p: SearchParams): SQL {
   const w: SQL[] = [eq(listings.status, 'active'), inArray(listings.provinceCode, SERVICE_PROVINCES), demoVisibleSql];
   if (p.deal) w.push(eq(listings.deal, p.deal));
@@ -110,7 +124,7 @@ export async function search(env: Bindings, p: SearchParams) {
     p.sort === 'price-asc' ? [asc(listings.price)] :
     p.sort === 'price-desc' ? [desc(listings.price)] :
     p.sort === 'size' ? [desc(sql`coalesce(${listings.landSqw}, 0) * 4 + coalesce(${listings.usableSqm}, 0)`)] :
-    [asc(realFirst), desc(listings.featured), desc(listings.approvedAt), desc(listings.id)];
+    [desc(pinC), asc(pinOrder), asc(realFirst), desc(listings.featured), desc(listings.approvedAt), desc(listings.id)];
   const [rows, total] = await Promise.all([
     d.select(cardColumns).from(listings).where(where).orderBy(...order).limit(per).offset((page - 1) * per),
     d.select({ n: count() }).from(listings).where(where),

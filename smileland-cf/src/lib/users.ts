@@ -105,3 +105,27 @@ export const PERMS: Record<string, string> = {
   staff: 'จัดการทีมผู้ดูแลและสิทธิ์',
 };
 export const can = (s: { isOwner?: boolean; perms?: string[] } | undefined, perm: string) => !!s && (!!s.isOwner || (s.perms ?? []).includes(perm));
+
+/** แจ้งผลการตรวจประกาศให้ผู้โพสต์ (อนุมัติ / ไม่อนุมัติพร้อมเหตุผล) */
+export async function sendListingDecisionEmail(c: Context<AppEnv>, l: { id: number; ref: string; title: string; userId: number | null; ownerEmail: string | null; ownerName: string }, decision: 'approved' | 'rejected', reason?: string) {
+  let to = l.ownerEmail, uid: number | undefined;
+  if (l.userId) {
+    const u = (await db(c.env).select().from(users).where(eq(users.id, l.userId)).limit(1))[0];
+    if (u) { to = u.email; uid = u.id; }
+  }
+  if (!to || l.ref.startsWith('SL-DEMO')) return null;
+  const o = origin(c);
+  const m = decision === 'approved'
+    ? mailTemplate(`ประกาศ ${l.ref} ผ่านการตรวจสอบแล้ว`, [
+      `สวัสดีคุณ${l.ownerName}`,
+      `ประกาศ "${l.title}" ผ่านการตรวจสอบและเผยแพร่บนเว็บไซต์แล้ว`,
+      'ติดตามผู้สนใจ ปรับราคา หรือปิดการขายได้ที่หน้าบัญชีของฉัน',
+    ], { label: 'ดูประกาศของฉัน', url: `${o}/listing/${l.id}` })
+    : mailTemplate(`ประกาศ ${l.ref} ยังไม่ผ่านการตรวจสอบ`, [
+      `สวัสดีคุณ${l.ownerName}`,
+      `ประกาศ "${l.title}" ยังไม่ผ่านการตรวจสอบ`,
+      `เหตุผลจากทีมงาน: ${reason || '-'}`,
+      'แก้ไขข้อมูลตามเหตุผลข้างต้นแล้วกด "ส่งตรวจอีกครั้ง" ได้เลย ไม่ต้องลงประกาศใหม่',
+    ], { label: 'แก้ไขแล้วส่งใหม่', url: `${o}/account/listings/${l.id}/edit` });
+  return sendMail(c.env, { to, subject: decision === 'approved' ? `ประกาศ ${l.ref} เผยแพร่แล้ว — อีสานน่าอยู่` : `ประกาศ ${l.ref} ต้องแก้ไข — อีสานน่าอยู่`, ...m, kind: 'listing', userId: uid });
+}

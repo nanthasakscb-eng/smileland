@@ -253,6 +253,19 @@
       statusText.textContent = 'ยังไม่ได้ปักหมุด'; statusBox.classList.remove('ok'); clearBtn.hidden = true;
       if (hint) hint.textContent = 'แตะบนแผนที่เพื่อปักหมุด · ลากหมุดเพื่อปรับตำแหน่ง';
     });
+    /* ----- แก้ไขประกาศ: เติมอำเภอ/ตำบล และหมุดเดิม ----- */
+    if (form.dataset.edit) {
+      const pv = form.elements.provinceCode, dv = form.elements.districtCode, sv = form.elements.subdistrictCode;
+      (async () => {
+        if (pv.value && dv.dataset.value) {
+          await fillSelect(dv, `/api/geo/districts?province=${pv.value}`, 'เลือกอำเภอ');
+          dv.value = dv.dataset.value;
+          if (sv) { await fillSelect(sv, `/api/geo/subdistricts?district=${dv.value}`, 'เลือกตำบล'); if (sv.dataset.value) sv.value = sv.dataset.value; }
+        }
+      })();
+      const la = Number(form.elements.lat.value), lo = Number(form.elements.lng.value);
+      if (la && lo) setPoint(lo, la, true, 16);
+    }
     if (pickEl) makeMap(pickEl, { center: [101.5, 13.4], zoom: 4.8, coop: matchMedia('(hover: none)').matches }).then((r) => {
       pick = r; if (!r) return;
       r.map.on('click', (e) => setPoint(e.lngLat.lng, e.lngLat.lat));
@@ -329,8 +342,9 @@
     const inputs = $$('[data-file-input]', form);
     const thumbs = $('[data-thumbs]', form);
     const countEl = $('[data-photo-count]', form);
-    const images = []; // { id, url, out, ext, w, h, ready }
+    const images = []; // { id, url, out, ext, w, h, ready } | { id, existing, thumb }
     let uid = 0;
+    $$('[data-existing] i', form).forEach((el) => images.push({ id: ++uid, existing: Number(el.dataset.idx), thumb: el.dataset.src, ready: Promise.resolve() }));
     const canWebp = (() => { try { return document.createElement('canvas').toDataURL('image/webp').startsWith('data:image/webp'); } catch { return false; } })();
 
     async function decode(file) {
@@ -364,10 +378,10 @@
       thumbs.innerHTML = '';
       images.forEach((im, i) => {
         const d = document.createElement('div');
-        d.className = 'thumb' + (im.out ? '' : im.failed ? ' bad' : ' busy');
+        d.className = 'thumb' + (im.existing != null ? ' old' : im.out ? '' : im.failed ? ' bad' : ' busy');
         d.innerHTML = `<img src="${im.thumb || ''}" alt="">${i === 0 ? '<span class="cover">ปก</span>' : ''}<button type="button" aria-label="ลบรูป">✕</button>`;
         d.title = i === 0 ? 'รูปปก' : 'แตะเพื่อตั้งเป็นรูปปก';
-        $('button', d).addEventListener('click', (e) => { e.stopPropagation(); if (im.thumb) URL.revokeObjectURL(im.thumb); images.splice(i, 1); render(); });
+        $('button', d).addEventListener('click', (e) => { e.stopPropagation(); if (im.thumb && im.existing == null) URL.revokeObjectURL(im.thumb); images.splice(i, 1); render(); });
         d.addEventListener('click', () => { if (i) { images.unshift(images.splice(i, 1)[0]); render(); } });
         thumbs.appendChild(d);
       });
@@ -392,6 +406,7 @@
       render();
     }
     inputs.forEach((inp) => inp.addEventListener('change', () => { addFiles(inp.files); inp.value = ''; }));
+    if (images.length) render();
     if (drop) {
       ['dragenter', 'dragover'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('drag'); }));
       ['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('drag'); }));
@@ -424,13 +439,15 @@
       await Promise.all(images.map((i) => i.ready));
       let n = 0;
       for (const im of images) {
+        if (im.existing != null) { fd.append('order', 'k:' + im.existing); continue; }
         if (im.failed || !im.out) continue;
+        fd.append('order', 'n:' + n);
         for (const s of [400, 800, 1600]) fd.append(`img_${n}_${s}`, im.out[s], `${n}-${s}.${im.ext}`);
         fd.append(`img_${n}_w`, im.w); fd.append(`img_${n}_h`, im.h);
         n++;
       }
       const xhr = new XMLHttpRequest();
-      xhr.open('POST', '/api/listings');
+      xhr.open('POST', form.dataset.action || '/api/listings');
       bar.style.display = 'block';
       xhr.upload.onprogress = (ev) => { if (ev.lengthComputable) $('i', bar).style.width = Math.round((ev.loaded / ev.total) * 100) + '%'; };
       msg(form, 'กำลังส่งประกาศ…', true);
@@ -438,6 +455,7 @@
         bar.style.display = 'none';
         let j = {};
         try { j = JSON.parse(xhr.responseText); } catch { /* ignore */ }
+        if (xhr.status === 200 && j.ok && j.redirect) { location.href = j.redirect; return; }
         if (xhr.status === 200 && j.ok) {
           const tpl = $('#post-done');
           const node = tpl.content.cloneNode(true);
@@ -454,7 +472,7 @@
           window.scrollTo({ top: 0, behavior: 'smooth' });
           return;
         }
-        if (xhr.status === 401 && j.login) { location.href = '/login?next=/post'; return; }
+        if (xhr.status === 401 && j.login) { location.href = '/login?next=' + encodeURIComponent(location.pathname); return; }
         btn.disabled = false; resetTurnstile(form);
         const first = j.errors && Object.keys(j.errors)[0];
         fail((j.errors ? Object.values(j.errors).join(' · ') : '') || j.error || 'ส่งไม่สำเร็จ กรุณาลองใหม่', first);

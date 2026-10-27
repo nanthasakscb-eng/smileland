@@ -138,6 +138,17 @@ export const AccountPage: FC<{ env: Bindings; user: User; sess: UserSession; row
       <a href="/account?tab=profile" class={tab === 'profile' ? 'on' : ''}>ข้อมูลส่วนตัว</a>
     </div>
 
+    {tab === 'listings' && rows.length > 0 && (() => {
+      const n = (st: string) => rows.filter((r) => r.status === st).length;
+      return (
+        <div class="st-summary">
+          <div class="pending"><b>{n('pending')}</b><span>รอตรวจสอบ</span></div>
+          <div class="rejected"><b>{n('rejected')}</b><span>ต้องแก้ไข</span></div>
+          <div class="active"><b>{n('active')}</b><span>เผยแพร่อยู่</span></div>
+          <div><b>{n('sold') + n('closed') + n('expired')}</b><span>ปิด/หมดอายุ</span></div>
+        </div>
+      );
+    })()}
     {tab === 'listings' && (rows.length === 0 ? (
       <div class="empty"><h3>ยังไม่มีประกาศ</h3><p class="muted">เริ่มลงประกาศขายหรือให้เช่าทรัพย์ของคุณได้ฟรี</p><a class="btn btn-gold" href="/post">ลงประกาศฟรี</a></div>
     ) : (
@@ -149,9 +160,21 @@ export const AccountPage: FC<{ env: Bindings; user: User; sess: UserSession; row
               <tr>
                 <td class="thumbcell"><img src={imgUrl(env, l.coverKey, 400) || placeholder(l.type)} alt="" loading="lazy" /></td>
                 <td style="min-width:220px"><b>{l.ref}</b><div class="small">{l.title}</div><div class="tiny muted">{TYPES[l.type as PType]}{DEALS[l.deal as Deal]} · {l.provinceName} · ส่งเมื่อ {thaiDate(l.createdAt)}</div>
-                  {l.status === 'rejected' && l.rejectReason && <div class="tiny" style="color:var(--bad)">เหตุผล: {l.rejectReason}</div>}</td>
+                  {l.status === 'rejected' && (
+                    <div class="fix-box"><b>ต้องแก้ไขก่อนเผยแพร่</b>{l.rejectReason && <div>เหตุผลจากทีมงาน: “{l.rejectReason}”</div>}
+                      <a class="btn btn-gold btn-sm" href={`/account/listings/${l.id}/edit`}>แก้ไขแล้วส่งใหม่</a></div>
+                  )}</td>
                 <td class="nowrap">฿{formatPrice(l.price)}</td>
-                <td><StatusBadge s={l.status} />{l.status === 'active' && <div class="tiny muted">หมดอายุ {thaiDate(l.expiresAt)}</div>}</td>
+                <td><StatusBadge s={l.status} />
+                  {['pending', 'rejected', 'active'].includes(l.status) && (
+                    <ol class="st-steps" aria-label="ขั้นตอน">
+                      <li class="done">ส่งแล้ว</li>
+                      <li class={l.status === 'pending' ? 'now' : l.status === 'rejected' ? 'bad' : 'done'}>{l.status === 'rejected' ? 'ต้องแก้ไข' : 'ตรวจสอบ'}</li>
+                      <li class={l.status === 'active' ? 'done' : ''}>เผยแพร่</li>
+                    </ol>
+                  )}
+                  {l.status === 'pending' && <div class="tiny muted">{l.revision ? `ส่งแก้ไขครั้งที่ ${l.revision} · ` : ''}รอทีมงานตรวจ ภายใน 24 ชม.</div>}
+                  {l.status === 'active' && <div class="tiny muted">หมดอายุ {thaiDate(l.expiresAt)}</div>}</td>
                 <td class="nowrap"><Icon name="eye" /> {formatPrice(l.views)}</td>
                 <td><a href="/account?tab=leads">{l.leadCount}</a></td>
                 <td style="min-width:230px">
@@ -163,6 +186,7 @@ export const AccountPage: FC<{ env: Bindings; user: User; sess: UserSession; row
                     </form>
                   )}
                   <div style="display:flex;gap:4px;flex-wrap:wrap">
+                    {l.status === 'pending' && <a class="btn btn-line btn-sm" href={`/account/listings/${l.id}/edit`}>แก้ไขประกาศ</a>}
                     {l.status === 'active' && <a class="btn btn-ghost btn-sm" href={`/listing/${l.id}`}>ดูหน้าเว็บ</a>}
                     {l.status === 'active' && act(sess, l.id, 'sold', 'ขาย/เช่าแล้ว', 'btn-gold')}
                     {['active', 'expired'].includes(l.status) && act(sess, l.id, 'renew', 'ต่ออายุ', 'btn-line')}
