@@ -7,7 +7,7 @@ import { imgUrl, imgSrcset, placeholder, type Card } from '../lib/listings';
 import { travelProvinces, provinceTravelHref } from '../data/travel-provinces';
 import { PronetMenu } from './pronet-menu';
 
-export const ASSET_V = '20261027-gphoto';
+export const ASSET_V = '20261027-stats';
 
 /* ---------- icons ---------- */
 const P = { fill: 'none', stroke: 'currentColor', 'stroke-width': '1.7', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' } as const;
@@ -95,6 +95,8 @@ export const Layout: FC<{ env: Bindings; meta: Meta; settings: Record<string, st
           <meta property="og:image" content={og} />
           <meta name="twitter:card" content="summary_large_image" />
           <meta name="theme-color" content="#8dc63f" />
+          {settings.google_site_verification && <meta name="google-site-verification" content={settings.google_site_verification} />}
+          {settings.bing_site_verification && <meta name="msvalidate.01" content={settings.bing_site_verification} />}
           <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
           <link rel="preload" href="/assets/fonts/sarabun-thai-400-normal.woff2" as="font" type="font/woff2" crossorigin="" />
           <link rel="stylesheet" href={`/assets/css/fonts.css?v=${ASSET_V}`} />

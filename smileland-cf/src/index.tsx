@@ -11,6 +11,7 @@ import { account } from './routes/account';
 import { withUser } from './lib/users';
 import { loadSettings } from './lib/settings';
 import { dailyCron, handleJob } from './lib/jobs';
+import { recordVisit, shouldCount } from './lib/stats';
 
 const app = new Hono<AppEnv>({ strict: false });
 
@@ -43,6 +44,11 @@ app.use('*', async (c, next) => {
 // ไม่ใช้ด่าน CAPTCHA แบบบล็อกทั้งเว็บอีกต่อไป (เดิมทำให้ Googlebot เข้าไม่ได้)
 // ใช้ Turnstile เฉพาะตอนส่งฟอร์ม + rate limit แทน
 app.use('*', withUser);
+// นับผู้เข้าชม (หลังตอบกลับ ไม่ทำให้หน้าเว็บช้า)
+app.use('*', async (c, next) => {
+  await next();
+  try { if (shouldCount(c, c.res)) c.executionCtx.waitUntil(recordVisit(c).catch((e) => console.error('stats', e))); } catch { /* ignore */ }
+});
 app.route('/', seo);
 app.route('/api', api);
 app.route('/admin', admin);

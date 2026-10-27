@@ -8,6 +8,7 @@ import { PERMS, can } from '../../lib/users';
 import { ASSET_V, Brand, Icon, StatusBadge } from '../ui';
 import { DEALS, DEED_TYPES, FEATURES, TYPES, ZONING, formatPrice, landText, thaiDate, thaiDateTime, type Deal, type PType } from '../../lib/util';
 import { imgUrl, placeholder, ZONES, type ZoneKey } from '../../lib/listings';
+import type { StatsData } from '../../lib/stats';
 import { TL_LABEL } from '../pages/listing';
 
 export const AdminLayout: FC<{ title: string; admin?: AdminSession; nav?: string; counts?: { pending: number; leads: number }; children?: Child }> = ({ title, admin, nav, counts, children }) => (
@@ -30,6 +31,7 @@ export const AdminLayout: FC<{ title: string; admin?: AdminSession; nav?: string
               <Brand sub={false} />
               <nav>
                 <a href="/admin" class={nav === 'dash' ? 'on' : ''}>ภาพรวม</a>
+                <a href="/admin/stats" class={nav === 'stats' ? 'on' : ''}>สถิติผู้เข้าชม</a>
                 {can(admin, 'listings.review') && <a href="/admin/listings?status=pending" class={nav === 'pending' ? 'on' : ''}>รอตรวจสอบ {counts?.pending ? <span class="n">{counts.pending}</span> : null}</a>}
                 {(can(admin, 'listings.review') || can(admin, 'listings.edit')) && <a href="/admin/listings" class={nav === 'listings' ? 'on' : ''}>ประกาศทั้งหมด</a>}
                 {can(admin, 'listings.edit') && <a href="/admin/zones" class={nav === 'zones' ? 'on' : ''}>จัดโซนหน้าแรก</a>}
@@ -97,6 +99,8 @@ export const Dashboard: FC<{ k: Record<string, number>; recent: (Listing & { pro
       <div class="kpi"><span>ผู้สนใจใหม่</span><b>{formatPrice(k.leadsNew)}</b></div>
       <div class="kpi"><span>ขอฝากขาย</span><b>{formatPrice(k.consign)}</b></div>
       <div class="kpi"><span>ประกาศ 7 วันล่าสุด</span><b>{formatPrice(k.week)}</b></div>
+      {k.visitorsToday != null && <a class="kpi" href="/admin/stats" style="color:inherit;text-decoration:none"><span>ผู้เข้าชมวันนี้</span><b>{formatPrice(k.visitorsToday)}</b></a>}
+      {k.visitors7 != null && <a class="kpi" href="/admin/stats" style="color:inherit;text-decoration:none"><span>ผู้เข้าชม 7 วัน</span><b>{formatPrice(k.visitors7)}</b></a>}
     </div>
     <div class="section-head"><h2 style="font-size:20px">ประกาศล่าสุด</h2><a class="btn btn-line btn-sm" href="/admin/listings">ดูทั้งหมด</a></div>
     <ListingTable rows={recent} />
@@ -385,6 +389,72 @@ export const ZonesPage: FC<{ env: Bindings; admin: AdminSession; zones: Record<Z
   );
 };
 
+const sum = (a: number[]) => a.reduce((x, y) => x + y, 0);
+const thShort = (d: string) => { const [, m, dd] = d.split('-').map(Number); return `${dd}/${m}`; };
+export const StatsPage: FC<{ s: StatsData; topListings: { id: number; ref: string; title: string; views: number }[] }> = ({ s, topListings }) => {
+  const d = s.days;
+  const last = d[d.length - 1], prev = d[d.length - 2];
+  const w = d.slice(-7), m = d;
+  const max = Math.max(1, ...d.map((x) => x.views));
+  const W = 720, H = 200, bw = W / d.length;
+  const totalSrc = Math.max(1, sum(s.sources.map((x) => x.views)));
+  return (
+    <>
+      <h1>สถิติผู้เข้าชม</h1>
+      <p class="muted small">นับเฉพาะคนจริงที่เปิดหน้าเว็บ (ไม่นับบอท หน้าแอดมิน และการเรียก API) · ไม่ใช้คุกกี้และไม่เก็บ IP · เวลาประเทศไทย</p>
+      <div class="kpis">
+        <div class="kpi"><span>ผู้เข้าชมวันนี้</span><b>{formatPrice(last.visitors)}</b><small class="muted">{formatPrice(last.views)} หน้า</small></div>
+        <div class="kpi"><span>เมื่อวาน</span><b>{formatPrice(prev.visitors)}</b><small class="muted">{formatPrice(prev.views)} หน้า</small></div>
+        <div class="kpi"><span>7 วันล่าสุด</span><b>{formatPrice(sum(w.map((x) => x.visitors)))}</b><small class="muted">{formatPrice(sum(w.map((x) => x.views)))} หน้า</small></div>
+        <div class="kpi"><span>30 วันล่าสุด</span><b>{formatPrice(sum(m.map((x) => x.visitors)))}</b><small class="muted">{formatPrice(sum(m.map((x) => x.views)))} หน้า</small></div>
+      </div>
+      <div class="form-card">
+        <h2 style="font-size:18px">30 วันล่าสุด <span class="small muted" style="font-weight:400">แท่งเข้ม = ผู้เข้าชม · แท่งอ่อน = จำนวนหน้าที่เปิด</span></h2>
+        <svg viewBox={`0 0 ${W} ${H + 24}`} style="width:100%;height:auto" role="img" aria-label="กราฟผู้เข้าชม 30 วัน">
+          {d.map((x, i) => {
+            const hv = Math.round((x.views / max) * H), hu = Math.round((x.visitors / max) * H);
+            return (
+              <g>
+                <title>{`${x.day}: ผู้เข้าชม ${x.visitors} คน · ${x.views} หน้า`}</title>
+                <rect x={i * bw + 2} y={H - hv} width={bw - 4} height={hv} rx="3" fill="#d6ebbd" />
+                <rect x={i * bw + 2} y={H - hu} width={bw - 4} height={hu} rx="3" fill="#5a9b2c" />
+                {(i % 5 === 0 || i === d.length - 1) && <text x={i * bw + bw / 2} y={H + 16} font-size="11" text-anchor="middle" fill="#667">{thShort(x.day)}</text>}
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+      <div class="grid2" style="gap:20px;align-items:start">
+        <div class="form-card">
+          <h2 style="font-size:18px">มาจากไหน (30 วัน)</h2>
+          {s.sources.length === 0 ? <p class="muted">ยังไม่มีข้อมูล</p> : (
+            <table class="t"><tbody>{s.sources.map((x) => (
+              <tr><td>{x.source}</td><td style="width:45%"><div style={`height:8px;border-radius:4px;background:#5a9b2c;width:${Math.max(2, Math.round((x.views / totalSrc) * 100))}%`}></div></td><td class="nowrap" style="text-align:right">{formatPrice(x.views)}</td></tr>
+            ))}</tbody></table>
+          )}
+          <p class="small muted">นับเฉพาะการเข้ามาจากภายนอก ไม่นับการกดเปลี่ยนหน้าภายในเว็บ</p>
+        </div>
+        <div class="form-card">
+          <h2 style="font-size:18px">ประกาศที่มีคนดูมากที่สุด (ตลอดเวลา)</h2>
+          {topListings.length === 0 ? <p class="muted">ยังไม่มีข้อมูล</p> : (
+            <table class="t"><tbody>{topListings.map((l) => (
+              <tr><td><a href={`/admin/listings/${l.id}`}><b>{l.ref}</b></a><div class="small" style="max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{l.title}</div></td><td class="nowrap" style="text-align:right">{formatPrice(l.views)} ครั้ง</td></tr>
+            ))}</tbody></table>
+          )}
+        </div>
+      </div>
+      <div class="form-card">
+        <h2 style="font-size:18px">หน้าที่มีคนเปิดมากที่สุด (30 วัน)</h2>
+        {s.pages.length === 0 ? <p class="muted">ยังไม่มีข้อมูล</p> : (
+          <table class="t"><tbody>{s.pages.map((x) => (
+            <tr><td style="word-break:break-all"><a href={x.path} target="_blank" rel="noopener">{x.path}</a></td><td class="nowrap" style="text-align:right">{formatPrice(x.views)} ครั้ง</td></tr>
+          ))}</tbody></table>
+        )}
+      </div>
+    </>
+  );
+};
+
 export const LeadsAdminPage: FC<{ rows: (Lead & { listingRef?: string | null })[]; status: string; kind: string; csrf: string }> = ({ rows, status, kind, csrf }) => (
   <>
     <h1>ผู้สนใจ / ขอฝากขาย</h1>
@@ -402,6 +472,7 @@ export const SettingsPage: FC<{ admin: AdminSession; s: Record<string, string>; 
     ['contact_email', 'อีเมลติดต่อ / เรื่องข้อมูลส่วนบุคคล'], ['company_name', 'ชื่อนิติบุคคล/ผู้ให้บริการ (นโยบายความเป็นส่วนตัว)'],
     ['company_address', 'ที่อยู่'], ['dpo_contact', 'เจ้าหน้าที่คุ้มครองข้อมูลส่วนบุคคล (DPO)'], ['privacy_effective_date', 'วันที่นโยบายมีผล', 'เช่น 1 พฤศจิกายน 2569'],
     ['data_retention', 'ระยะเวลาเก็บข้อมูล'],
+    ['google_site_verification', 'Google Search Console — รหัสยืนยัน (เฉพาะค่าใน content="...")', 'เช่น AbC123...'], ['bing_site_verification', 'Bing Webmaster — รหัสยืนยัน (ไม่บังคับ)'],
   ];
   return (
     <>

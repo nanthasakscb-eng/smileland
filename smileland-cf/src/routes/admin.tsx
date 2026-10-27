@@ -5,7 +5,7 @@ import { and, count, desc, eq, gte, isNotNull, like, or, sql, type SQL } from 'd
 import type { AppEnv, AdminSession } from '../env';
 import { db } from '../db';
 import { admins, leads, listingImages, listings, listingTokens, outbox, priceHistory, settings, timeline, users } from '../db/schema';
-import { AdminLayout, ZonesPage, canPurge, Dashboard, LeadsAdminPage, ListingAdminDetail, ListingsAdminPage, LoginPage, MembersPage, NoPermPage, OutboxPage, PasswordPage, SettingsPage, StaffPage } from '../views/admin/admin';
+import { AdminLayout, ZonesPage, StatsPage, canPurge, Dashboard, LeadsAdminPage, ListingAdminDetail, ListingsAdminPage, LoginPage, MembersPage, NoPermPage, OutboxPage, PasswordPage, SettingsPage, StaffPage } from '../views/admin/admin';
 import { createSession, destroySession, ensureBootstrapAdmin, loadSession, setAdminPassword, updateSession } from '../lib/session';
 import { clientIp, hashPassword, rateLimit, sameOrigin, timingSafeEqual, verifyPassword, verifyTurnstile } from '../lib/security';
 import { geo } from '../lib/geo';
@@ -15,6 +15,7 @@ import { clampInt, formatPrice, normPhone, nowSec } from '../lib/util';
 import { PERMS, can, getUser, sendVerifyEmail, sendListingDecisionEmail } from '../lib/users';
 import type { Next } from 'hono';
 import { invalidateSettings } from '../lib/settings';
+import { loadStats, thDay } from '../lib/stats';
 
 export const admin = new Hono<AppEnv>();
 
@@ -127,6 +128,10 @@ admin.get('/', async (c) => {
     d.select().from(leads).orderBy(desc(leads.id)).limit(8),
   ]);
   k.leadsNew = ln[0].n; k.consign = cn[0].n; k.week = wk[0].n;
+  try {
+    const vs = await c.env.DB.prepare(`SELECT (SELECT count(*) FROM visitors_daily WHERE day = ?) AS today, (SELECT count(*) FROM visitors_daily WHERE day >= ?) AS week`).bind(thDay(), thDay(6)).first<{ today: number; week: number }>();
+    if (vs) { k.visitorsToday = vs.today; k.visitors7 = vs.week; }
+  } catch { /* ยังไม่ได้รัน migration */ }
   const g = await geo(c.env);
   const pm = new Map(g.provinces.map((p) => [p.code, p.nameTh]));
   return page(c, 'ภาพรวม', 'dash', <Dashboard k={k} recent={recent.map((r) => ({ ...r, provinceName: pm.get(r.provinceCode) }))} leads={ls} />);
@@ -275,6 +280,15 @@ admin.post('/listings/:id{[0-9]+}', need('listings.review', 'listings.edit'), as
   return c.redirect(back, 303);
 });
 
+/* ---------- สถิติผู้เข้าชม ---------- */
+admin.get('/stats', async (c) => {
+  const [st, top] = await Promise.all([
+    loadStats(c.env, 30),
+    db(c.env).select({ id: listings.id, ref: listings.ref, title: listings.title, views: listings.views }).from(listings).where(sql`${listings.views} > 0 AND ${listings.deletedAt} IS NULL AND ${listings.ref} NOT LIKE 'SL-DEMO%'`).orderBy(desc(listings.views)).limit(10),
+  ]);
+  return page(c, 'สถิติผู้เข้าชม', 'stats', <StatsPage s={st} topListings={top} />);
+});
+
 /* ---------- จัดโซนหน้าแรก ---------- */
 admin.get('/zones', need('listings.edit'), async (c) => {
   const d = db(c.env);
@@ -336,7 +350,7 @@ admin.post('/leads/:id{[0-9]+}', need('leads'), async (c) => {
 });
 
 /* ---------- ตั้งค่า ---------- */
-const SETTING_KEYS = ['contact_phone', 'contact_line', 'contact_line_url', 'contact_email', 'company_name', 'company_address', 'dpo_contact', 'privacy_effective_date', 'data_retention'];
+const SETTING_KEYS = ['contact_phone', 'contact_line', 'contact_line_url', 'contact_email', 'company_name', 'company_address', 'dpo_contact', 'privacy_effective_date', 'data_retention', 'google_site_verification', 'bing_site_verification'];
 admin.get('/settings', need('settings'), async (c) => page(c, 'ตั้งค่า', 'settings', <SettingsPage admin={c.get('admin')!} s={c.get('settings')} demo={await demoStatus(c.env)} ok={c.req.query('ok') ? (c.req.query('msg') || 'บันทึกแล้ว') : undefined} after={c.req.query('after')} />));
 admin.post('/demo/threshold', need('settings'), async (c) => {
   const f = await c.req.parseBody();
@@ -351,6 +365,7 @@ admin.post('/settings', need('settings'), async (c) => {
   const stmts = SETTING_KEYS.map((k) => {
     let v = String(f[k] ?? '').trim().slice(0, 300);
     if (k === 'contact_line_url' && v && !/^https:\/\//.test(v)) v = '';
+    if (k.endsWith('_site_verification')) { const m = v.match(/content=["']([^"']+)/); if (m) v = m[1]; v = v.replace(/[^A-Za-z0-9_\-]/g, '').slice(0, 100); }
     return d.insert(settings).values({ key: k, value: v }).onConflictDoUpdate({ target: settings.key, set: { value: v } });
   });
   await d.batch(stmts as never);

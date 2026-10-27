@@ -1,3 +1,4 @@
+import { pruneStats } from './stats';
 import { and, count, eq, lt, sql } from 'drizzle-orm';
 import type { Bindings, Job } from '../env';
 import { db } from '../db';
@@ -78,6 +79,7 @@ export async function sitemapIndex(env: Bindings) {
 
 /** Cron รายวัน: ประกาศหมดอายุ → expired, แล้วสั่งสร้าง sitemap ทุกจังหวัดที่มีประกาศผ่าน Queue */
 export async function dailyCron(env: Bindings) {
+  await pruneStats(env).catch(() => undefined);
   const d = db(env);
   const now = nowSec();
   const expired = await d.select({ id: listings.id, provinceCode: listings.provinceCode }).from(listings)
