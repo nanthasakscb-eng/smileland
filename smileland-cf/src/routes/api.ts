@@ -260,7 +260,7 @@ api.post('/listings/:id{[0-9]+}', async (c) => {
   const id = parseInt(c.req.param('id'), 10);
   const d = db(c.env);
   const l = (await d.select().from(listings).where(and(eq(listings.id, id), eq(listings.userId, me.id))).limit(1))[0];
-  if (!l) return c.json({ ok: false, error: 'ไม่พบประกาศ' }, 404);
+  if (!l || l.deletedAt) return c.json({ ok: false, error: 'ไม่พบประกาศ' }, 404);
   if (!(EDITABLE as readonly string[]).includes(l.status)) return c.json({ ok: false, error: 'ประกาศนี้แก้ไขทั้งหมดไม่ได้ในสถานะปัจจุบัน (ปรับราคาได้ที่บัญชีของฉัน)' }, 409);
   if (!(await rateLimit(c.env, `editu:${me.id}`, 30, 86400)).ok) return c.json({ ok: false, error: 'แก้ไขบ่อยเกินไป กรุณาลองใหม่พรุ่งนี้' }, 429);
 

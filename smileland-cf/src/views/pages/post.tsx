@@ -1,5 +1,5 @@
 /** @jsxImportSource hono/jsx */
-import type { FC } from 'hono/jsx';
+import type { Child, FC } from 'hono/jsx';
 import type { Bindings } from '../../env';
 import type { Province } from '../../db/schema';
 import { Crumbs, Icon, Turnstile } from '../ui';
@@ -10,7 +10,7 @@ const MAX_IMAGES = 12;
 
 export type PostEdit = { l: Listing; images: { idx: number; url: string }[] };
 
-export const PostPage: FC<{ env: Bindings; provinces: Province[]; consign?: boolean; me?: { name: string; phone: string | null; line: string | null; email: string }; edit?: PostEdit }> = ({ env, provinces, consign, me, edit }) => {
+export const PostPage: FC<{ env: Bindings; provinces: Province[]; consign?: boolean; me?: { name: string; phone: string | null; line: string | null; email: string }; edit?: PostEdit; top?: Child }> = ({ env, provinces, consign, me, edit, top }) => {
   const L = edit?.l as (Record<string, unknown> & Listing) | undefined;
   const v = (k: string) => (L && L[k] != null && L[k] !== '' ? String(L[k]) : undefined);
   const money = (k: string) => (L && L[k] != null ? formatPrice(Number(L[k])) : undefined);
@@ -20,6 +20,7 @@ export const PostPage: FC<{ env: Bindings; provinces: Province[]; consign?: bool
   return (
   <div class="wrap">
     <Crumbs items={L ? [['หน้าแรก', '/'], ['บัญชีของฉัน', '/account'], [`แก้ไข ${L.ref}`]] : [['หน้าแรก', '/'], ['ลงประกาศฟรี']]} />
+    {top}
     {L && (
       <div class={`edit-banner ${L.status === 'rejected' ? 'bad' : ''}`}>
         <b>{L.status === 'rejected' ? `ประกาศ ${L.ref} ยังไม่ผ่านการตรวจสอบ` : `แก้ไขประกาศ ${L.ref} (รอตรวจสอบ)`}</b>

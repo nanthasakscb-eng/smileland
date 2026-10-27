@@ -1,7 +1,7 @@
 /** @jsxImportSource hono/jsx */
 import { Hono, type Context } from 'hono';
 import type { Child } from 'hono/jsx';
-import { and, asc, desc, eq } from 'drizzle-orm';
+import { and, asc, desc, eq, isNull } from 'drizzle-orm';
 import type { AppEnv } from '../env';
 import { db } from '../db';
 import { leads, listings, priceHistory, timeline } from '../db/schema';
@@ -18,7 +18,7 @@ import { plain } from '../lib/md';
 import { SearchPage, type SubLink } from '../views/pages/search';
 import { ListingPage } from '../views/pages/listing';
 import { PostDone, PostPage } from '../views/pages/post';
-import { NeedVerify } from '../views/pages/account';
+import { NeedVerify, OwnerDash, countOwner } from '../views/pages/account';
 import { getUser } from '../lib/users';
 import { ConsignPage, ManagePage, NotFoundPage, PrivacyPage, ProvincesPage, StatusPage, TermsPage, ToolsPage } from '../views/pages/misc';
 import { geo, provinceBySlug, districtBySlug, districtsOf, subdistrictName, districtLabel } from '../lib/geo';
@@ -332,11 +332,12 @@ pub.get('/post', async (c) => {
   const me = await getUser(c, s.userId);
   if (!me) return c.redirect('/login?next=/post', 303);
   if (!me.emailVerifiedAt) return render(c, { title: 'ยืนยันอีเมลก่อนลงประกาศ', noindex: true }, <NeedVerify user={s} />);
-  const g = await geo(c.env);
+  const [g, mine] = await Promise.all([geo(c.env), db(c.env).select({ status: listings.status }).from(listings).where(and(eq(listings.userId, me.id), isNull(listings.deletedAt)))]);
   return render(c, {
     title: 'ลงประกาศขาย/ให้เช่า บ้าน ที่ดิน คอนโด ฟรี', description: 'ลงประกาศขายหรือให้เช่า บ้าน ที่ดิน คอนโด ฟรี เขตอีสาน ทีมงานตรวจสอบก่อนเผยแพร่ ไม่เปิดเผยเบอร์โทรเจ้าของบนหน้าเว็บ',
     canonical: '/post', maps: true, turnstile: true, page: 'post', nav: 'post',
-  }, <><PostPage env={c.env} provinces={g.provinces} consign={c.req.query('consign') === '1'} me={me} /><PostDone /></>);
+  }, <><PostPage env={c.env} provinces={g.provinces} consign={c.req.query('consign') === '1'} me={me}
+    top={<OwnerDash user={me} counts={countOwner(mine)} actions={<a class="btn btn-line" href="/account">จัดการประกาศของฉัน →</a>} />} /><PostDone /></>);
 });
 
 /* ================= ตรวจสถานะ ================= */

@@ -114,7 +114,7 @@ export const ListingTable: FC<{ rows: (Listing & { provinceName?: string })[]; e
         {rows.map((l) => (
           <tr>
             <td class="thumbcell"><img src={(env && imgUrl(env, l.coverKey, 400)) || placeholder(l.type)} alt="" loading="lazy" /></td>
-            <td><a href={`/admin/listings/${l.id}`}><b>{l.ref}</b></a>{l.zone || l.featured ? <span class="badge b-feat" style="margin-left:4px">{l.zone ? `โซน ${l.zone}` : 'แนะนำ'}</span> : null}{l.revision ? <span class="badge b-pending" style="margin-left:4px">ส่งแก้ไขครั้งที่ {l.revision}</span> : null}{l.consign ? <span class="badge b-sold" style="margin-left:4px">ฝากขาย</span> : null}<div class="small">{l.title}</div></td>
+            <td><a href={`/admin/listings/${l.id}`}><b>{l.ref}</b></a>{l.zone || l.featured ? <span class="badge b-feat" style="margin-left:4px">{l.zone ? `โซน ${l.zone}` : 'แนะนำ'}</span> : null}{l.revision ? <span class="badge b-pending" style="margin-left:4px">ส่งแก้ไขครั้งที่ {l.revision}</span> : null}{l.deletedAt ? <span class="badge b-rejected" style="margin-left:4px">ผู้โพสต์ลบแล้ว</span> : null}{l.consign ? <span class="badge b-sold" style="margin-left:4px">ฝากขาย</span> : null}<div class="small">{l.title}</div></td>
             <td class="nowrap">{TYPES[l.type as PType]}{DEALS[l.deal as Deal]}</td>
             <td class="nowrap">฿{formatPrice(l.price)}</td>
             <td class="nowrap">{l.provinceName}</td>
@@ -199,6 +199,7 @@ export const ListingAdminDetail: FC<{
         <div style="display:flex;gap:8px;align-items:center"><StatusBadge s={l.status} />{l.status === 'active' && <a class="btn btn-line btn-sm" href={`/listing/${l.id}`} target="_blank">ดูหน้าเว็บ ↗</a>}</div>
       </div>
       {msg && <div class="alert alert-ok" style="margin-top:12px">{msg}</div>}
+      {l.deletedAt ? <div class="alert alert-bad" style="margin-top:12px">ผู้โพสต์ลบประกาศนี้แล้วเมื่อ {thaiDateTime(l.deletedAt)} — ไม่แสดงในบัญชีผู้โพสต์และหน้าเว็บ</div> : null}
       {l.revision > 0 && l.status === 'pending' && (() => {
         const prev = [...timeline].reverse().find((t) => t.event === 'rejected');
         return <div class="alert alert-warn" style="margin-top:12px"><b>ผู้โพสต์แก้ไขแล้วส่งตรวจใหม่ (ครั้งที่ {l.revision})</b>{prev?.note ? <> — เหตุผลที่ไม่อนุมัติครั้งก่อน: “{prev.note}”</> : null}</div>;

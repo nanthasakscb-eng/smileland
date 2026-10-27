@@ -113,17 +113,62 @@ export const NeedVerify: FC<{ user: UserSession }> = ({ user }) => (
   </div>
 );
 
+
+/* ---------- แดชบอร์ดผู้ลงประกาศ (ใช้ทั้งหน้าลงประกาศและบัญชีของฉัน) ---------- */
+export type OwnerCounts = { total: number; active: number; pending: number; rejected: number; sold: number };
+export const countOwner = (rows: { status: string }[]): OwnerCounts => ({
+  total: rows.length,
+  active: rows.filter((r) => r.status === 'active').length,
+  pending: rows.filter((r) => r.status === 'pending').length,
+  rejected: rows.filter((r) => r.status === 'rejected').length,
+  sold: rows.filter((r) => r.status === 'sold').length,
+});
+export const OwnerDash: FC<{ user: Pick<User, 'name' | 'phone' | 'email' | 'line' | 'emailVerifiedAt' | 'createdAt'>; counts: OwnerCounts; current?: string; actions?: Child }> = ({ user, counts, current, actions }) => {
+  const tiles: [string, string, number, string][] = [
+    ['', 'ประกาศทั้งหมด', counts.total, 'all'],
+    ['active', 'อนุมัติแล้ว', counts.active, 'ok'],
+    ['pending', 'รออนุมัติ', counts.pending, 'wait'],
+    ['rejected', 'ไม่อนุมัติ', counts.rejected, 'bad'],
+    ['sold', 'ขายแล้ว', counts.sold, 'sold'],
+  ];
+  return (
+    <section class="odash" aria-label="แดชบอร์ดผู้ลงประกาศ">
+      <div class="odash-me">
+        <div class="odash-avatar" aria-hidden="true">{(user.name || '?').trim().slice(0, 1)}</div>
+        <div class="odash-info">
+          <div class="odash-hi">ผู้ลงประกาศ</div>
+          <h2>คุณ{user.name}</h2>
+          <ul>
+            <li><Icon name="phone" /> {user.phone || <span class="muted">ยังไม่ได้ใส่เบอร์</span>}</li>
+            <li><Icon name="mail" /> {user.email}{user.emailVerifiedAt ? <span class="odash-ok">ยืนยันแล้ว</span> : <span class="odash-warn">ยังไม่ยืนยัน</span>}</li>
+            {user.line && <li><span class="odash-line">LINE</span> {user.line}</li>}
+          </ul>
+          <a class="odash-edit" href="/account?tab=profile">แก้ไขข้อมูลส่วนตัว</a>
+        </div>
+      </div>
+      <div class="odash-stats">
+        {tiles.map(([st, label, n, k]) => (
+          <a class={`odash-tile t-${k}${current === st ? ' on' : ''}`} href={st ? `/account?status=${st}` : '/account'}>
+            <b>{formatPrice(n)}</b><span>{label}</span>
+          </a>
+        ))}
+      </div>
+      {actions && <div class="odash-actions">{actions}</div>}
+    </section>
+  );
+};
+
 type Row = Listing & { leadCount: number; provinceName?: string };
-export const AccountPage: FC<{ env: Bindings; user: User; sess: UserSession; rows: Row[]; leads: (Lead & { listingRef?: string | null })[]; msg?: string; error?: string; tab: string }> = ({ env, user, sess, rows, leads, msg, error, tab }) => (
+export const AccountPage: FC<{ env: Bindings; user: User; sess: UserSession; rows: Row[]; leads: (Lead & { listingRef?: string | null })[]; msg?: string; error?: string; tab: string; status?: string }> = ({ env, user, sess, rows: allRows, leads, msg, error, tab, status = '' }) => {
+  const rows = status ? allRows.filter((r) => r.status === status) : allRows;
+  return (
   <div class="wrap" style="padding-bottom:64px">
     <Crumbs items={[['หน้าแรก', '/'], ['บัญชีของฉัน']]} />
-    <div class="page-head" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-      <div><h1 style="margin:0">สวัสดี คุณ{user.name}</h1><p class="muted" style="margin:4px 0 0">{user.email} · สมาชิกตั้งแต่ {thaiDate(user.createdAt)}</p></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <a class="btn btn-gold" href="/post">+ ลงประกาศใหม่</a>
-        <form method="post" action="/logout"><input type="hidden" name="csrf" value={sess.csrf} /><button class="btn btn-line" type="submit">ออกจากระบบ</button></form>
-      </div>
-    </div>
+    <h1 class="sr-only">บัญชีของฉัน</h1>
+    <OwnerDash user={user} counts={countOwner(allRows)} current={tab === 'listings' ? status : undefined} actions={<>
+      <a class="btn btn-gold" href="/post">+ ลงประกาศใหม่</a>
+      <form method="post" action="/logout"><input type="hidden" name="csrf" value={sess.csrf} /><button class="btn btn-line" type="submit">ออกจากระบบ</button></form>
+    </>} />
     {!user.emailVerifiedAt && (
       <div class="alert alert-warn" style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
         <span>ยังไม่ได้ยืนยันอีเมล — ต้องยืนยันก่อนจึงลงประกาศได้</span>
@@ -133,24 +178,14 @@ export const AccountPage: FC<{ env: Bindings; user: User; sess: UserSession; row
     {msg && <div class="alert alert-ok">{msg}</div>}
     {error && <div class="alert alert-bad">{error}</div>}
     <div class="sub-links">
-      <a href="/account" class={tab === 'listings' ? 'on' : ''}>ประกาศของฉัน <span class="n">{rows.length}</span></a>
+      <a href="/account" class={tab === 'listings' ? 'on' : ''}>ประกาศของฉัน <span class="n">{allRows.length}</span></a>
       <a href="/account?tab=leads" class={tab === 'leads' ? 'on' : ''}>ผู้สนใจ <span class="n">{leads.length}</span></a>
       <a href="/account?tab=profile" class={tab === 'profile' ? 'on' : ''}>ข้อมูลส่วนตัว</a>
     </div>
 
-    {tab === 'listings' && rows.length > 0 && (() => {
-      const n = (st: string) => rows.filter((r) => r.status === st).length;
-      return (
-        <div class="st-summary">
-          <div class="pending"><b>{n('pending')}</b><span>รอตรวจสอบ</span></div>
-          <div class="rejected"><b>{n('rejected')}</b><span>ต้องแก้ไข</span></div>
-          <div class="active"><b>{n('active')}</b><span>เผยแพร่อยู่</span></div>
-          <div><b>{n('sold') + n('closed') + n('expired')}</b><span>ปิด/หมดอายุ</span></div>
-        </div>
-      );
-    })()}
+    {tab === 'listings' && status && <p class="small muted" style="margin:0 0 10px">แสดงเฉพาะสถานะที่เลือก ({rows.length} รายการ) · <a href="/account">ดูทั้งหมด</a></p>}
     {tab === 'listings' && (rows.length === 0 ? (
-      <div class="empty"><h3>ยังไม่มีประกาศ</h3><p class="muted">เริ่มลงประกาศขายหรือให้เช่าทรัพย์ของคุณได้ฟรี</p><a class="btn btn-gold" href="/post">ลงประกาศฟรี</a></div>
+      status ? <div class="empty"><h3>ไม่มีประกาศในสถานะนี้</h3><a class="btn btn-line" href="/account">ดูประกาศทั้งหมด</a></div> : <div class="empty"><h3>ยังไม่มีประกาศ</h3><p class="muted">เริ่มลงประกาศขายหรือให้เช่าทรัพย์ของคุณได้ฟรี</p><a class="btn btn-gold" href="/post">ลงประกาศฟรี</a></div>
     ) : (
       <div class="table-wrap">
         <table class="t">
@@ -191,6 +226,7 @@ export const AccountPage: FC<{ env: Bindings; user: User; sess: UserSession; row
                     {l.status === 'active' && act(sess, l.id, 'sold', 'ขาย/เช่าแล้ว', 'btn-gold')}
                     {['active', 'expired'].includes(l.status) && act(sess, l.id, 'renew', 'ต่ออายุ', 'btn-line')}
                     {!['closed', 'sold'].includes(l.status) && act(sess, l.id, 'close', 'ปิดประกาศ', 'btn-line', 'ยืนยันปิดประกาศนี้?')}
+                    {act(sess, l.id, 'delete', 'ลบ', 'btn-danger-ghost', `ลบประกาศ ${l.ref} ออกจากบัญชีและหน้าเว็บ? ลบแล้วกู้คืนเองไม่ได้`)}
                   </div>
                 </td>
               </tr>
@@ -229,7 +265,8 @@ export const AccountPage: FC<{ env: Bindings; user: User; sess: UserSession; row
       </div>
     )}
   </div>
-);
+  );
+};
 
 function act(sess: UserSession, id: number, action: string, label: string, cls: string, confirm?: string) {
   return (

@@ -1,9 +1,9 @@
 /** @jsxImportSource hono/jsx */
 import { Hono, type Context } from 'hono';
-import { and, count, desc, eq, inArray } from 'drizzle-orm';
+import { and, count, desc, eq, inArray, isNull } from 'drizzle-orm';
 import type { AppEnv } from '../env';
 import { db } from '../db';
-import { leads, listings, priceHistory, timeline, users } from '../db/schema';
+import { leads, listings, listingTokens, priceHistory, timeline, users } from '../db/schema';
 import { render } from './public';
 import { AccountPage, CheckEmailPage, ForgotPage, LoginPage, MessagePage, RegisterPage, ResetPage } from '../views/pages/account';
 import { clientIp, hashPassword, rateLimit, sameOrigin, timingSafeEqual, verifyPassword, verifyTurnstile } from '../lib/security';
@@ -131,7 +131,7 @@ account.get('/account', async (c) => {
   if (!u) { await destroyUserSession(c); return c.redirect('/login', 303); }
   if (!!u.emailVerifiedAt !== s.verified || u.name !== s.name) await refreshUserSession(c, u);
   const d = db(c.env);
-  const rows = await d.select().from(listings).where(eq(listings.userId, u.id)).orderBy(desc(listings.id)).limit(200);
+  const rows = await d.select().from(listings).where(and(eq(listings.userId, u.id), isNull(listings.deletedAt))).orderBy(desc(listings.id)).limit(200);
   const ids = rows.map((r) => r.id);
   const [lc, ls] = ids.length ? await Promise.all([
     d.select({ id: leads.listingId, n: count() }).from(leads).where(inArray(leads.listingId, ids)).groupBy(leads.listingId),
@@ -140,8 +140,9 @@ account.get('/account', async (c) => {
   const lm = new Map(lc.map((x) => [x.id, x.n]));
   const g = await geo(c.env); const pm = new Map(g.provinces.map((p) => [p.code, p.nameTh]));
   const tab = ['leads', 'profile'].includes(c.req.query('tab') || '') ? c.req.query('tab')! : 'listings';
+  const status = ['active', 'pending', 'rejected', 'sold', 'expired', 'closed'].includes(c.req.query('status') || '') ? c.req.query('status')! : '';
   return render(c, { title: 'บัญชีของฉัน', noindex: true, nav: 'account' }, (
-    <AccountPage env={c.env} user={u} sess={c.get('user')!} tab={tab} msg={c.req.query('ok') || undefined} error={c.req.query('error') || undefined}
+    <AccountPage env={c.env} user={u} sess={c.get('user')!} tab={tab} status={status} msg={c.req.query('ok') || undefined} error={c.req.query('error') || undefined}
       rows={rows.map((r) => ({ ...r, leadCount: lm.get(r.id) || 0, provinceName: pm.get(r.provinceCode) }))}
       leads={ls.map((x) => ({ ...x.lead, listingRef: x.ref }))} />
   ));
@@ -186,7 +187,7 @@ account.get('/account/listings/:id{[0-9]+}/edit', async (c) => {
   if (!s) return c.redirect('/login?next=' + encodeURIComponent(`/account/listings/${id}/edit`), 303);
   const me = await getUser(c, s.userId);
   if (!me) return c.redirect('/login', 303);
-  const l = (await db(c.env).select().from(listings).where(and(eq(listings.id, id), eq(listings.userId, me.id))).limit(1))[0];
+  const l = (await db(c.env).select().from(listings).where(and(eq(listings.id, id), eq(listings.userId, me.id), isNull(listings.deletedAt))).limit(1))[0];
   if (!l) return c.redirect('/account?error=' + encodeURIComponent('ไม่พบประกาศ'), 303);
   if (!['pending', 'rejected'].includes(l.status)) return c.redirect('/account?error=' + encodeURIComponent(`ประกาศ ${l.ref} อยู่ในสถานะที่แก้ไขทั้งหมดไม่ได้ (ปรับราคาได้จากตาราง)`), 303);
   const [g, imgs] = await Promise.all([geo(c.env), getImages(c.env, id)]);
@@ -200,7 +201,7 @@ account.post('/account/listings/:id{[0-9]+}', async (c: Context<AppEnv>) => {
   const s = c.get('user')!;
   const id = parseInt(c.req.param('id')!, 10);
   const d = db(c.env);
-  const r = await d.select().from(listings).where(and(eq(listings.id, id), eq(listings.userId, s.userId))).limit(1);
+  const r = await d.select().from(listings).where(and(eq(listings.id, id), eq(listings.userId, s.userId), isNull(listings.deletedAt))).limit(1);
   const l = r[0];
   if (!l) return c.redirect('/account?error=' + encodeURIComponent('ไม่พบประกาศ'), 303);
   const f = await c.req.parseBody();
@@ -221,6 +222,15 @@ account.post('/account/listings/:id{[0-9]+}', async (c: Context<AppEnv>) => {
     }
     case 'sold': if (l.status === 'active') { await d.update(listings).set({ status: 'sold', updatedAt: now }).where(eq(listings.id, id)); await addTimeline(c.env, id, 'sold', 'owner'); msg = `${l.ref} ปิดการขาย/เช่าแล้ว`; } break;
     case 'close': if (!['closed', 'sold'].includes(l.status)) { await d.update(listings).set({ status: 'closed', updatedAt: now }).where(eq(listings.id, id)); await addTimeline(c.env, id, 'closed', 'owner'); msg = `ปิดประกาศ ${l.ref} แล้ว`; } break;
+    case 'delete': {
+      await d.batch([
+        d.update(listings).set({ deletedAt: now, status: ['sold', 'closed'].includes(l.status) ? l.status : 'closed', zone: null, featured: 0, updatedAt: now }).where(eq(listings.id, id)),
+        d.insert(timeline).values({ listingId: id, event: 'deleted', actor: 'owner', note: `สถานะก่อนลบ: ${l.status}` }),
+        d.delete(listingTokens).where(eq(listingTokens.listingId, id)),
+      ]);
+      msg = `ลบประกาศ ${l.ref} แล้ว`;
+      break;
+    }
     case 'renew': if (['active', 'expired'].includes(l.status)) { await d.update(listings).set({ status: 'active', expiresAt: now + ttl, updatedAt: now }).where(eq(listings.id, id)); await addTimeline(c.env, id, 'renewed', 'owner'); msg = `ต่ออายุ ${l.ref} อีก ${c.env.LISTING_TTL_DAYS || 180} วันแล้ว`; } break;
   }
   if (l.status === 'active') c.executionCtx.waitUntil(c.env.JOBS.send({ kind: 'sitemap', provinceCode: l.provinceCode }).catch(() => undefined));

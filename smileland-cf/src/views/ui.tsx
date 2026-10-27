@@ -7,7 +7,7 @@ import { imgUrl, imgSrcset, placeholder, type Card } from '../lib/listings';
 import { travelProvinces, provinceTravelHref } from '../data/travel-provinces';
 import { PronetMenu } from './pronet-menu';
 
-export const ASSET_V = '20261027-moder';
+export const ASSET_V = '20261027-odash';
 
 /* ---------- icons ---------- */
 const P = { fill: 'none', stroke: 'currentColor', 'stroke-width': '1.7', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' } as const;
@@ -23,6 +23,7 @@ export const Icon: FC<{ name: string; class?: string }> = ({ name, class: cls = 
     map: <><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2ZM9 4v14M15 6v14" /></>,
     list: <><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /></>,
     phone: <><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z" /></>,
+    mail: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></>,
     chat: <><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z" /></>,
     check: <><path d="m5 12 5 5 9-10" /></>,
     shield: <><path d="M12 3 4 6v6c0 5 3.4 8.3 8 9 4.6-.7 8-4 8-9V6l-8-3Z" /><path d="m9 12 2 2 4-4" /></>,

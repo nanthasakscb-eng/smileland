@@ -96,6 +96,7 @@ export const listings = sqliteTable('listings', {
   zone: text('zone'),
   zoneOrder: integer('zone_order').notNull().default(0),
   zoneUntil: integer('zone_until'),
+  deletedAt: integer('deleted_at'),
   views: integer('views').notNull().default(0),
   createdAt: integer('created_at').notNull().default(now),
   updatedAt: integer('updated_at').notNull().default(now),
