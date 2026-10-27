@@ -5,19 +5,13 @@ import type { Card } from '../../lib/listings';
 import type { Province } from '../../db/schema';
 import { Cards, Icon } from '../ui';
 import { REGIONS, REGION_ORDER, formatPrice } from '../../lib/util';
+import { HERO_SLIDES } from '../../data/photos';
 
 /* ภาพสไลด์หน้าแรก — สุ่มลำดับฝั่งเบราว์เซอร์ (assets/js/hero.js) */
-const BY4 = 'https://creativecommons.org/licenses/by/4.0/';
-export const HERO_SLIDES: { src: string; w: number; alt: string; caption: string; credit: { by: string; url: string; license: string; licenseUrl: string } }[] = [
-  { src: '/assets/hero/landmark-ubon', w: 1280, alt: 'วัดสิรินธรวรารามภูพร้าว จังหวัดอุบลราชธานี', caption: 'วัดสิรินธรวรารามภูพร้าว · อุบลราชธานี', credit: { by: 'Supanut Arunoprayote', url: 'https://commons.wikimedia.org/wiki/File:Wat_Sirindhorn_Wararam_Phu_Phrao_20251227_(II).jpg', license: 'CC BY 4.0', licenseUrl: BY4 } },
-  { src: '/assets/hero/landmark-chanadai', w: 1280, alt: 'ผาชะนะได มองเห็นแม่น้ำโขง จังหวัดอุบลราชธานี', caption: 'ผาชะนะได · อุบลราชธานี', credit: { by: 'Supanut Arunoprayote', url: 'https://commons.wikimedia.org/wiki/File:Cha_Na_Dai_Cliff_20251226.jpg', license: 'CC BY 4.0', licenseUrl: BY4 } },
-  { src: '/assets/hero/landmark-muangtam', w: 1280, alt: 'ปราสาทเมืองต่ำ จังหวัดบุรีรัมย์', caption: 'ปราสาทเมืองต่ำ · บุรีรัมย์', credit: { by: 'Yakuzakorat', url: 'https://commons.wikimedia.org/wiki/File:%E0%B8%9B%E0%B8%A3%E0%B8%B2%E0%B8%AA%E0%B8%B2%E0%B8%97%E0%B9%80%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B8%87%E0%B8%95%E0%B9%88%E0%B8%B3_4.JPG', license: 'CC BY-SA 3.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/3.0/' } },
-  { src: '/assets/hero/landmark-phukradueng', w: 1280, alt: 'ผาหล่มสัก อุทยานแห่งชาติภูกระดึง จังหวัดเลย', caption: 'ผาหล่มสัก ภูกระดึง · เลย', credit: { by: 'Supanut Arunoprayote', url: 'https://commons.wikimedia.org/wiki/File:Lom_Sak_Cliff_(I).jpg', license: 'CC BY 4.0', licenseUrl: BY4 } },
-  { src: '/assets/hero/landmark-saithong', w: 1280, alt: 'ทุ่งดอกกระเจียว อุทยานแห่งชาติไทรทอง จังหวัดชัยภูมิ', caption: 'อุทยานแห่งชาติไทรทอง · ชัยภูมิ', credit: { by: 'KOSIN SUKHUM', url: 'https://commons.wikimedia.org/wiki/File:Sai_Thong_National_Park_Chaiyaphum_Thailand.jpg', license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/' } },
-];
+
 
 const HeroSlides: FC = () => (
-  <div class="hero-slides" id="hero-slides">
+  <div class="hero-slides" data-slides>
     {HERO_SLIDES.map((h, i) => (
       <figure class="hero-slide">
         <img src={`${h.src}-${h.w}.webp`} srcset={`${h.src}-960.webp 960w, ${h.src}-${h.w}.webp ${h.w}w`} sizes="100vw" alt={h.alt}
@@ -75,7 +69,7 @@ export const HomePage: FC<{
   <>
     <section class="hero hero-photo">
       <HeroSlides />
-      <script src="/assets/js/hero.js?v=1"></script>
+      <script src="/assets/js/hero.js?v=2"></script>
       <div class="wrap">
         <div class="eyebrow">อีสานน่าอยู่ · บ้าน ที่ดิน คอนโด</div>
         <h1>บ้าน ที่ดิน คอนโด <em>เขตอีสาน</em><br />ในที่เดียว</h1>

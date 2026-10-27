@@ -1,5 +1,6 @@
 /** @jsxImportSource hono/jsx */
 import type { Child, FC } from 'hono/jsx';
+import { BAND_SLIDES } from '../../data/photos';
 import type { Bindings } from '../../env';
 import type { Card, SearchParams } from '../../lib/listings';
 import type { District, Province } from '../../db/schema';
@@ -24,10 +25,18 @@ export const SearchPage: FC<{
 }> = ({ env, h1, intro, crumbs, params, result, provinces, districts, subLinks, subTitle, pageHref, seo }) => (
   <div class="wrap property-search">
     <Crumbs items={crumbs} />
-    <div class="page-head property-search-hero">
+    <div class="page-head property-search-hero has-photo">
+      <div class="band-slides" data-slides>
+        {BAND_SLIDES.map((b, i) => (
+          <figure class="band-slide">
+            <img src={`${b.src}-${b.w}.webp`} srcset={`${b.src}-800.webp 800w, ${b.src}-${b.w}.webp ${b.w}w`} sizes="(max-width: 1280px) 100vw, 1280px" alt={b.alt} width={b.w} height={Math.round(b.w / 3)} loading={i === 0 ? 'eager' : 'lazy'} decoding="async" />
+            <figcaption>{b.caption} · ภาพ <a href={b.credit.url} target="_blank" rel="noopener noreferrer">{b.credit.by}</a> / <a href={b.credit.licenseUrl} target="_blank" rel="noopener noreferrer license">{b.credit.license}</a> (ครอบภาพ) · <a href="/credits">เครดิตภาพ</a></figcaption>
+          </figure>
+        ))}
+      </div>
+      <script src="/assets/js/hero.js?v=2"></script>
       <div class="property-search-heading"><span class="property-eyebrow">อีสานน่าอยู่ · ค้นหาที่ของคุณ</span><h1>{h1}</h1>
       {intro && <p class="muted">{intro}</p>}<div class="property-hero-notes"><span><Icon name="pin" /> 20 จังหวัดภาคอีสาน</span><span><Icon name="check" /> ตรวจสอบก่อนเผยแพร่</span></div></div>
-      <div class="property-hero-mark" aria-hidden="true"><Icon name="house" /><span>ที่อยู่ใหม่<br/>เรื่องราวบทใหม่</span></div>
     </div>
     <nav class="property-type-tabs" aria-label="เลือกประเภททรัพย์">{[['','ทุกประเภท','list'],['house','บ้าน','house'],['land','ที่ดิน','land'],['condo','คอนโด','condo']].map(([type,label,icon])=><a href={`/search?deal=${params.deal==='rent'?'rent':'sale'}${type?`&type=${type}`:''}${params.province?`&province=${params.province}`:''}`} class={(params.type||'')===type?'is-active':''} aria-current={(params.type||'')===type?'page':undefined}><Icon name={icon}/>{label}</a>)}</nav>
     {subLinks && subLinks.length > 0 && (

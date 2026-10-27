@@ -84,3 +84,19 @@ body{background:var(--bg)}
 @media (max-width:960px){.lux-types{grid-template-columns:1fr 1fr}.lux-type-condo{grid-column:span 2;height:360px}}
 @media (max-width:640px){.lux-types{grid-template-columns:1fr;gap:16px}.lux-type,.lux-type-condo{grid-column:auto;height:380px}.lux-type-body h3{font-size:32px}}
 @media (prefers-reduced-motion:reduce){.lux-type,.lux-type>img{transition:none}}
+/* ---- หัวหน้าค้นหา: แถบภาพจริงสไลด์ ---- */
+.property-search-hero.has-photo{position:relative;overflow:hidden;isolation:isolate;background:#16220f;border-color:transparent;min-height:260px;display:flex;align-items:center}
+.band-slides{position:absolute;inset:0;z-index:-1}
+.band-slides::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(10,20,8,.82) 0%,rgba(10,20,8,.6) 45%,rgba(10,20,8,.15) 85%),linear-gradient(0deg,rgba(10,20,8,.45),transparent 40%)}
+.band-slide{position:absolute;inset:0;margin:0;opacity:0;transition:opacity 1.4s ease;pointer-events:none}
+.band-slide img{width:100%;height:100%;object-fit:cover;transform:scale(1.02);transition:transform 8s ease-out}
+.band-slides:not(.js) .band-slide:first-child,.band-slide.on{opacity:1;pointer-events:auto}
+.band-slide.on img{transform:scale(1.07)}
+.band-slide figcaption{position:absolute;right:14px;bottom:10px;z-index:2;font-size:11.5px;color:#eef5e6;background:rgba(0,0,0,.4);padding:3px 10px;border-radius:999px;max-width:calc(100% - 28px);text-align:right}
+.band-slide figcaption a{color:#fff;text-decoration:underline}
+.property-search-hero.has-photo .property-search-heading{position:relative;z-index:1;text-shadow:0 1px 12px rgba(0,0,0,.35)}
+.property-search-hero.has-photo h1,.property-search-hero.has-photo .property-eyebrow,.property-search-hero.has-photo .muted,.property-search-hero.has-photo .property-hero-notes span{color:#fff!important}
+.property-search-hero.has-photo .property-eyebrow{color:#dff3bf!important}
+.property-search-hero.has-photo .property-hero-notes .ico{color:#cfeaa4}
+@media (prefers-reduced-motion:reduce){.band-slide,.band-slide img{transition:none}.band-slide.on img{transform:none}}
+@media (max-width:640px){.property-search-hero.has-photo{min-height:220px;padding-bottom:48px!important}.band-slide figcaption{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.band-slides::after{background:linear-gradient(180deg,rgba(10,20,8,.55),rgba(10,20,8,.8))}.band-slide figcaption{font-size:10.5px;right:8px;bottom:6px}}
