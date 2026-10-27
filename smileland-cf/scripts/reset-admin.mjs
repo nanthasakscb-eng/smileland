@@ -2,6 +2,7 @@
 // ใช้: ดับเบิลคลิก reset-admin.bat หรือ node scripts/reset-admin.mjs
 import { spawnSync } from 'node:child_process';
 import { webcrypto as crypto } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 
 const env = { ...process.env, WRANGLER_SEND_METRICS: 'false' };
 const run = (cmd) => {
@@ -82,7 +83,7 @@ console.log('\nกำลังอ่านรายชื่อผู้ดู�
   const sql = `INSERT INTO admins (username, pass_hash, salt, iterations, must_change, is_owner, permissions) VALUES ('${username}', '${hex(bits)}', '${hex(salt)}', 100000, 0, 1, '[]') ON CONFLICT(username) DO UPDATE SET pass_hash = excluded.pass_hash, salt = excluded.salt, iterations = excluded.iterations, must_change = 0, is_owner = 1`;
   const w = run(`npx wrangler d1 execute smileland-db ${LOC} --command "${sql}"`);
   if (!w.ok) { console.error('✘ บันทึกไม่สำเร็จ\n' + w.out.slice(-800)); return fail(); }
-  const site = (run('node -e "process.stdout.write(require(\'fs\').readFileSync(\'wrangler.toml\',\'utf8\').match(/SITE_URL\\s*=\\s*\\"([^\\"]+)/)[1])"').out || '').trim();
+  let site = ''; try { site = (readFileSync('wrangler.toml', 'utf8').match(/SITE_URL\s*=\s*"([^"]+)"/) || [])[1] || ''; } catch { /* ignore */ }
   console.log(`\n✅ ตั้งรหัสผ่านของ "${username}" แล้ว (สิทธิ์เจ้าของระบบ)\n   เข้าหน้าแอดมินที่: ${site ? site + '/admin' : '/admin'}\n   ถ้าเพิ่งใส่รหัสผิดหลายครั้ง ระบบอาจล็อกชั่วคราว 15 นาที`);
 }
 await main();
