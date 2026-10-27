@@ -208,8 +208,16 @@ def aerial():
     camera((70, -95, 45), (-10, 8, 0), 24)
 
 
+def paddy_sunset():
+    from land import rice_paddy
+    rice_paddy(31, 'green', 70, 90)
+    sky(6, 8, 0.12, haze=1.5)
+    bpy.context.scene.view_settings.exposure = 0.45
+    camera_level((4, -2.0, 1.55), (-10, 40, 1.9), 26, 0.06)
+
+
 reset(W_, H_, spp)
-{'estate': estate_street, 'shop': shophouses_scene, 'condo_ext': condo_ext, 'condo_int': condo_int, 'aerial': aerial}[kind]()
+{'paddy': paddy_sunset, 'estate': estate_street, 'shop': shophouses_scene, 'condo_ext': condo_ext, 'condo_int': condo_int, 'aerial': aerial}[kind]()
 t = time.time()
 render(out)
 print('DONE', kind, round(time.time() - t, 1), flush=True)
