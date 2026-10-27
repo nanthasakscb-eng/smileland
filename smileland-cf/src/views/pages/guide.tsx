@@ -42,9 +42,9 @@ export const GuideIndexPage: FC = () => {
     <div class="wrap g-wrap">
       <Crumbs items={[['หน้าแรก', '/'], ['คู่มือซื้อขายบ้าน-ที่ดินอีสาน']]} />
       <section class="g-group">
-        <h2>คู่มือรายจังหวัด</h2>
+        <h2>คู่มือซื้อ-ขายบ้านและที่ดินรายจังหวัด</h2>
         <div class="g-grid">{prov.map((g) => <Card g={g} />)}</div>
-        <p class="g-muted">จังหวัดอื่นในภาคอีสานกำลังทยอยเขียน ระหว่างนี้ค้นหาทรัพย์ได้ที่ <a href="/provinces">ทุกจังหวัด</a></p>
+        <p class="g-muted">ครบ 20 จังหวัดภาคอีสาน · ค้นหาทรัพย์รายจังหวัดได้ที่ <a href="/provinces">ทุกจังหวัด</a></p>
       </section>
       <section class="g-group">
         <h2>ความรู้ก่อนซื้อขาย</h2>
