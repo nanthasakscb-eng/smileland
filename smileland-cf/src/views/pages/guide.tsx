@@ -4,6 +4,7 @@ import type { Guide } from '../../data/guides';
 import { guides, guideBySlug } from '../../data/guides';
 import { md } from '../../lib/md';
 import { Crumbs } from '../ui';
+import { PROVINCE_SLIDES } from '../../data/province-photos';
 import { HeroSlides } from './home';
 import { GUIDE_SLIDES } from '../../data/photos';
 import { formatPrice } from '../../lib/util';
@@ -57,15 +58,30 @@ export const GuideIndexPage: FC = () => {
 
 export const GuidePage: FC<{ g: Guide; stats: ProvinceStats }> = ({ g, stats }) => {
   const related = (g.related || []).map(guideBySlug).filter(Boolean) as Guide[];
+  const photos = g.provinceCode ? PROVINCE_SLIDES[g.provinceCode] : undefined;
   return (
+    <>
+    {photos?.length ? (
+      <section class="hero hero-photo g-photo">
+        <HeroSlides slides={photos} />
+        <script src="/assets/js/hero.js?v=2"></script>
+        <div class="wrap">
+          <div class="eyebrow">{g.kicker}</div>
+          <h1>{g.title}</h1>
+          <p class="lead g-photo-meta">โดยทีมงานอีสานน่าอยู่ · อัปเดต {thDate(g.updated)}</p>
+        </div>
+      </section>
+    ) : null}
     <div class="wrap g-wrap">
       <Crumbs items={[['หน้าแรก', '/'], ['คู่มือ', '/guide'], [g.kicker.replace(/^.*·\s*/, '')]]} />
       <article class="g-article">
-        <header class="g-head">
-          <span class="g-kicker">{g.kicker}</span>
-          <h1>{g.title}</h1>
-          <p class="g-meta">โดยทีมงานอีสานน่าอยู่ · อัปเดต {thDate(g.updated)}</p>
-        </header>
+        {!photos?.length && (
+          <header class="g-head">
+            <span class="g-kicker">{g.kicker}</span>
+            <h1>{g.title}</h1>
+            <p class="g-meta">โดยทีมงานอีสานน่าอยู่ · อัปเดต {thDate(g.updated)}</p>
+          </header>
+        )}
         <div class="g-layout">
           <div class="g-body">
             <div class="g-intro">{raw(md(g.intro))}</div>
@@ -117,5 +133,6 @@ export const GuidePage: FC<{ g: Guide; stats: ProvinceStats }> = ({ g, stats }) 
         </div>
       </article>
     </div>
+    </>
   );
 };
