@@ -91,20 +91,26 @@ export const HomePage: FC<{
 
     <section class="section">
       <div class="wrap">
-        <div class="section-head">
+        <div class="section-head lux-head">
           <div><div class="eyebrow">เลือกตามประเภท</div><h2>คุณกำลังมองหาอะไร</h2></div>
+          <p class="lux-sub">บ้าน ที่ดิน และคอนโด ใน 20 จังหวัดภาคอีสาน คัดกรองทุกประกาศก่อนเผยแพร่</p>
         </div>
-        <div class="types">
-          {([['house', 'บ้าน', 'บ้านเดี่ยว ทาวน์โฮม บ้านแฝด'], ['land', 'ที่ดิน', 'ที่ดินเปล่า ที่สวน ที่นา ที่ดินติดถนน'], ['condo', 'คอนโด', 'คอนโดมิเนียม อพาร์ตเมนต์ ห้องชุด']] as const).map(([k, label, sub]) => (
-            <div class={`type-tile type-tile-${k}`}>
-              <span class="type-tile-icon" aria-hidden="true"><Icon name={k}/></span>
-              <h3>{label}</h3>
-              <p>{sub} · {formatPrice(stats[k] || 0)} ประกาศ</p>
-              <div class="links">
-                <a href={`/sale/${k}`}>{label}ขาย</a>
-                <a href={`/rent/${k}`}>{label}ให้เช่า</a>
+        <div class="lux-types">
+          {([['house', 'บ้าน', 'บ้านเดี่ยว · ทาวน์โฮม · บ้านแฝด', 'Residences'], ['land', 'ที่ดิน', 'ที่ดินเปล่า · ที่สวน · ที่นา', 'Land'], ['condo', 'คอนโด', 'คอนโดมิเนียม · ห้องชุด', 'Condominiums']] as const).map(([k, label, sub, en], i) => (
+            <article class={`lux-type lux-type-${k}`}>
+              <img src={`/assets/types/${k}-800.webp`} srcset={`/assets/types/${k}-480.webp 480w, /assets/types/${k}-800.webp 800w`} sizes="(max-width: 720px) 100vw, 33vw" alt="" width="800" height="1000" loading="lazy" decoding="async" />
+              <a class="lux-type-cover" href={`/sale/${k}`} aria-label={`${label}ขาย`}></a>
+              <div class="lux-type-top"><span>{String(i + 1).padStart(2, '0')}</span><span>{en}</span></div>
+              <div class="lux-type-body">
+                <h3>{label}</h3>
+                <p>{sub}</p>
+                <div class="lux-type-meta"><b>{formatPrice(stats[k] || 0)}</b> ประกาศที่เผยแพร่อยู่</div>
+                <div class="lux-type-actions">
+                  <a class="lux-btn lux-btn-solid" href={`/sale/${k}`}>{label}ขาย <Icon name="arrow" /></a>
+                  <a class="lux-btn lux-btn-glass" href={`/rent/${k}`}>{label}ให้เช่า</a>
+                </div>
               </div>
-            </div>
+            </article>
           ))}
         </div>
       </div>
