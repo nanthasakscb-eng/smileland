@@ -1,0 +1,136 @@
+/* Lime-green palette sampled from the user-provided pronetmobile.com reference. */
+:root{--ink:#0e1710;--ink-2:#29422b;--ink-3:#5f6b62;--gold:#3b7a12;--gold-2:#8dc63f;--gold-soft:#eef7e1;--bg:#f7faf2;--surface:#ffffff;--surface-2:#f1f5ec;--line:#e3e8e0;--line-2:#edf1e9;--text:#0e1710;--muted:#5f6b62;--soft:#8a9b7e;--sale:#345c3c;--rent:#668746;--shadow:0 2px 4px #334d2c05,0 10px 28px -16px #4a70442b;--shadow-lg:0 24px 60px -24px #3a5c3740}
+body{background:var(--bg)}
+.topbar{background:#eef7e1;color:#4c6546}.topbar a{color:#416c3f}
+.header{background:#ffffffed;border-bottom-color:#dce6d0}.brand-name{color:#305a37}.brand-sub{color:#78856c}
+.btn-gold{background:#3c6a42;color:#fff;box-shadow:0 6px 18px -10px #365e40aa}.btn-gold:hover{background:#315c37;color:#fff}.btn-ink{background:#66a62d}
+.nav a:hover,.nav a.on{background:#eaf2de;color:#31563c}.menu-btn{background:#f2f7e9;color:#3d6540}
+.travel-nav>summary.on{color:#3e6c42}.travel-nav-panel{background:#fffef8;border-color:#dbe5cc;box-shadow:0 14px 38px #3658341c}.travel-nav-all{color:#3f6b41;border-color:#e0e8d5}.travel-nav-provinces a:hover{background:#edf5e2}.travel-nav-provinces small{color:#73876a}
+.hero{background:radial-gradient(90% 80% at 100% 0,#ffffff33,transparent 60%),linear-gradient(135deg,#a6d84e 0%,#7fbf35 45%,#4f9e24 100%);color:#fff}.hero::before{opacity:.08}.hero h1{color:#fff}.hero h1 em{color:#e7ffc4}.hero p.lead{color:#f6ffeb}.hero .eyebrow{color:#f3ffe4}.hero-stats b{color:#fff}.hero-stats span{color:#f3ffe4}.eyebrow{color:#668747}
+.search-panel{background:#ffffff;border-color:#dbe7cc}.seg label:has(input:checked){background:#426f45;color:#fff}
+.footer{background:#eef7e1;color:#5b7150;border-top:1px solid #d6e2c8}.footer .brand,.footer h4{color:#315a37}.footer p,.footer a,.footer .brand-sub,.footer-bottom{color:#607456}.footer a:hover{color:#274d32}.footer-bottom{border-color:#cfddc2}
+.ubon-travel{--ut-ink:#305039;--ut-gold:#7d9d57;background:#f7faf2;color:#305039}
+.ut-kicker{color:#6b8652}.ut-back{color:#e6f1da}.ut-hero .ut-kicker{color:#d7edb4}.ut-hero h1 em{color:#d8ecb6}.ut-hero-shade{background:linear-gradient(90deg,#183b2ad9,#26492d42 70%,#26492d08),linear-gradient(0deg,#183b2a55,transparent 65%)}
+.ut-gold{background:#3f7149;color:#fff;border-radius:8px;box-shadow:0 5px 15px -10px #254d39}.ut-gold:hover{background:#315d3b;color:#fff}
+.ut-hub-hero{position:relative;overflow:hidden;background:#eef7e1;color:#305039;padding:75px 0 95px;isolation:isolate;border-bottom:1px solid #dae6c8}
+.ut-hub-hero:before{content:'';position:absolute;z-index:-1;inset:0;background:radial-gradient(ellipse 48% 90% at 92% 118%,#b4d291 0 57%,transparent 57.5%),radial-gradient(ellipse 55% 80% at 76% 137%,#d0e3b2 0 72%,transparent 72.5%),radial-gradient(circle at 90% 17%,#fff9db 0 44px,transparent 45px)}
+.ut-hub-hero:after{content:'';position:absolute;right:8%;bottom:-30px;height:180px;width:85px;border-radius:100% 0 100% 0;background:#7fa35b45;transform:rotate(-30deg);z-index:-1}
+.ut-hub-hero h1{color:#315a37;font-weight:700}.ut-hub-hero .ut-kicker{color:#6a8452}.ut-hub-hero p{color:#4a6c43}.ut-hub-hero .ut-hub-sub{color:#6c7e5c}
+.ut-hub-card{background:#ffffff;border-color:#dce6cc;border-radius:16px;box-shadow:0 12px 35px -23px #456c383d}.ut-hub-card h2{color:#345a3a}.ut-hub-card p{color:#6a7d60}.ut-hub-read{color:#467244;border-color:#b8cd9e}
+.ut-province-selector>a{background:#fffef8;border-color:#dce6cf;border-radius:9px;color:#49663d;transition:background .15s,border-color .15s}.ut-province-selector>a:hover{background:#e9f3dc;border-color:#9dbb7f}.ut-province-selector>a.selected{background:#477348;color:#fff;border-color:#477348}.ut-province-selector>a.selected small{color:#e1eccd}
+.ut-province-pending{background:#f0f6e5;border-color:#d5e2c2}.ut-province-pending h2{color:#3a603c}.ut-hub-note,.ut-hub-heading>span{color:#748469}
+.ut-meta{color:#7d8b70;border-color:#dfe7d4}.ut-intro>p{color:#65765d}.ut-intro small{color:#859177}.ut-intro h2,.ut-section-heading h2,.ut-place h2{color:#335c3c}
+.ut-ad{background:#edf3e2;border-color:#b7c89d;border-radius:10px;color:#4d6940}.ut-ad-2{background:#f4f1df;border-color:#cec8a4}.ut-ad p,.ut-ad-number{color:#7c8b69}.ut-ad-bottom{border-color:#c6d3b4;color:#6c8059}
+.ut-contents{background:#fffef8;border-color:#dfe7cf;border-radius:13px}.ut-contents a span{color:#7c9a5e}.ut-place{border-color:#dfe6d3}.ut-place-tag{color:#7a9358}.ut-place-tag span,.ut-place-copy>p:not(.ut-place-tag){color:#6b7b62}.ut-place h3{color:#748765}.ut-place figure img{border-radius:12px}.ut-place-num{background:#f8fbed;color:#467149}.ut-tip{background:#edf3e2;border-left-color:#9dbb75;color:#6a7f59;border-radius:0 8px 8px 0}.ut-tip b{color:#517047}.ut-place-links a:first-child{color:#497544;border-color:#b4cda0}.ut-place-links a:last-child{color:#84935f}
+.ut-plan{background:#eaf2dc;border-radius:15px}.ut-plan h2,.ut-plan b{color:#41663e}.ut-plan p{color:#6c805d}.ut-plan small{border-color:#d1dfbc;color:#7b8b67}
+.ut-ad-contact{border-color:#dfe6d0}.ut-own-banner{background:#eef7e1;color:#345737;border:1px solid #ccdeb6;border-radius:15px}.ut-own-banner h2{color:#365b37}.ut-own-banner .ut-kicker{color:#708b4d}.ut-own-banner p:not(.ut-kicker){color:#708260}.ut-own-actions>a:last-child{color:#57764a}.ut-source-notes{color:#7a896d}.ut-photo-pending{background:#eef4e2;border-color:#bdcea7;color:#718760}
+@media(max-width:700px){.ut-hub-hero{padding:45px 0 70px}.ut-hub-hero:before{background:radial-gradient(ellipse 70% 75% at 104% 130%,#b4d291 0 70%,transparent 70.5%),radial-gradient(circle at 94% 12%,#fff9db 0 25px,transparent 26px)}.ut-hub-hero:after{height:120px;right:6%;width:55px}}
+
+/* Reference palette: #8dc63f / #b4e05a / #3b7a12 on #f7faf2. */
+.topbar{background:#eef7e1;color:#5f6b62}.topbar a{color:#3b7a12}.header{background:rgba(255,255,255,.94);border-color:#e3e8e0}.brand-name{color:#0e1710}.brand-sub{color:#5f6b62}
+.btn-gold,.ut-gold{background:linear-gradient(140deg,#b4e05a,#8dc63f 60%,#6aae2c);color:#163109;box-shadow:0 8px 20px -12px #6aae2caa}.btn-gold:hover,.ut-gold:hover{background:linear-gradient(140deg,#a5d84f,#78b934);color:#163109}.btn-ink{background:#3b7a12}
+.nav a:hover{background:#eef7e1;color:#3b7a12}.nav a.on{background:linear-gradient(140deg,#b4e05a,#8dc63f);color:#163109}.travel-nav>summary.on{color:#3b7a12}.travel-nav-panel{border-color:#e3e8e0;background:#fff}.travel-nav-all{color:#3b7a12}.travel-nav-provinces a:hover{background:#eef7e1}
+.ut-hub-hero{background:radial-gradient(90% 80% at 100% 0,rgba(255,255,255,.35),rgba(255,255,255,0) 60%),linear-gradient(135deg,#a6d84e 0%,#7fbf35 45%,#4f9e24 100%);color:#fff;border:0}.ut-hub-hero:before{inset:auto -55px auto auto;top:-75px;width:280px;height:280px;border:1px solid #ffffff30;border-radius:50%;background:#ffffff08;box-shadow:0 0 0 28px #ffffff0a,0 0 0 58px #ffffff08}.ut-hub-hero:after{display:none}.ut-hub-hero h1{color:#fff;text-shadow:0 1px 2px #42741718}.ut-hub-hero .ut-kicker{display:inline-block;background:#ffffff24;border-radius:999px;padding:8px 15px;color:#f4ffe6;letter-spacing:1.2px}.ut-hub-hero p{color:#fff}.ut-hub-hero .ut-hub-sub{color:#f3ffe4}
+.ut-province-selector>a{color:#0e1710;border-color:#e3e8e0;background:#fff}.ut-province-selector>a:hover{border-color:#8dc63f;background:#eef7e1}.ut-province-selector>a.selected{background:linear-gradient(140deg,#b4e05a,#8dc63f);color:#17300e;border-color:#8dc63f}.ut-province-selector>a.selected small{color:#355b20}.ut-province-selector small{color:#5f6b62}
+.ut-hub-card h2,.ut-intro h2,.ut-section-heading h2,.ut-place h2,.ut-plan h2{color:#0e1710}.ut-kicker,.ut-hub-read,.ut-place-links a:first-child{color:#3b7a12}.ut-hub-card{border-color:#e3e8e0;background:#fff}.ut-hub-card p,.ut-intro>p,.ut-place-copy>p:not(.ut-place-tag){color:#5f6b62}.ut-hub-read{border-color:#a6ce7c}.ut-hub-heading>span,.ut-hub-note{color:#5f6b62}
+.ut-hero-shade{background:linear-gradient(90deg,#1b3d1bdd,#254c2740 72%,#254c2708),linear-gradient(0deg,#183b2a55,transparent 65%)}.ut-hero h1 em{color:#d9f6a5}.ut-hero .ut-kicker{color:#d9f6a5}
+.ut-ad{background:#f3f9e8;border-color:#bfd999}.ut-ad-2{background:#eef7e1;border-color:#b3d48c}.ut-ad b{color:#315e1b}.ut-contents,.ut-tip{border-color:#deead0}.ut-tip,.ut-plan{background:#eef7e1}.ut-tip{border-left-color:#8dc63f}.ut-place-tag{color:#3b7a12}.ut-place h3{color:#5f6b62}.ut-place-num{background:#fff;color:#3b7a12}
+.ut-own-banner{background:radial-gradient(90% 80% at 100% 0,rgba(255,255,255,.22),transparent 60%),linear-gradient(135deg,#a6d84e,#7fbf35 45%,#4f9e24);border:0;color:#fff}.ut-own-banner h2,.ut-own-banner .ut-kicker{color:#fff}.ut-own-banner p:not(.ut-kicker),.ut-own-actions>a:last-child{color:#f3ffe4}.ut-own-banner .ut-gold{background:#fff;color:#3b7a12}.footer{background:#eef7e1;color:#5f6b62;border-color:#e3e8e0}.footer .brand,.footer h4{color:#0e1710}.footer p,.footer a,.footer .brand-sub,.footer-bottom{color:#5f6b62}
+@media(max-width:700px){.ut-hub-hero:before{inset:auto -90px auto auto;top:-60px;background:#ffffff08}}
+
+/* Homepage property categories and consignment: replace the remaining navy panels. */
+.type-tile{background:linear-gradient(145deg,#fff,#f2f8e9);color:#263c20;border:1px solid #dfe9d4;border-radius:20px;min-height:235px;padding:28px;box-shadow:0 8px 28px #365e2020;justify-content:flex-end}.type-tile::before,.type-tile::after{display:none}.type-tile-land{background:linear-gradient(145deg,#edf7df,#e1efcd)}.type-tile-condo{background:linear-gradient(145deg,#fff,#edf4e5)}.type-tile:hover{color:#263c20}.type-tile-icon{position:absolute;right:24px;top:24px;color:#89ad67;width:66px;height:66px;background:#ffffff99;border:1px solid #e0ead5;border-radius:16px;display:grid;place-items:center}.type-tile-icon .ico{width:38px;height:38px;stroke-width:1.3}.type-tile h3{color:#294621;font-size:26px}.type-tile p{color:#708164;font-size:13px;max-width:95%;margin-top:9px;line-height:1.8}.type-tile .links{gap:9px;margin-top:19px;flex-wrap:wrap}.type-tile .links a{border-radius:8px;background:#fff;color:#456637;border:1px solid #ccddbb;padding:9px 14px;font-size:12px}.type-tile .links a:first-child{background:#3d6b2c;color:#fff;border-color:#3d6b2c}.type-tile .links a:hover{background:#e2efcf;color:#315b23;border-color:#9cbe7c}.cta{background:radial-gradient(ellipse at 100% 0,#d9edb5,transparent 65%),linear-gradient(135deg,#f0f7e5,#e4efd4);color:#607452;border:1px solid #d8e5c7;box-shadow:0 10px 35px #315d2807}.cta h2{color:#294621;line-height:1.5}.cta .eyebrow{color:#65873f}.cta p{color:#6b7e5c;line-height:1.9}.cta .btn{border-radius:10px;background:#3d6b2c;color:#fff;box-shadow:0 7px 18px #3d6b2c20;font-size:14px}.cta .btn:hover{background:#315823;color:#fff}.cta ul{padding:24px;background:#ffffff88;border:1px solid #ffffff99;border-radius:16px;gap:17px}.cta li{color:#5c724d;font-size:14px;line-height:1.7}.cta li::before{color:#80ab42}@media(max-width:760px){.type-tile{min-height:220px;box-shadow:none}.type-tile-icon{width:58px;height:58px}.cta ul{padding:20px}.cta li{font-size:13px}}
+
+/* ---- hero: ภาพสไลด์พื้นหลัง ---- */
+.hero.hero-photo{background:#1d2a16;isolation:isolate}
+.hero.hero-photo::before{display:none}
+.hero-slides{position:absolute;inset:0;z-index:-1;overflow:hidden}
+.hero-slides::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(12,22,10,.78) 0%,rgba(12,22,10,.55) 42%,rgba(12,22,10,.12) 75%,rgba(12,22,10,.05) 100%),linear-gradient(0deg,rgba(12,22,10,.55) 0%,transparent 35%)}
+.hero-slide{position:absolute;inset:0;margin:0;opacity:0;transition:opacity 1.4s ease}
+.hero-slide img{width:100%;height:100%;object-fit:cover;transform:scale(1.02);transition:transform 8s ease-out}
+.hero-slides:not(.js) .hero-slide:first-child,.hero-slide.on{opacity:1}
+.hero-slide.on img{transform:scale(1.09)}
+.hero-slide figcaption{position:absolute;right:16px;bottom:12px;z-index:2;font-size:12px;line-height:1.4;color:#eef5e6;background:rgba(0,0,0,.38);padding:4px 10px;border-radius:999px;max-width:calc(100% - 32px);text-align:right}
+.hero-slide figcaption a{color:#fff;text-decoration:underline}
+.hero-photo h1,.hero-photo p.lead,.hero-photo .eyebrow,.hero-photo .hero-stats{text-shadow:0 1px 12px rgba(0,0,0,.35)}
+@media (max-width:720px){.hero-slides::after{background:linear-gradient(180deg,rgba(12,22,10,.7) 0%,rgba(12,22,10,.55) 55%,rgba(12,22,10,.75) 100%)}.hero-slide figcaption{font-size:11px;bottom:8px;right:8px}}
+@media (prefers-reduced-motion:reduce){.hero-slide,.hero-slide img{transition:none}.hero-slide.on img{transform:none}}
+.hero-slide{pointer-events:none}.hero-slide.on,.hero-slides:not(.js) .hero-slide:first-child{pointer-events:auto}
+/* ---- เลือกตามประเภท: การ์ดภาพหรู ---- */
+.lux-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.lux-sub{max-width:420px;color:var(--muted);font-size:15px;margin:0}
+.lux-types{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.lux-type{position:relative;height:460px;border-radius:24px;overflow:hidden;isolation:isolate;background:#132012;box-shadow:0 18px 40px -18px rgba(20,40,15,.45),0 2px 6px rgba(20,40,15,.08);transition:transform .45s cubic-bezier(.2,.7,.2,1),box-shadow .45s}
+.lux-type>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;transform:scale(1.02);transition:transform 1.2s cubic-bezier(.2,.7,.2,1)}
+.lux-type::after{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(10,18,8,.35) 0%,rgba(10,18,8,0) 26%,rgba(10,18,8,.1) 48%,rgba(10,18,8,.82) 78%,rgba(8,14,6,.94) 100%)}
+.lux-type:hover{transform:translateY(-6px);box-shadow:0 30px 60px -22px rgba(20,40,15,.55),0 2px 8px rgba(20,40,15,.1)}
+.lux-type:hover>img{transform:scale(1.08)}
+.lux-type-cover{position:absolute;inset:0;z-index:0}
+.lux-type-top{position:absolute;top:20px;left:24px;right:24px;display:flex;justify-content:space-between;color:rgba(255,255,255,.85);font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-weight:600;pointer-events:none}
+.lux-type-top span:first-child{font-family:var(--display,inherit);letter-spacing:.08em}
+.lux-type-body{position:absolute;left:0;right:0;bottom:0;padding:26px 26px 24px;color:#fff;z-index:1;pointer-events:none}
+.lux-type-body h3{color:#fff;font-size:38px;line-height:1.15;margin:0 0 6px;font-weight:700;letter-spacing:-.01em;text-shadow:0 2px 18px rgba(0,0,0,.45)}
+.lux-type-body p{text-shadow:0 1px 10px rgba(0,0,0,.5)}
+.lux-type-body p{color:rgba(255,255,255,.78);font-size:14px;margin:0 0 14px}
+.lux-type-meta{display:inline-flex;align-items:baseline;gap:6px;font-size:13px;color:rgba(255,255,255,.8);padding:6px 12px;border:1px solid rgba(255,255,255,.22);border-radius:999px;background:rgba(255,255,255,.08);backdrop-filter:blur(6px);margin-bottom:16px}
+.lux-type-meta b{color:#e6f6c8;font-size:16px}
+.lux-type-actions{display:flex;gap:10px;flex-wrap:wrap;pointer-events:auto}
+.lux-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:999px;font-size:14px;font-weight:600;text-decoration:none;transition:background .2s,color .2s,transform .2s}
+.lux-btn .ico{width:16px;height:16px}
+.lux-btn-solid{background:#fff;color:#1d3313}
+.lux-btn-solid:hover{background:#e9f7d2;color:#1d3313;transform:translateX(2px)}
+.lux-btn-glass{color:#fff;border:1px solid rgba(255,255,255,.45);background:rgba(255,255,255,.1);backdrop-filter:blur(6px)}
+.lux-btn-glass:hover{background:rgba(255,255,255,.22);color:#fff}
+@media (max-width:960px){.lux-types{grid-template-columns:1fr 1fr}.lux-type-condo{grid-column:span 2;height:360px}}
+@media (max-width:640px){.lux-types{grid-template-columns:1fr;gap:16px}.lux-type,.lux-type-condo{grid-column:auto;height:380px}.lux-type-body h3{font-size:32px}}
+@media (prefers-reduced-motion:reduce){.lux-type,.lux-type>img{transition:none}}
+/* ---- หัวหน้าค้นหา: แถบภาพจริงสไลด์ ---- */
+.property-search-hero.has-photo{position:relative;overflow:hidden;isolation:isolate;background:#16220f;border-color:transparent;min-height:260px;display:flex;align-items:center}
+.band-slides{position:absolute;inset:0;z-index:-1}
+.band-slides::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(10,20,8,.82) 0%,rgba(10,20,8,.6) 45%,rgba(10,20,8,.15) 85%),linear-gradient(0deg,rgba(10,20,8,.45),transparent 40%)}
+.band-slide{position:absolute;inset:0;margin:0;opacity:0;transition:opacity 1.4s ease;pointer-events:none}
+.band-slide img{width:100%;height:100%;object-fit:cover;transform:scale(1.02);transition:transform 8s ease-out}
+.band-slides:not(.js) .band-slide:first-child,.band-slide.on{opacity:1;pointer-events:auto}
+.band-slide.on img{transform:scale(1.07)}
+.band-slide figcaption{position:absolute;right:14px;bottom:10px;z-index:2;font-size:11.5px;color:#eef5e6;background:rgba(0,0,0,.4);padding:3px 10px;border-radius:999px;max-width:calc(100% - 28px);text-align:right}
+.band-slide figcaption a{color:#fff;text-decoration:underline}
+.property-search-hero.has-photo .property-search-heading{position:relative;z-index:1;text-shadow:0 1px 12px rgba(0,0,0,.35)}
+.property-search-hero.has-photo h1,.property-search-hero.has-photo .property-eyebrow,.property-search-hero.has-photo .muted,.property-search-hero.has-photo .property-hero-notes span{color:#fff!important}
+.property-search-hero.has-photo .property-eyebrow{color:#dff3bf!important}
+.property-search-hero.has-photo .property-hero-notes .ico{color:#cfeaa4}
+@media (prefers-reduced-motion:reduce){.band-slide,.band-slide img{transition:none}.band-slide.on img{transform:none}}
+@media (max-width:640px){.property-search-hero.has-photo{min-height:220px;padding-bottom:48px!important}.band-slide figcaption{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.band-slides::after{background:linear-gradient(180deg,rgba(10,20,8,.55),rgba(10,20,8,.8))}.band-slide figcaption{font-size:10.5px;right:8px;bottom:6px}}
+@media (max-width:640px){.hero-photo>.wrap{padding-bottom:84px!important}}
+
+/* ---------- โซน A · ทรัพย์โชว์เด่น ---------- */
+.showcase-sec{padding-bottom:8px}
+.showcase{display:grid;gap:18px;grid-template-columns:2fr 1fr;grid-auto-rows:250px}
+.showcase.n1{grid-template-columns:1fr;grid-auto-rows:440px}
+.showcase.n2{grid-template-columns:1fr 1fr;grid-auto-rows:420px}
+.showcase.n3 .sc-card:first-child{grid-row:span 2}
+.sc-card{position:relative;display:block;border-radius:22px;overflow:hidden;color:#fff;background:#1f2a16;box-shadow:0 18px 40px -22px rgba(30,45,15,.55);isolation:isolate}
+.sc-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .8s cubic-bezier(.2,.7,.2,1);z-index:-2}
+.sc-card::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(10,16,6,.35) 0%,rgba(10,16,6,0) 30%,rgba(10,16,6,.15) 50%,rgba(10,16,6,.82) 100%)}
+.sc-card:hover img{transform:scale(1.045)}
+.sc-card:hover{color:#fff}
+.sc-top{position:absolute;top:16px;left:16px;display:flex;gap:6px;flex-wrap:wrap}
+.sc-body{position:absolute;left:0;right:0;bottom:0;padding:22px 24px}
+.sc-loc{font-size:13px;opacity:.9;display:flex;align-items:center;gap:4px}
+.sc-loc svg{width:14px;height:14px}
+.sc-card h3{color:#fff;font-size:19px;line-height:1.4;margin:4px 0 8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-shadow:0 1px 8px rgba(0,0,0,.35)}
+.showcase.n3 .sc-card:first-child h3,.showcase.n1 h3{font-size:26px}
+.sc-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.sc-price{font-size:22px;font-weight:700;letter-spacing:-.01em}
+.sc-price small{font-size:13px;font-weight:500;opacity:.85}
+.sc-card .specs,.sc-card .specs span{color:rgba(255,255,255,.92)}
+.sc-card .specs{margin:0;border:0;padding:0}
+@media (max-width:860px){
+  .showcase,.showcase.n2,.showcase.n1{grid-template-columns:1fr;grid-auto-rows:300px}
+  .showcase.n3 .sc-card:first-child{grid-row:auto}
+  .showcase.n3 .sc-card:first-child h3,.showcase.n1 h3{font-size:21px}
+}
+
+/* หัวคู่มือจังหวัด: ภาพสถานที่ท่องเที่ยว */
+.g-photo h1{font-size:clamp(28px,3.6vw,46px);max-width:900px;line-height:1.3}
+.g-photo .wrap{padding-bottom:72px}
+.g-photo-meta{font-size:15px!important;opacity:.92}

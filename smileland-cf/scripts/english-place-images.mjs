@@ -1,0 +1,8 @@
+import {readFileSync,writeFileSync,existsSync} from 'node:fs';
+const names=JSON.parse(readFileSync('research/place-photos/english-names.json'));
+const all=JSON.parse(readFileSync('src/data/travel-content.json'));
+const photos=JSON.parse(readFileSync('src/data/isan-landmarks.json'));
+const items=Object.entries(names).flatMap(([slug,titles])=>titles.map((title,index)=>({key:slug+':'+index,slug,index,title,name:all.find(x=>x.slug===slug)?.places[index][0]||title}))).filter(x=>!photos[x.key]&&!(x.slug==='ubon-ratchathani'&&![3,5,6].includes(x.index)));
+const found={};
+for(let start=0;start<items.length;start+=40){const group=items.slice(start,start+40),path=`research/place-photos/en-${start}.json`;let j;if(existsSync(path))j=JSON.parse(readFileSync(path));else{const u=new URL('https://en.wikipedia.org/w/api.php');u.search=new URLSearchParams({action:'query',titles:group.map(x=>x.title).join('|'),redirects:'1',prop:'pageimages',piprop:'name',pilicense:'free',format:'json'});const r=await fetch(u);if(!r.ok)throw Error('Wikipedia '+r.status);j=await r.json();writeFileSync(path,JSON.stringify(j,null,2));}
+ const redirects=new Map([...(j.query?.normalized||[]),...(j.query?.redirects||[])].map(x=>[x.from,x.to]));for(const x of group){let t=x.title;for(let k=0;k<5&&redirects.has(t);k++)t=redirects.get(t);const p=Object.values(j.query?.pages||{}).find(p=>p.title===t);if(p?.pageimage&&!/logo|map|flag|seal|ตรา|ธง/i.test(p.pageimage)){found[x.key]={...x,file:p.pageimage,wikipedia:'https://en.wikipedia.org/wiki/'+encodeURIComponent(p.title)};console.log(x.key,x.name,p.title,p.pageimage);}}writeFileSync('research/place-photos/en-found.json',JSON.stringify(found,null,2));await new Promise(r=>setTimeout(r,2500));}

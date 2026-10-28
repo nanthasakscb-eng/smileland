@@ -1,0 +1,6 @@
+/** @jsxImportSource hono/jsx */
+const links = [['/', 'โปรทั้งหมด'], ['/ais-1-day/', 'รายวัน'], ['/ais-7-day/', '7 วัน'], ['/ais-30-day/', '30 วัน'], ['/ais-new-sim/', 'เปิดซิมใหม่'], ['/ais-my-style/', 'MY STYLE'], ['/ber-mongkol/', 'เบอร์มงคล'], ['/blog/', 'บทความ'], ['/chooser/', 'ช่วยเลือกโปร'], ['/ais-shortcodes/', 'เบอร์ลัด AIS']];
+export const PronetMenu = () => <aside class="pronet-menu" aria-label="โปรเน็ตจากเว็บไซต์ Pronet Mobile"><div class="wrap">
+  <div class="pronet-menu-heading"><a href="https://pronetmobile.com/" target="_blank" rel="noopener noreferrer"><span class="pronet-menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M9 7h6M9 10h6M10 18h4"/></svg></span>โปรเน็ต AIS สุดคุ้ม</a><span>ดูรายละเอียดที่ pronetmobile.com ↗</span></div>
+  <nav class="pronet-menu-links" aria-label="หมวดโปรเน็ต เว็บไซต์ต้นทาง">{links.map(([path,label])=><a href={`https://pronetmobile.com${path}`} target="_blank" rel="noopener noreferrer" class={label==='MY STYLE'?'pronet-featured':''}>{label}<span class="sr-only"> — เปิดเว็บไซต์ต้นทางในแท็บใหม่</span></a>)}</nav>
+</div></aside>;
