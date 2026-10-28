@@ -198,7 +198,7 @@ admin.post('/listings/:id{[0-9]+}', need('listings.review', 'listings.edit'), as
       await addTimeline(c.env, id, l.status === 'pending' ? 'approved' : 'reopened', actor);
       await reindex(c.env, { ...l, status: 'active' });
       if (l.status === 'pending') c.executionCtx.waitUntil(sendListingDecisionEmail(c, l, 'approved').catch(() => null));
-      msg = 'อนุมัติและเผยแพร่แล้ว' + (l.status === 'pending' ? ' · ส่งอีเมลแจ้งผู้โพสต์แล้ว' : '');
+      msg = 'อนุมัติและเผยแพร่แล้ว' + (l.status === 'pending' ? ' · แจ้งผู้โพสต์ทาง LINE แล้ว' : '');
       break;
     }
     case 'reject': {

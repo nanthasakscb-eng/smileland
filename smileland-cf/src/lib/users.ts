@@ -6,6 +6,7 @@ import { db } from '../db';
 import { emailTokens, users, type User } from '../db/schema';
 import { randomToken, sha256Hex } from './security';
 import { mailTemplate, sendMail } from './mail';
+import { pushLineText } from './line-push';
 import { nowSec } from './util';
 
 /* ---------- session ของสมาชิก (KV, cookie แยกจากแอดมิน) ---------- */
@@ -108,13 +109,20 @@ export const can = (s: { isOwner?: boolean; perms?: string[] } | undefined, perm
 
 /** แจ้งผลการตรวจประกาศให้ผู้โพสต์ (อนุมัติ / ไม่อนุมัติพร้อมเหตุผล) */
 export async function sendListingDecisionEmail(c: Context<AppEnv>, l: { id: number; ref: string; title: string; userId: number | null; ownerEmail: string | null; ownerName: string }, decision: 'approved' | 'rejected', reason?: string) {
-  let to = l.ownerEmail, uid: number | undefined;
+  let to = l.ownerEmail, uid: number | undefined, lineSub: string | null = null;
   if (l.userId) {
     const u = (await db(c.env).select().from(users).where(eq(users.id, l.userId)).limit(1))[0];
-    if (u) { to = u.email; uid = u.id; }
+    if (u) { to = u.email; uid = u.id; lineSub = u.lineSub; }
   }
-  if (!to || l.ref.startsWith('SL-DEMO')) return null;
+  if (l.ref.startsWith('SL-DEMO')) return null;
   const o = origin(c);
+  // แจ้งทาง LINE (สมาชิกที่สมัครด้วย LINE และเป็นเพื่อน OA)
+  if (lineSub) {
+    await pushLineText(c.env, lineSub, decision === 'approved'
+      ? [`✅ ประกาศ ${l.ref} ผ่านการตรวจสอบแล้ว`, `"${l.title}"`.slice(0, 160), 'เผยแพร่บนเว็บแล้ว', '', `ดูประกาศ: ${o}/listing/${l.id}`, `จัดการประกาศ: ${o}/account`].join('\n')
+      : [`❌ ประกาศ ${l.ref} ยังไม่ผ่านการตรวจสอบ`, `"${l.title}"`.slice(0, 160), '', `เหตุผลจากทีมงาน: ${reason || '-'}`, '', 'แก้ไขตามเหตุผลแล้วกด "ส่งตรวจอีกครั้ง" ได้เลย ไม่ต้องลงประกาศใหม่', `แก้ไขประกาศ: ${o}/account/listings/${l.id}/edit`].join('\n'));
+  }
+  if (!to) return null;
   const m = decision === 'approved'
     ? mailTemplate(`ประกาศ ${l.ref} ผ่านการตรวจสอบแล้ว`, [
       `สวัสดีคุณ${l.ownerName}`,
