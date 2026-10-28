@@ -351,7 +351,12 @@ admin.post('/leads/:id{[0-9]+}', need('leads'), async (c) => {
 
 /* ---------- ตั้งค่า ---------- */
 const SETTING_KEYS = ['contact_phone', 'contact_line', 'contact_line_url', 'contact_email', 'company_name', 'company_address', 'dpo_contact', 'privacy_effective_date', 'data_retention', 'google_site_verification', 'bing_site_verification'];
-admin.get('/settings', need('settings'), async (c) => page(c, 'ตั้งค่า', 'settings', <SettingsPage admin={c.get('admin')!} s={c.get('settings')} demo={await demoStatus(c.env)} ok={c.req.query('ok') ? (c.req.query('msg') || 'บันทึกแล้ว') : undefined} after={c.req.query('after')} />));
+admin.get('/settings', need('settings'), async (c) => page(c, 'ตั้งค่า', 'settings', <SettingsPage admin={c.get('admin')!} s={c.get('settings')} demo={await demoStatus(c.env)} ok={c.req.query('ok') ? (c.req.query('msg') || 'บันทึกแล้ว') : undefined} after={c.req.query('after')} keys={[
+  ['เข้าสู่ระบบด้วย LINE (LINE Login)', !!(c.env.LINE_LOGIN_CHANNEL_ID && c.env.LINE_LOGIN_CHANNEL_SECRET)],
+  ['แจ้งเตือนเจ้าของทรัพย์ทาง LINE (Messaging API)', !!c.env.LINE_MESSAGING_TOKEN],
+  ['ส่งอีเมล (Resend)', !!(c.env.RESEND_API_KEY && c.env.MAIL_FROM)],
+  ['กันบอท (Turnstile)', !!c.env.TURNSTILE_SECRET_KEY && !String(c.env.TURNSTILE_SITE_KEY || '').startsWith('1x0000')],
+]} />));
 admin.post('/demo/threshold', need('settings'), async (c) => {
   const f = await c.req.parseBody();
   const n = Math.min(Math.max(parseInt(String(f.demo_hide_at ?? ''), 10) || 0, 1), 10000);

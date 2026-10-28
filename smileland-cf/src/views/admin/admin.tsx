@@ -466,7 +466,7 @@ export const LeadsAdminPage: FC<{ rows: (Lead & { listingRef?: string | null })[
   </>
 );
 
-export const SettingsPage: FC<{ admin: AdminSession; s: Record<string, string>; demo: { real: number; demo: number; at: number; hidden: boolean }; ok?: string; after?: string }> = ({ admin, s, demo, ok, after }) => {
+export const SettingsPage: FC<{ admin: AdminSession; s: Record<string, string>; demo: { real: number; demo: number; at: number; hidden: boolean }; ok?: string; after?: string; keys?: [string, boolean][] }> = ({ admin, s, demo, ok, after, keys = [] }) => {
   const fields: [string, string, string?][] = [
     ['contact_phone', 'เบอร์โทรติดต่อ (แสดงบนเว็บ)'], ['contact_line', 'LINE OA ID (เช่น @smileland)'], ['contact_line_url', 'ลิงก์ LINE OA', 'https://lin.ee/...'],
     ['contact_email', 'อีเมลติดต่อ / เรื่องข้อมูลส่วนบุคคล'], ['company_name', 'ชื่อนิติบุคคล/ผู้ให้บริการ (นโยบายความเป็นส่วนตัว)'],
@@ -478,6 +478,15 @@ export const SettingsPage: FC<{ admin: AdminSession; s: Record<string, string>; 
     <>
       <h1>ตั้งค่าเว็บไซต์</h1>
       {ok && <div class="alert alert-ok">{ok}</div>}
+      {keys.length > 0 && (
+        <div class="form-card" style="max-width:760px;margin-bottom:20px">
+          <h2 style="font-size:18px;margin-top:0">สถานะคีย์ระบบ</h2>
+          <ul style="list-style:none;padding:0;margin:0;line-height:2">
+            {keys.map(([label, on]) => <li>{on ? '✅' : '❌'} {label} — <b>{on ? 'ตั้งค่าแล้ว' : 'ยังไม่ได้ตั้ง'}</b></li>)}
+          </ul>
+          <p class="small muted" style="margin:8px 0 0">ตั้งคีย์ด้วย set-keys.bat ในเครื่อง (ไม่แสดงค่าคีย์ที่นี่)</p>
+        </div>
+      )}
       <form class="form-card" method="post" action="/admin/settings" style="max-width:760px">
         <input type="hidden" name="csrf" value={admin.csrf} />
         {fields.map(([k, label, ph]) => <div class="field"><label for={`s-${k}`}>{label}</label><input id={`s-${k}`} class="input" name={k} value={s[k] || ''} placeholder={ph || ''} maxlength={300} /></div>)}
