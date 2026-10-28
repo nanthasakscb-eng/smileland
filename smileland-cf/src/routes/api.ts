@@ -2,8 +2,9 @@ import { Hono, type Context } from 'hono';
 import { and, eq, gte } from 'drizzle-orm';
 import type { AppEnv } from '../env';
 import { db } from '../db';
-import { leads, listingImages, listings, priceHistory, timeline } from '../db/schema';
+import { leads, listingImages, listings, priceHistory, timeline, users } from '../db/schema';
 import { isNoMail } from '../lib/mail';
+import { linePushEnabled, pushLineText } from '../lib/line-push';
 import { districtsOf, geo, subdistrictsOf } from '../lib/geo';
 import { search } from '../lib/listings';
 import { getUser } from '../lib/users';
@@ -345,9 +346,32 @@ api.post('/leads', async (c) => {
   }
   const meta: Record<string, string> = {};
   for (const [k, v] of Object.entries(b)) if (k.startsWith('meta_') && typeof v === 'string' && v) meta[k.slice(5)] = v.slice(0, 80);
-  await db(c.env).insert(leads).values({
+  const lead = {
     kind, listingId, name, phone, line: str(b.line, 60) || null, email: str(b.email, 120) || null,
     message: str(b.message, 2000) || null, meta: Object.keys(meta).length ? JSON.stringify(meta) : null,
-  });
+  } as const;
+  await db(c.env).insert(leads).values(lead);
+  // แจ้งเตือนเจ้าของทรัพย์ทาง LINE ทันที (ถ้าเจ้าของสมัครด้วย LINE และเป็นเพื่อน OA)
+  if (kind === 'inquiry' && listingId && linePushEnabled(c.env)) {
+    const lid = listingId;
+    c.executionCtx.waitUntil((async () => {
+      const r = await db(c.env).select({ ref: listings.ref, title: listings.title, lineSub: users.lineSub })
+        .from(listings).innerJoin(users, eq(listings.userId, users.id)).where(eq(listings.id, lid)).limit(1);
+      const o = r[0];
+      if (!o?.lineSub) return;
+      const site = (c.env.SITE_URL || '').replace(/\/+$/, '');
+      await pushLineText(c.env, o.lineSub, [
+        '🔔 มีคนสนใจทรัพย์ของคุณ',
+        `ประกาศ ${o.ref}: ${o.title}`.slice(0, 160),
+        '',
+        `ชื่อ: ${lead.name}`,
+        `โทร: ${lead.phone}`,
+        ...(lead.line ? [`LINE: ${lead.line}`] : []),
+        ...(lead.message ? ['', `ข้อความ: ${lead.message.slice(0, 500)}`] : []),
+        '',
+        `ดูผู้สนใจทั้งหมด: ${site}/account?tab=leads`,
+      ].join('\n'));
+    })().catch((e) => console.error('lead notify', String(e))));
+  }
   return c.json({ ok: true });
 });

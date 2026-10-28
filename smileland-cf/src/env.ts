@@ -20,6 +20,7 @@ export type Bindings = {
   MAIL_FROM?: string;      // เช่น "อีสานน่าอยู่ <no-reply@yourdomain.com>"
   LINE_LOGIN_CHANNEL_ID?: string;     // LINE Login channel (developers.line.biz) — ตั้งผ่าน set-keys.bat
   LINE_LOGIN_CHANNEL_SECRET?: string;
+  LINE_MESSAGING_TOKEN?: string;      // Messaging API (OA) channel access token — แจ้งเตือนเจ้าของทรัพย์ทาง LINE
 };
 
 export type Job =

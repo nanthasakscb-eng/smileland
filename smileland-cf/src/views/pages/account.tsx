@@ -299,6 +299,7 @@ export const AccountPage: FC<{ env: Bindings; user: User; sess: UserSession; row
           {user.lineSub ? (
             <>
               <p style="display:flex;align-items:center;gap:10px">{user.linePicture && <img src={user.linePicture} alt="" width="40" height="40" style="border-radius:50%" referrerpolicy="no-referrer" />}<span>เชื่อมกับ LINE แล้ว · กด "เข้าสู่ระบบด้วย LINE" ได้เลย</span></p>
+              <p class="small muted">มีคนสนใจทรัพย์ของคุณ ระบบจะแจ้งเตือนเข้า LINE ทันที (ต้องเป็นเพื่อนกับ <a href="https://line.me/R/ti/p/@361oxsdn" target="_blank" rel="noopener" style="text-decoration:underline">LINE @361oxsdn</a>)</p>
               {!lineOnly && (
                 <form method="post" action="/account/line/unlink" data-confirm="ยกเลิกการเชื่อม LINE? (ยังเข้าสู่ระบบด้วยอีเมลได้ตามปกติ)">
                   <input type="hidden" name="csrf" value={sess.csrf} />

@@ -18,8 +18,9 @@ console.log(`
   1) อีเมลจริง — RESEND_API_KEY (จาก resend.com → API Keys)
   2) กันบอท — Turnstile Site Key + Secret Key (จาก Cloudflare Dashboard → Turnstile)
   3) เข้าสู่ระบบด้วย LINE — Channel ID + Channel secret (จาก developers.line.biz → LINE Login channel → Basic settings)
+  4) แจ้งเตือนทาง LINE — Channel access token (จาก developers.line.biz → ช่องทาง Messaging API → แท็บ Messaging API → Channel access token (long-lived) → Issue)
 `);
-const c = (await rl.question('พิมพ์ 1, 2 หรือ 3 แล้วกด Enter: ')).trim();
+const c = (await rl.question('พิมพ์ 1, 2, 3 หรือ 4 แล้วกด Enter: ')).trim();
 if (c === '1') {
   const k = (await rl.question('วาง RESEND_API_KEY (ขึ้นต้นด้วย re_): ')).trim();
   if (!/^re_[A-Za-z0-9_]{10,}$/.test(k)) console.log('✘ รูปแบบคีย์ไม่ถูกต้อง (ต้องขึ้นต้นด้วย re_)');
@@ -47,5 +48,9 @@ if (c === '1') {
   else if (put('LINE_LOGIN_CHANNEL_ID', id) && put('LINE_LOGIN_CHANNEL_SECRET', secret)) {
     console.log('✓ เสร็จ — หน้าเข้าสู่ระบบ/สมัครสมาชิกจะมีปุ่ม "เข้าสู่ระบบด้วย LINE" แล้ว');
   }
+} else if (c === '4') {
+  const t = (await rl.question('วาง Channel access token (ยาวมาก ~170 ตัว): ')).trim();
+  if (!/^[A-Za-z0-9+/=._-]{100,}$/.test(t)) console.log('✘ รูปแบบไม่ถูกต้อง — คัดลอก Channel access token (long-lived) ทั้งหมด');
+  else if (put('LINE_MESSAGING_TOKEN', t)) console.log('✓ เสร็จ — มีคนสนใจทรัพย์ ระบบจะแจ้งเตือนเจ้าของทาง LINE ทันที');
 } else console.log('ยกเลิก');
 rl.close();
