@@ -542,3 +542,13 @@ table.t .thumbcell img { width: 76px; height: 56px; object-fit: cover; border-ra
 @media (max-width:640px){.odash{padding:18px 16px}.odash-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.odash-stats .odash-tile:first-child{grid-column:1/-1}.odash-actions{justify-content:stretch}.odash-actions>*{flex:1}.odash-actions .btn{width:100%}}
 .danger-zone{border-color:#f0c4bc!important;background:#fffafa}
 .danger-zone h2{color:#a52c1f}
+
+/* LINE OA (หน้าลงประกาศ) */
+.line-help{display:flex;align-items:center;gap:16px;background:#effaf2;border:1px solid #bfe9cb;border-radius:16px;padding:14px 18px;margin:0 0 20px}
+.line-qr{flex:none;width:96px;height:96px;background:#fff;border-radius:10px;padding:4px;border:1px solid #d6eedc}
+.line-help-text{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}
+.line-help-text b{font-size:16px;color:#0d4f22}
+.line-help-text span{font-size:14px;color:#3d5544}
+.line-btn{flex:none;display:inline-flex;align-items:center;gap:8px;background:#06c755;color:#fff!important;font-weight:700;border-radius:999px;padding:11px 20px;text-decoration:none;box-shadow:0 6px 16px -8px rgba(6,199,85,.7)}
+.line-btn:hover{background:#05b04b}
+@media (max-width:640px){.line-help{flex-wrap:wrap}.line-qr{display:none}.line-btn{width:100%;justify-content:center}}

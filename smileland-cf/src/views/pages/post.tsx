@@ -5,6 +5,7 @@ import type { Province } from '../../db/schema';
 import { Crumbs, Icon, Turnstile } from '../ui';
 import { DEED_TYPES, FEATURES, ZONING, formatPrice } from '../../lib/util';
 import type { Listing } from '../../db/schema';
+import { LINE_OA } from '../../data/contact';
 
 const MAX_IMAGES = 12;
 
@@ -32,6 +33,17 @@ export const PostPage: FC<{ env: Bindings; provinces: Province[]; consign?: bool
       <h1>{L ? 'แก้ไขประกาศแล้วส่งตรวจอีกครั้ง' : 'ลงประกาศขาย/ให้เช่า ฟรี'}</h1>
       <p class="muted">กรอกข้อมูลให้ครบถ้วน ทีมงานจะตรวจสอบภายใน 24 ชั่วโมง (วันทำการ) ก่อนเผยแพร่ เบอร์โทรและเลขโฉนดของคุณจะไม่แสดงบนหน้าเว็บ</p>
     </div>
+    <aside class="line-help" aria-label="ติดต่อทีมงานทาง LINE">
+      <img src={LINE_OA.qr} alt={`QR Code เพิ่มเพื่อน LINE ${LINE_OA.id}`} width="96" height="96" class="line-qr" />
+      <div class="line-help-text">
+        <b>ลงประกาศไม่เป็น หรือมีคำถาม? ทักทีมงานทาง LINE</b>
+        <span>LINE Official Account <strong>{LINE_OA.id}</strong> · ส่งรูปและรายละเอียดทรัพย์มาให้ทีมงานช่วยลงก็ได้</span>
+      </div>
+      <a class="line-btn" href={LINE_OA.url} target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5s5.9-3.5 8-6c1.5-1.6 2-3.2 2-4.8C22 6.6 17.5 3 12 3Z"/></svg>
+        เพิ่มเพื่อน LINE
+      </a>
+    </aside>
     <div class="form-shell">
       <ol class="steps">
         <li><a href="#s-kind">ประเภทประกาศ</a></li>
