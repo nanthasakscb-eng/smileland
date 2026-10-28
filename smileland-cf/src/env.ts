@@ -18,6 +18,8 @@ export type Bindings = {
   ADMIN_INITIAL_PASSWORD?: string;
   RESEND_API_KEY?: string; // ส่งอีเมลผ่าน Resend (ถ้าไม่ตั้ง อีเมลจะไปอยู่ใน /admin/outbox)
   MAIL_FROM?: string;      // เช่น "อีสานน่าอยู่ <no-reply@yourdomain.com>"
+  LINE_LOGIN_CHANNEL_ID?: string;     // LINE Login channel (developers.line.biz) — ตั้งผ่าน set-keys.bat
+  LINE_LOGIN_CHANNEL_SECRET?: string;
 };
 
 export type Job =

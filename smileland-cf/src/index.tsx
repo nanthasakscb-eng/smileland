@@ -8,6 +8,7 @@ import { api } from './routes/api';
 import { admin } from './routes/admin';
 import { seo } from './routes/seo';
 import { account } from './routes/account';
+import { lineAuth } from './routes/line-auth';
 import { withUser } from './lib/users';
 import { loadSettings } from './lib/settings';
 import { dailyCron, handleJob } from './lib/jobs';
@@ -52,6 +53,7 @@ app.use('*', async (c, next) => {
 app.route('/', seo);
 app.route('/api', api);
 app.route('/admin', admin);
+app.route('/', lineAuth);
 app.route('/', account);
 app.route('/', pub);
 

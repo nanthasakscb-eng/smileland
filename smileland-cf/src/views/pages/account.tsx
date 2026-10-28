@@ -15,12 +15,27 @@ const AuthShell: FC<{ title: string; sub?: string; children?: Child }> = ({ titl
     <div class="form-card">{children}</div>
   </div>
 );
+/** ปุ่มเข้าสู่ระบบด้วย LINE (แสดงเมื่อตั้งค่า LINE Login แล้ว) */
+const lineOn = (env: Bindings) => !!(env.LINE_LOGIN_CHANNEL_ID && env.LINE_LOGIN_CHANNEL_SECRET);
+const LineButton: FC<{ env: Bindings; label: string; next?: string; note?: Child }> = ({ env, label, next, note }) =>
+  lineOn(env) ? (
+    <div class="line-login">
+      <a class="btn btn-block btn-lg btn-linelogin" href={`/auth/line${next ? `?next=${encodeURIComponent(next)}` : ''}`} rel="nofollow">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5s6-3.5 8.2-6.1c1.5-1.6 2.2-3.2 2.2-4.7C22 6.6 17.5 3 12 3z"/></svg>
+        {label}
+      </a>
+      {note && <p class="small muted center" style="margin:8px 0 0">{note}</p>}
+      <div class="or-sep"><span>หรือใช้อีเมล</span></div>
+    </div>
+  ) : null;
+
 const Err: FC<{ e?: string }> = ({ e }) => (e ? <div class="alert alert-bad">{e}</div> : null);
 const Ok: FC<{ m?: string }> = ({ m }) => (m ? <div class="alert alert-ok">{m}</div> : null);
 
 export const RegisterPage: FC<{ env: Bindings; error?: string; v?: Record<string, string> }> = ({ env, error, v = {} }) => (
   <AuthShell title="สมัครสมาชิก" sub="สมัครฟรี ยืนยันอีเมลแล้วลงประกาศขาย/ให้เช่าได้ทันที">
     <Err e={error} />
+    <LineButton env={env} label="สมัครด้วย LINE" note={<>ไม่ต้องยืนยันอีเมล · การสมัครถือว่ายอมรับ<a href="/terms" target="_blank" style="text-decoration:underline">ข้อกำหนด</a>และ<a href="/privacy" target="_blank" style="text-decoration:underline">นโยบายความเป็นส่วนตัว</a></>} />
     <form method="post" action="/register">
       <div class="field"><label class="req" for="r-name">ชื่อ-นามสกุล / ชื่อที่ใช้ติดต่อ</label><input id="r-name" class="input" name="name" required maxlength={80} value={v.name || ''} autocomplete="name" /></div>
       <div class="field"><label class="req" for="r-email">อีเมล</label><input id="r-email" class="input" type="email" name="email" required maxlength={120} value={v.email || ''} autocomplete="email" /></div>
@@ -37,6 +52,7 @@ export const RegisterPage: FC<{ env: Bindings; error?: string; v?: Record<string
 export const LoginPage: FC<{ env: Bindings; error?: string; ok?: string; next?: string; email?: string }> = ({ env, error, ok, next, email }) => (
   <AuthShell title="เข้าสู่ระบบ" sub="สำหรับสมาชิกผู้ลงประกาศ">
     <Err e={error} /><Ok m={ok} />
+    <LineButton env={env} label="เข้าสู่ระบบด้วย LINE" next={next} />
     <form method="post" action="/login">
       <input type="hidden" name="next" value={next || ''} />
       <div class="field"><label for="l-email">อีเมล</label><input id="l-email" class="input" type="email" name="email" required maxlength={120} value={email || ''} autocomplete="email" /></div>
@@ -140,7 +156,9 @@ export const OwnerDash: FC<{ user: Pick<User, 'name' | 'phone' | 'email' | 'line
           <h2>คุณ{user.name}</h2>
           <ul>
             <li><Icon name="phone" /> {user.phone || <span class="muted">ยังไม่ได้ใส่เบอร์</span>}</li>
-            <li><Icon name="mail" /> {user.email}{user.emailVerifiedAt ? <span class="odash-ok">ยืนยันแล้ว</span> : <span class="odash-warn">ยังไม่ยืนยัน</span>}</li>
+            {user.email.endsWith('@line.invalid')
+              ? <li><span class="odash-line">LINE</span> เข้าสู่ระบบด้วย LINE<span class="odash-ok">ยืนยันแล้ว</span></li>
+              : <li><Icon name="mail" /> {user.email}{user.emailVerifiedAt ? <span class="odash-ok">ยืนยันแล้ว</span> : <span class="odash-warn">ยังไม่ยืนยัน</span>}</li>}
             {user.line && <li><span class="odash-line">LINE</span> {user.line}</li>}
           </ul>
           <a class="odash-edit" href="/account?tab=profile">แก้ไขข้อมูลส่วนตัว</a>
@@ -161,6 +179,7 @@ export const OwnerDash: FC<{ user: Pick<User, 'name' | 'phone' | 'email' | 'line
 type Row = Listing & { leadCount: number; provinceName?: string };
 export const AccountPage: FC<{ env: Bindings; user: User; sess: UserSession; rows: Row[]; leads: (Lead & { listingRef?: string | null })[]; msg?: string; error?: string; tab: string; status?: string }> = ({ env, user, sess, rows: allRows, leads, msg, error, tab, status = '' }) => {
   const rows = status ? allRows.filter((r) => r.status === status) : allRows;
+  const lineOnly = user.email.endsWith('@line.invalid');
   return (
   <div class="wrap" style="padding-bottom:64px">
     <Crumbs items={[['หน้าแรก', '/'], ['บัญชีของฉัน']]} />
@@ -248,20 +267,43 @@ export const AccountPage: FC<{ env: Bindings; user: User; sess: UserSession; row
         <form class="form-card" method="post" action="/account/profile">
           <h2 style="font-size:19px">ข้อมูลติดต่อ</h2>
           <input type="hidden" name="csrf" value={sess.csrf} />
-          <div class="field"><label>อีเมล</label><input class="input" value={user.email} disabled /><div class="hint">{user.emailVerifiedAt ? `ยืนยันแล้วเมื่อ ${thaiDate(user.emailVerifiedAt)}` : 'ยังไม่ยืนยัน'}</div></div>
+          {lineOnly
+            ? <div class="field"><label>อีเมล</label><input class="input" value="" placeholder="ไม่มี — เข้าสู่ระบบด้วย LINE" disabled /><div class="hint">บัญชีนี้เข้าสู่ระบบด้วย LINE · ผู้สนใจทรัพย์จะแสดงที่แท็บ "ผู้สนใจ"</div></div>
+            : <div class="field"><label>อีเมล</label><input class="input" value={user.email} disabled /><div class="hint">{user.emailVerifiedAt ? `ยืนยันแล้วเมื่อ ${thaiDate(user.emailVerifiedAt)}` : 'ยังไม่ยืนยัน'}</div></div>}
           <div class="field"><label for="p-n">ชื่อ</label><input id="p-n" class="input" name="name" required maxlength={80} value={user.name} /></div>
           <div class="field"><label for="p-ph">เบอร์โทร</label><input id="p-ph" class="input" name="phone" required maxlength={15} value={user.phone || ''} /></div>
           <div class="field"><label for="p-ln">LINE ID</label><input id="p-ln" class="input" name="line" maxlength={60} value={user.line || ''} /></div>
           <button class="btn btn-ink" type="submit">บันทึก</button>
         </form>
-        <form class="form-card" method="post" action="/account/password">
+        <div>
+        <div class="form-card" style="margin-bottom:20px">
+          <h2 style="font-size:19px">บัญชี LINE</h2>
+          {user.lineSub ? (
+            <>
+              <p style="display:flex;align-items:center;gap:10px">{user.linePicture && <img src={user.linePicture} alt="" width="40" height="40" style="border-radius:50%" referrerpolicy="no-referrer" />}<span>เชื่อมกับ LINE แล้ว · กด "เข้าสู่ระบบด้วย LINE" ได้เลย</span></p>
+              {!lineOnly && (
+                <form method="post" action="/account/line/unlink" data-confirm="ยกเลิกการเชื่อม LINE? (ยังเข้าสู่ระบบด้วยอีเมลได้ตามปกติ)">
+                  <input type="hidden" name="csrf" value={sess.csrf} />
+                  <button class="btn btn-sm btn-line" type="submit">ยกเลิกการเชื่อม</button>
+                </form>
+              )}
+            </>
+          ) : lineOn(env) ? (
+            <>
+              <p class="small muted">เชื่อม LINE แล้วครั้งต่อไปเข้าสู่ระบบได้ด้วยปุ่มเดียว ไม่ต้องจำรหัสผ่าน</p>
+              <a class="btn btn-linelogin" href="/auth/line?link=1">เชื่อมบัญชี LINE</a>
+            </>
+          ) : <p class="small muted">ยังไม่เปิดใช้งาน</p>}
+        </div>
+        {!lineOnly && <form class="form-card" method="post" action="/account/password">
           <h2 style="font-size:19px">เปลี่ยนรหัสผ่าน</h2>
           <input type="hidden" name="csrf" value={sess.csrf} />
           <div class="field"><label for="pw-c">รหัสผ่านปัจจุบัน</label><input id="pw-c" class="input" type="password" name="current" required autocomplete="current-password" /></div>
           <div class="field"><label for="pw-n">รหัสผ่านใหม่</label><input id="pw-n" class="input" type="password" name="next" required minlength={8} autocomplete="new-password" /></div>
           <div class="field"><label for="pw-n2">ยืนยันรหัสผ่านใหม่</label><input id="pw-n2" class="input" type="password" name="next2" required minlength={8} autocomplete="new-password" /></div>
           <button class="btn btn-ink" type="submit">เปลี่ยนรหัสผ่าน</button>
-        </form>
+        </form>}
+        </div>
       </div>
     )}
   </div>

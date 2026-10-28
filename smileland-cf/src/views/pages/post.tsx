@@ -222,7 +222,7 @@ export const PostPage: FC<{ env: Bindings; provinces: Province[]; consign?: bool
             <div class="field"><label class="req" for="p-name">ชื่อผู้ลงประกาศ</label><input id="p-name" class="input" name="ownerName" required maxlength={80} autocomplete="name" value={me?.name || ''} /></div>
             <div class="field"><label class="req" for="p-phone">เบอร์โทร</label><input id="p-phone" class="input" name="ownerPhone" required inputmode="tel" maxlength={15} autocomplete="tel" placeholder="08xxxxxxxx" value={me?.phone || ''} /></div>
             <div class="field"><label for="p-line">LINE ID</label><input id="p-line" class="input" name="ownerLine" maxlength={60} value={me?.line || ''} /></div>
-            <div class="field"><label for="p-email">อีเมล</label><input id="p-email" class="input" name="ownerEmail" type="email" maxlength={120} autocomplete="email" value={me?.email || ''} readonly={!!me} /></div>
+            <div class="field"><label for="p-email">อีเมล</label><input id="p-email" class="input" name="ownerEmail" type="email" maxlength={120} autocomplete="email" value={me?.email && !me.email.endsWith('@line.invalid') ? me.email : ''} readonly={!!me} placeholder={me ? 'ไม่มีอีเมล (เข้าสู่ระบบด้วย LINE)' : ''} /></div>
           </div>
           <div class="field" data-for="land house">
             <label for="p-deedno">เลขที่โฉนด <span class="muted small">(ไม่บังคับ · เก็บเป็นความลับ ใช้ตรวจสอบเท่านั้น)</span></label>

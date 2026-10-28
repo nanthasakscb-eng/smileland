@@ -3,6 +3,7 @@ import { and, eq, gte } from 'drizzle-orm';
 import type { AppEnv } from '../env';
 import { db } from '../db';
 import { leads, listingImages, listings, priceHistory, timeline } from '../db/schema';
+import { isNoMail } from '../lib/mail';
 import { districtsOf, geo, subdistrictsOf } from '../lib/geo';
 import { search } from '../lib/listings';
 import { getUser } from '../lib/users';
@@ -134,7 +135,7 @@ async function parseListingForm(c: Context<AppEnv>, form: FormData, me: { email:
 
   const ownerName = str(g('ownerName'), 80);
   const ownerPhone = normPhone(String(g('ownerPhone') || ''));
-  const ownerEmail = me.email;
+  const ownerEmail = isNoMail(me.email) ? '' : me.email;
   if (ownerName.length < 2) errors.ownerName = 'ระบุชื่อผู้ลงประกาศ';
   if (!isThaiPhone(ownerPhone)) errors.ownerPhone = 'เบอร์โทรไม่ถูกต้อง (เช่น 0812345678)';
   if (ownerEmail && !isEmail(ownerEmail)) errors.ownerEmail = 'อีเมลไม่ถูกต้อง';

@@ -4,8 +4,12 @@ import { outbox } from '../db/schema';
 
 /** ส่งอีเมล: ถ้าตั้ง RESEND_API_KEY + MAIL_FROM จะส่งจริงผ่าน Resend
  *  ถ้ายังไม่ตั้ง → บันทึกไว้ใน outbox (status = logged) ให้แอดมินดูลิงก์/ยืนยันแทนที่ /admin/outbox */
+/** อีเมลแทนของบัญชีที่สมัครด้วย LINE และ LINE ไม่ได้ให้อีเมลมา */
+export const isNoMail = (e: string | null | undefined) => !!e && e.endsWith('@line.invalid');
+
 export async function sendMail(env: Bindings, m: { to: string; subject: string; text: string; html: string; kind?: string; userId?: number }) {
   let status = 'logged', error: string | null = null;
+  if (isNoMail(m.to)) return 'skipped'; // บัญชีที่สมัครด้วย LINE แต่ไม่มีอีเมล
   if (env.RESEND_API_KEY && env.MAIL_FROM) {
     try {
       const r = await fetch('https://api.resend.com/emails', {

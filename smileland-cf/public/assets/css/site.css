@@ -552,3 +552,10 @@ table.t .thumbcell img { width: 76px; height: 56px; object-fit: cover; border-ra
 .line-btn{flex:none;display:inline-flex;align-items:center;gap:8px;background:#06c755;color:#fff!important;font-weight:700;border-radius:999px;padding:11px 20px;text-decoration:none;box-shadow:0 6px 16px -8px rgba(6,199,85,.7)}
 .line-btn:hover{background:#05b04b}
 @media (max-width:640px){.line-help{flex-wrap:wrap}.line-qr{display:none}.line-btn{width:100%;justify-content:center}}
+
+/* เข้าสู่ระบบด้วย LINE */
+.btn-linelogin { background: #06c755; border-color: #06c755; color: #fff; display: inline-flex; align-items: center; justify-content: center; gap: 10px; font-weight: 700; }
+.btn-linelogin:hover { background: #05b34c; border-color: #05b34c; color: #fff; }
+.line-login { margin-bottom: 8px; }
+.or-sep { display: flex; align-items: center; gap: 12px; margin: 18px 0 14px; color: var(--muted, #667085); font-size: 13px; }
+.or-sep::before, .or-sep::after { content: ""; flex: 1; height: 1px; background: var(--line, #e6e0d4); }

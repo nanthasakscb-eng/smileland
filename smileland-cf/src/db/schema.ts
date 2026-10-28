@@ -187,6 +187,8 @@ export const users = sqliteTable('users', {
   status: text('status', { enum: ['active', 'suspended'] }).notNull().default('active'),
   createdAt: integer('created_at').notNull().default(now),
   lastLoginAt: integer('last_login_at'),
+  lineSub: text('line_sub'),
+  linePicture: text('line_picture'),
 }, (t) => [uniqueIndex('users_email').on(t.email)]);
 
 export const emailTokens = sqliteTable('email_tokens', {

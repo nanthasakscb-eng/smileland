@@ -17,8 +17,9 @@ console.log(`
 เลือกคีย์ที่จะตั้ง:
   1) อีเมลจริง — RESEND_API_KEY (จาก resend.com → API Keys)
   2) กันบอท — Turnstile Site Key + Secret Key (จาก Cloudflare Dashboard → Turnstile)
+  3) เข้าสู่ระบบด้วย LINE — Channel ID + Channel secret (จาก developers.line.biz → LINE Login channel → Basic settings)
 `);
-const c = (await rl.question('พิมพ์ 1 หรือ 2 แล้วกด Enter: ')).trim();
+const c = (await rl.question('พิมพ์ 1, 2 หรือ 3 แล้วกด Enter: ')).trim();
 if (c === '1') {
   const k = (await rl.question('วาง RESEND_API_KEY (ขึ้นต้นด้วย re_): ')).trim();
   if (!/^re_[A-Za-z0-9_]{10,}$/.test(k)) console.log('✘ รูปแบบคีย์ไม่ถูกต้อง (ต้องขึ้นต้นด้วย re_)');
@@ -38,6 +39,13 @@ if (c === '1') {
     console.log('✓ บันทึก Site Key ใน wrangler.toml แล้ว — กำลัง deploy เพื่อให้หน้าเว็บใช้คีย์ใหม่...');
     const r = spawnSync('npx wrangler deploy', { shell: true, env, stdio: 'inherit' });
     console.log(r.status === 0 ? '✓ เสร็จ — ฟอร์มบนเว็บใช้ Turnstile จริงแล้ว' : '✘ deploy ไม่สำเร็จ ลองดับเบิลคลิก deploy.bat อีกครั้ง');
+  }
+} else if (c === '3') {
+  const id = (await rl.question('Channel ID (ตัวเลข 10 หลัก): ')).trim();
+  const secret = (await rl.question('Channel secret (ตัวอักษร 32 ตัว): ')).trim();
+  if (!/^\d{8,12}$/.test(id) || !/^[0-9a-f]{32}$/i.test(secret)) console.log('✘ รูปแบบไม่ถูกต้อง — Channel ID เป็นตัวเลข, Channel secret เป็นตัวอักษร 0-9 a-f 32 ตัว');
+  else if (put('LINE_LOGIN_CHANNEL_ID', id) && put('LINE_LOGIN_CHANNEL_SECRET', secret)) {
+    console.log('✓ เสร็จ — หน้าเข้าสู่ระบบ/สมัครสมาชิกจะมีปุ่ม "เข้าสู่ระบบด้วย LINE" แล้ว');
   }
 } else console.log('ยกเลิก');
 rl.close();
