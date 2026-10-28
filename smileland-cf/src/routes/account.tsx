@@ -15,13 +15,18 @@ import { geo } from '../lib/geo';
 
 export const account = new Hono<AppEnv>();
 const meta = (title: string) => ({ title, noindex: true, turnstile: true });
+/** เปิด LINE Login แล้ว = ใช้ LINE อย่างเดียว ปิดทุกทางที่ใช้อีเมล/รหัสผ่าน */
+const lineOnly = (c: Context<AppEnv>) => !!(c.env.LINE_LOGIN_CHANNEL_ID && c.env.LINE_LOGIN_CHANNEL_SECRET);
+account.use('/login/email', async (c, next) => (lineOnly(c) ? c.redirect('/login', 303) : next()));
+account.use('/forgot', async (c, next) => (lineOnly(c) ? c.redirect('/login', 303) : next()));
+account.use('/reset', async (c, next) => (lineOnly(c) ? c.redirect('/login', 303) : next()));
+account.post('/login', async (c, next) => (lineOnly(c) ? c.redirect('/login', 303) : next()));
 const safeNext = (n: unknown) => (typeof n === 'string' && /^\/[a-z0-9/_?=&-]*$/i.test(n) && !n.startsWith('//') ? n : '/account');
 
 /* ---------- สมัครสมาชิก ---------- */
 account.get('/register', (c) => (c.get('user') ? c.redirect('/account') : render(c, meta(c.env.LINE_LOGIN_CHANNEL_ID ? 'สมัครสมาชิก / เข้าสู่ระบบ' : 'สมัครสมาชิก'), <RegisterPage env={c.env} />)));
 account.post('/register', async (c) => {
-  // เปิด LINE Login แล้ว → สมัครด้วย LINE อย่างเดียว (ปิดสมัครด้วยอีเมล)
-  if (c.env.LINE_LOGIN_CHANNEL_ID && c.env.LINE_LOGIN_CHANNEL_SECRET) return c.redirect('/register', 303);
+  if (lineOnly(c)) return c.redirect('/register', 303); // สมัครด้วย LINE อย่างเดียว
   const f = await c.req.parseBody();
   const v = { name: str(f.name, 80), email: normEmail(String(f.email || '')), phone: String(f.phone || '').slice(0, 15) };
   const fail = (error: string, status = 400) => render(c, meta('สมัครสมาชิก'), <RegisterPage env={c.env} error={error} v={v} />, status);

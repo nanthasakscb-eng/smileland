@@ -54,7 +54,6 @@ const LineOnlyPage: FC<{ error?: string; ok?: string; next?: string }> = ({ erro
       <li>ครั้งแรกจะให้ใส่เบอร์โทรสำหรับลงประกาศ (ไม่แสดงบนหน้าเว็บ)</li>
       <li>การสมัครถือว่ายอมรับ<a href="/terms" target="_blank" style="text-decoration:underline">ข้อกำหนด</a>และ<a href="/privacy" target="_blank" style="text-decoration:underline">นโยบายความเป็นส่วนตัว</a></li>
     </ul>
-    <p class="center small muted" style="margin:18px 0 0;font-size:12px">สมาชิกเดิมที่เคยสมัครด้วยอีเมล <a href="/login/email" style="text-decoration:underline">เข้าสู่ระบบที่นี่</a></p>
   </AuthShell>
 );
 
