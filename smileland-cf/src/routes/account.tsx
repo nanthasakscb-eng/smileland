@@ -18,7 +18,7 @@ const meta = (title: string) => ({ title, noindex: true, turnstile: true });
 const safeNext = (n: unknown) => (typeof n === 'string' && /^\/[a-z0-9/_?=&-]*$/i.test(n) && !n.startsWith('//') ? n : '/account');
 
 /* ---------- สมัครสมาชิก ---------- */
-account.get('/register', (c) => (c.get('user') ? c.redirect('/account') : render(c, meta('สมัครสมาชิก'), <RegisterPage env={c.env} />)));
+account.get('/register', (c) => (c.get('user') ? c.redirect('/account') : render(c, meta(c.env.LINE_LOGIN_CHANNEL_ID ? 'สมัครสมาชิก / เข้าสู่ระบบ' : 'สมัครสมาชิก'), <RegisterPage env={c.env} />)));
 account.post('/register', async (c) => {
   // เปิด LINE Login แล้ว → สมัครด้วย LINE อย่างเดียว (ปิดสมัครด้วยอีเมล)
   if (c.env.LINE_LOGIN_CHANNEL_ID && c.env.LINE_LOGIN_CHANNEL_SECRET) return c.redirect('/register', 303);
@@ -62,12 +62,13 @@ account.get('/verify', async (c) => {
 });
 
 /* ---------- เข้าสู่ระบบ / ออก ---------- */
-account.get('/login', (c) => (c.get('user') ? c.redirect(safeNext(c.req.query('next'))) : render(c, meta('เข้าสู่ระบบ'), <LoginPage env={c.env} next={c.req.query('next')} ok={c.req.query('reset') ? 'ตั้งรหัสผ่านใหม่แล้ว เข้าสู่ระบบได้เลย' : undefined} />)));
+account.get('/login', (c) => (c.get('user') ? c.redirect(safeNext(c.req.query('next'))) : render(c, meta('สมัครสมาชิก / เข้าสู่ระบบ'), <LoginPage env={c.env} next={c.req.query('next')} ok={c.req.query('reset') ? 'ตั้งรหัสผ่านใหม่แล้ว เข้าสู่ระบบได้เลย' : undefined} />)));
+account.get('/login/email', (c) => (c.get('user') ? c.redirect('/account') : render(c, meta('เข้าสู่ระบบด้วยอีเมล'), <LoginPage env={c.env} emailMode next={c.req.query('next')} ok={c.req.query('reset') ? 'ตั้งรหัสผ่านใหม่แล้ว เข้าสู่ระบบได้เลย' : undefined} />)));
 account.post('/login', async (c) => {
   const f = await c.req.parseBody();
   const email = normEmail(String(f.email || ''));
   const next = safeNext(f.next);
-  const fail = (error: string, status = 400) => render(c, meta('เข้าสู่ระบบ'), <LoginPage env={c.env} error={error} next={next} email={email} />, status);
+  const fail = (error: string, status = 400) => render(c, meta('เข้าสู่ระบบ'), <LoginPage env={c.env} emailMode error={error} next={next} email={email} />, status);
   if (!sameOrigin(c)) return fail('คำขอไม่ถูกต้อง');
   const ip = clientIp(c);
   if (!(await rateLimit(c.env, `ulogin:${ip}`, 10, 900)).ok) return fail('พยายามเข้าสู่ระบบบ่อยเกินไป กรุณารอ 15 นาที', 429);
@@ -112,7 +113,7 @@ account.post('/reset', async (c) => {
   const h = await hashPassword(pw);
   // ตั้งรหัสใหม่ผ่านอีเมลได้ = พิสูจน์ว่าเป็นเจ้าของอีเมล → ถือว่ายืนยันอีเมลแล้วด้วย
   await db(c.env).update(users).set({ passHash: h.hash, salt: h.salt, iterations: h.iterations, emailVerifiedAt: nowSec() }).where(eq(users.id, uid));
-  return c.redirect('/login?reset=1', 303);
+  return c.redirect('/login/email?reset=1', 303);
 });
 
 /* ---------- ต้องล็อกอินสำหรับ /account/* ---------- */

@@ -32,21 +32,35 @@ const LineButton: FC<{ env: Bindings; label: string; next?: string; note?: Child
 const Err: FC<{ e?: string }> = ({ e }) => (e ? <div class="alert alert-bad">{e}</div> : null);
 const Ok: FC<{ m?: string }> = ({ m }) => (m ? <div class="alert alert-ok">{m}</div> : null);
 
+/** หน้าเดียวสำหรับสมัคร + เข้าสู่ระบบ (ด้วย LINE อย่างเดียว) */
+const LineOnlyPage: FC<{ error?: string; ok?: string; next?: string }> = ({ error, ok, next }) => (
+  <AuthShell title="สมัครสมาชิก / เข้าสู่ระบบ" sub="ใช้บัญชี LINE กดปุ่มเดียว ลงประกาศขาย-ให้เช่าได้ฟรีทันที">
+    <Err e={error} /><Ok m={ok} />
+    <a class="btn btn-block btn-lg btn-linelogin" href={`/auth/line${next ? `?next=${encodeURIComponent(next)}` : ''}`} rel="nofollow">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5s6-3.5 8.2-6.1c1.5-1.6 2.2-3.2 2.2-4.7C22 6.6 17.5 3 12 3z"/></svg>
+      สมัคร / เข้าสู่ระบบด้วย LINE
+    </a>
+    <div class="line-perk">
+      <div class="line-perk-ic" aria-hidden="true">🔔</div>
+      <div>
+        <b>มีคนสนใจทรัพย์ แจ้งเตือนเข้า LINE ทันที</b>
+        <p>เมื่อมีผู้สนใจกรอกฟอร์มติดต่อประกาศของคุณ ระบบจะส่งชื่อ เบอร์โทร และข้อความของผู้สนใจเข้า LINE ของคุณจากบัญชี <b>อีสานน่าอยู่</b> ทันที ไม่พลาดลูกค้า</p>
+        <p class="small muted">ตอนกดปุ่ม ให้ติ๊ก "เพิ่มเพื่อน อีสานน่าอยู่" ไว้ เพื่อรับการแจ้งเตือน</p>
+      </div>
+    </div>
+    <ul class="small muted" style="margin:16px 0 0;padding-left:18px;line-height:1.8">
+      <li>ไม่ต้องตั้งรหัสผ่าน ไม่ต้องรออีเมลยืนยัน</li>
+      <li>ใช้ชื่อจาก LINE ของคุณ แก้ไขได้ภายหลัง</li>
+      <li>ครั้งแรกจะให้ใส่เบอร์โทรสำหรับลงประกาศ (ไม่แสดงบนหน้าเว็บ)</li>
+      <li>การสมัครถือว่ายอมรับ<a href="/terms" target="_blank" style="text-decoration:underline">ข้อกำหนด</a>และ<a href="/privacy" target="_blank" style="text-decoration:underline">นโยบายความเป็นส่วนตัว</a></li>
+    </ul>
+    <p class="center small muted" style="margin:18px 0 0;font-size:12px">สมาชิกเดิมที่เคยสมัครด้วยอีเมล <a href="/login/email" style="text-decoration:underline">เข้าสู่ระบบที่นี่</a></p>
+  </AuthShell>
+);
+
 export const RegisterPage: FC<{ env: Bindings; error?: string; v?: Record<string, string> }> = ({ env, error, v = {} }) =>
   lineOn(env) ? (
-    <AuthShell title="สมัครสมาชิก" sub="สมัครฟรีด้วยบัญชี LINE กดปุ่มเดียว ลงประกาศได้ทันที ไม่ต้องรออีเมลยืนยัน">
-      <Err e={error} />
-      <a class="btn btn-block btn-lg btn-linelogin" href="/auth/line" rel="nofollow">
-        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5s6-3.5 8.2-6.1c1.5-1.6 2.2-3.2 2.2-4.7C22 6.6 17.5 3 12 3z"/></svg>
-        สมัครด้วย LINE
-      </a>
-      <ul class="small muted" style="margin:16px 0 0;padding-left:18px;line-height:1.8">
-        <li>ใช้ชื่อจาก LINE ของคุณ แก้ไขได้ภายหลัง</li>
-        <li>ครั้งแรกจะให้ใส่เบอร์โทรสำหรับลงประกาศ (ไม่แสดงบนหน้าเว็บ)</li>
-        <li>การสมัครถือว่ายอมรับ<a href="/terms" target="_blank" style="text-decoration:underline">ข้อกำหนด</a>และ<a href="/privacy" target="_blank" style="text-decoration:underline">นโยบายความเป็นส่วนตัว</a></li>
-      </ul>
-      <p class="center small" style="margin:18px 0 0">มีบัญชีแล้ว? <a href="/login" style="text-decoration:underline">เข้าสู่ระบบ</a></p>
-    </AuthShell>
+    <LineOnlyPage error={error} />
   ) : (
   <AuthShell title="สมัครสมาชิก" sub="สมัครฟรี ยืนยันอีเมลแล้วลงประกาศขาย/ให้เช่าได้ทันที">
     <Err e={error} />
@@ -63,10 +77,10 @@ export const RegisterPage: FC<{ env: Bindings; error?: string; v?: Record<string
   </AuthShell>
   );
 
-export const LoginPage: FC<{ env: Bindings; error?: string; ok?: string; next?: string; email?: string }> = ({ env, error, ok, next, email }) => (
-  <AuthShell title="เข้าสู่ระบบ" sub="สำหรับสมาชิกผู้ลงประกาศ">
+export const LoginPage: FC<{ env: Bindings; error?: string; ok?: string; next?: string; email?: string; emailMode?: boolean }> = ({ env, error, ok, next, email, emailMode }) =>
+  lineOn(env) && !emailMode ? <LineOnlyPage error={error} ok={ok} next={next} /> : (
+  <AuthShell title="เข้าสู่ระบบ" sub={lineOn(env) ? 'สำหรับสมาชิกเดิมที่เคยสมัครด้วยอีเมล' : 'สำหรับสมาชิกผู้ลงประกาศ'}>
     <Err e={error} /><Ok m={ok} />
-    <LineButton env={env} label="เข้าสู่ระบบด้วย LINE" next={next} sep="สมาชิกเดิมที่สมัครด้วยอีเมล" />
     <form method="post" action="/login">
       <input type="hidden" name="next" value={next || ''} />
       <div class="field"><label for="l-email">อีเมล</label><input id="l-email" class="input" type="email" name="email" required maxlength={120} value={email || ''} autocomplete="email" /></div>
@@ -74,9 +88,9 @@ export const LoginPage: FC<{ env: Bindings; error?: string; ok?: string; next?: 
       <Turnstile env={env} />
       <button class="btn btn-ink btn-block btn-lg" type="submit" style="margin-top:12px">เข้าสู่ระบบ</button>
     </form>
-    <p class="center small" style="margin:16px 0 0"><a href="/forgot" style="text-decoration:underline">ลืมรหัสผ่าน?</a> · ยังไม่มีบัญชี? <a href={lineOn(env) ? '/auth/line' : '/register'} style="text-decoration:underline">{lineOn(env) ? 'สมัครด้วย LINE' : 'สมัครสมาชิก'}</a></p>
+    <p class="center small" style="margin:16px 0 0"><a href="/forgot" style="text-decoration:underline">ลืมรหัสผ่าน?</a> · {lineOn(env) ? <a href="/login" style="text-decoration:underline">กลับไปใช้ LINE</a> : <>ยังไม่มีบัญชี? <a href="/register" style="text-decoration:underline">สมัครสมาชิก</a></>}</p>
   </AuthShell>
-);
+  );
 
 export const CheckEmailPage: FC<{ email: string; csrf?: string; resent?: boolean; logged?: boolean }> = ({ email, csrf, resent, logged }) => (
   <AuthShell title="ยืนยันอีเมลของคุณ">

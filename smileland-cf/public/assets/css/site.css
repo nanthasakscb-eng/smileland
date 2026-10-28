@@ -559,3 +559,7 @@ table.t .thumbcell img { width: 76px; height: 56px; object-fit: cover; border-ra
 .line-login { margin-bottom: 8px; }
 .or-sep { display: flex; align-items: center; gap: 12px; margin: 18px 0 14px; color: var(--muted, #667085); font-size: 13px; }
 .or-sep::before, .or-sep::after { content: ""; flex: 1; height: 1px; background: var(--line, #e6e0d4); }
+.line-perk { display: flex; gap: 12px; margin-top: 18px; padding: 14px 16px; border-radius: 14px; background: #ecfbf2; border: 1px solid #bfe9cf; }
+.line-perk-ic { font-size: 26px; line-height: 1; }
+.line-perk b { color: #0a7a3a; }
+.line-perk p { margin: 6px 0 0; font-size: 14px; line-height: 1.65; }
