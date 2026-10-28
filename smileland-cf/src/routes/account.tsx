@@ -20,6 +20,8 @@ const safeNext = (n: unknown) => (typeof n === 'string' && /^\/[a-z0-9/_?=&-]*$/
 /* ---------- สมัครสมาชิก ---------- */
 account.get('/register', (c) => (c.get('user') ? c.redirect('/account') : render(c, meta('สมัครสมาชิก'), <RegisterPage env={c.env} />)));
 account.post('/register', async (c) => {
+  // เปิด LINE Login แล้ว → สมัครด้วย LINE อย่างเดียว (ปิดสมัครด้วยอีเมล)
+  if (c.env.LINE_LOGIN_CHANNEL_ID && c.env.LINE_LOGIN_CHANNEL_SECRET) return c.redirect('/register', 303);
   const f = await c.req.parseBody();
   const v = { name: str(f.name, 80), email: normEmail(String(f.email || '')), phone: String(f.phone || '').slice(0, 15) };
   const fail = (error: string, status = 400) => render(c, meta('สมัครสมาชิก'), <RegisterPage env={c.env} error={error} v={v} />, status);

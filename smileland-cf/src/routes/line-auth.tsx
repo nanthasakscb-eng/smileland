@@ -103,8 +103,12 @@ lineAuth.get('/auth/line/callback', async (c) => {
     const me = c.get('user');
     if (!me || me.userId !== p.linkUserId) return fail(c, 'กรุณาเข้าสู่ระบบก่อน แล้วกดเชื่อม LINE อีกครั้ง');
     if (bySub && bySub.id !== me.userId) return c.redirect('/account?tab=profile&error=' + encodeURIComponent('LINE นี้ผูกกับบัญชีอื่นอยู่แล้ว'), 303);
-    await d.update(users).set({ lineSub: prof.sub, linePicture: picture }).where(eq(users.id, me.userId));
-    return c.redirect('/account?tab=profile&ok=' + encodeURIComponent('เชื่อมบัญชี LINE แล้ว ครั้งต่อไปกด "เข้าสู่ระบบด้วย LINE" ได้เลย'), 303);
+    const cur = await getUser(c, me.userId);
+    if (!cur) return fail(c, 'ไม่พบบัญชี กรุณาเข้าสู่ระบบอีกครั้ง');
+    // LINE ยืนยันตัวตนแล้ว → ถือว่ายืนยันบัญชีแล้ว (ใช้แทนการกดลิงก์ในอีเมล)
+    await d.update(users).set({ lineSub: prof.sub, linePicture: picture, emailVerifiedAt: cur.emailVerifiedAt ?? nowSec() }).where(eq(users.id, me.userId));
+    const nu = await getUser(c, me.userId); if (nu) await refreshUserSession(c, nu);
+    return c.redirect('/account?tab=profile&ok=' + encodeURIComponent(cur.emailVerifiedAt ? 'เชื่อมบัญชี LINE แล้ว ครั้งต่อไปกด "เข้าสู่ระบบด้วย LINE" ได้เลย' : 'ยืนยันบัญชีด้วย LINE แล้ว ลงประกาศได้เลย'), 303);
   }
 
   let u: User | undefined = bySub;

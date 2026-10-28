@@ -17,7 +17,7 @@ const AuthShell: FC<{ title: string; sub?: string; children?: Child }> = ({ titl
 );
 /** ปุ่มเข้าสู่ระบบด้วย LINE (แสดงเมื่อตั้งค่า LINE Login แล้ว) */
 const lineOn = (env: Bindings) => !!(env.LINE_LOGIN_CHANNEL_ID && env.LINE_LOGIN_CHANNEL_SECRET);
-const LineButton: FC<{ env: Bindings; label: string; next?: string; note?: Child }> = ({ env, label, next, note }) =>
+const LineButton: FC<{ env: Bindings; label: string; next?: string; note?: Child; sep?: string }> = ({ env, label, next, note, sep }) =>
   lineOn(env) ? (
     <div class="line-login">
       <a class="btn btn-block btn-lg btn-linelogin" href={`/auth/line${next ? `?next=${encodeURIComponent(next)}` : ''}`} rel="nofollow">
@@ -25,17 +25,31 @@ const LineButton: FC<{ env: Bindings; label: string; next?: string; note?: Child
         {label}
       </a>
       {note && <p class="small muted center" style="margin:8px 0 0">{note}</p>}
-      <div class="or-sep"><span>หรือใช้อีเมล</span></div>
+      <div class="or-sep"><span>{sep || 'หรือใช้อีเมล'}</span></div>
     </div>
   ) : null;
 
 const Err: FC<{ e?: string }> = ({ e }) => (e ? <div class="alert alert-bad">{e}</div> : null);
 const Ok: FC<{ m?: string }> = ({ m }) => (m ? <div class="alert alert-ok">{m}</div> : null);
 
-export const RegisterPage: FC<{ env: Bindings; error?: string; v?: Record<string, string> }> = ({ env, error, v = {} }) => (
+export const RegisterPage: FC<{ env: Bindings; error?: string; v?: Record<string, string> }> = ({ env, error, v = {} }) =>
+  lineOn(env) ? (
+    <AuthShell title="สมัครสมาชิก" sub="สมัครฟรีด้วยบัญชี LINE กดปุ่มเดียว ลงประกาศได้ทันที ไม่ต้องรออีเมลยืนยัน">
+      <Err e={error} />
+      <a class="btn btn-block btn-lg btn-linelogin" href="/auth/line" rel="nofollow">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5s6-3.5 8.2-6.1c1.5-1.6 2.2-3.2 2.2-4.7C22 6.6 17.5 3 12 3z"/></svg>
+        สมัครด้วย LINE
+      </a>
+      <ul class="small muted" style="margin:16px 0 0;padding-left:18px;line-height:1.8">
+        <li>ใช้ชื่อจาก LINE ของคุณ แก้ไขได้ภายหลัง</li>
+        <li>ครั้งแรกจะให้ใส่เบอร์โทรสำหรับลงประกาศ (ไม่แสดงบนหน้าเว็บ)</li>
+        <li>การสมัครถือว่ายอมรับ<a href="/terms" target="_blank" style="text-decoration:underline">ข้อกำหนด</a>และ<a href="/privacy" target="_blank" style="text-decoration:underline">นโยบายความเป็นส่วนตัว</a></li>
+      </ul>
+      <p class="center small" style="margin:18px 0 0">มีบัญชีแล้ว? <a href="/login" style="text-decoration:underline">เข้าสู่ระบบ</a></p>
+    </AuthShell>
+  ) : (
   <AuthShell title="สมัครสมาชิก" sub="สมัครฟรี ยืนยันอีเมลแล้วลงประกาศขาย/ให้เช่าได้ทันที">
     <Err e={error} />
-    <LineButton env={env} label="สมัครด้วย LINE" note={<>ไม่ต้องยืนยันอีเมล · การสมัครถือว่ายอมรับ<a href="/terms" target="_blank" style="text-decoration:underline">ข้อกำหนด</a>และ<a href="/privacy" target="_blank" style="text-decoration:underline">นโยบายความเป็นส่วนตัว</a></>} />
     <form method="post" action="/register">
       <div class="field"><label class="req" for="r-name">ชื่อ-นามสกุล / ชื่อที่ใช้ติดต่อ</label><input id="r-name" class="input" name="name" required maxlength={80} value={v.name || ''} autocomplete="name" /></div>
       <div class="field"><label class="req" for="r-email">อีเมล</label><input id="r-email" class="input" type="email" name="email" required maxlength={120} value={v.email || ''} autocomplete="email" /></div>
@@ -47,12 +61,12 @@ export const RegisterPage: FC<{ env: Bindings; error?: string; v?: Record<string
     </form>
     <p class="center small" style="margin:16px 0 0">มีบัญชีแล้ว? <a href="/login" style="text-decoration:underline">เข้าสู่ระบบ</a></p>
   </AuthShell>
-);
+  );
 
 export const LoginPage: FC<{ env: Bindings; error?: string; ok?: string; next?: string; email?: string }> = ({ env, error, ok, next, email }) => (
   <AuthShell title="เข้าสู่ระบบ" sub="สำหรับสมาชิกผู้ลงประกาศ">
     <Err e={error} /><Ok m={ok} />
-    <LineButton env={env} label="เข้าสู่ระบบด้วย LINE" next={next} />
+    <LineButton env={env} label="เข้าสู่ระบบด้วย LINE" next={next} sep="สมาชิกเดิมที่สมัครด้วยอีเมล" />
     <form method="post" action="/login">
       <input type="hidden" name="next" value={next || ''} />
       <div class="field"><label for="l-email">อีเมล</label><input id="l-email" class="input" type="email" name="email" required maxlength={120} value={email || ''} autocomplete="email" /></div>
@@ -60,7 +74,7 @@ export const LoginPage: FC<{ env: Bindings; error?: string; ok?: string; next?: 
       <Turnstile env={env} />
       <button class="btn btn-ink btn-block btn-lg" type="submit" style="margin-top:12px">เข้าสู่ระบบ</button>
     </form>
-    <p class="center small" style="margin:16px 0 0"><a href="/forgot" style="text-decoration:underline">ลืมรหัสผ่าน?</a> · ยังไม่มีบัญชี? <a href="/register" style="text-decoration:underline">สมัครสมาชิก</a></p>
+    <p class="center small" style="margin:16px 0 0"><a href="/forgot" style="text-decoration:underline">ลืมรหัสผ่าน?</a> · ยังไม่มีบัญชี? <a href={lineOn(env) ? '/auth/line' : '/register'} style="text-decoration:underline">{lineOn(env) ? 'สมัครด้วย LINE' : 'สมัครสมาชิก'}</a></p>
   </AuthShell>
 );
 
@@ -122,7 +136,8 @@ export const NeedVerify: FC<{ user: UserSession }> = ({ user }) => (
   <div class="wrap" style="max-width:640px;padding:48px 20px 64px">
     <div class="form-card center">
       <h1 style="font-size:26px">ยืนยันอีเมลก่อนลงประกาศ</h1>
-      <p>บัญชี <b>{user.email}</b> ยังไม่ได้ยืนยันอีเมล กรุณากดลิงก์ในอีเมลที่เราส่งไป</p>
+      <p>บัญชี <b>{user.email}</b> ยังไม่ได้ยืนยันอีเมล กรุณากดลิงก์ในอีเมลที่เราส่งไป หรือยืนยันด้วย LINE ได้ทันที</p>
+      <p><a class="btn btn-linelogin" href="/auth/line?link=1">ยืนยันด้วย LINE</a></p>
       <form method="post" action="/account/resend-verify" style="display:inline"><input type="hidden" name="csrf" value={user.csrf} /><button class="btn btn-gold" type="submit">ส่งลิงก์ยืนยันอีกครั้ง</button></form>
       <a class="btn btn-line" href="/account" style="margin-left:8px">บัญชีของฉัน</a>
     </div>
@@ -190,8 +205,11 @@ export const AccountPage: FC<{ env: Bindings; user: User; sess: UserSession; row
     </>} />
     {!user.emailVerifiedAt && (
       <div class="alert alert-warn" style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
-        <span>ยังไม่ได้ยืนยันอีเมล — ต้องยืนยันก่อนจึงลงประกาศได้</span>
-        <form method="post" action="/account/resend-verify"><input type="hidden" name="csrf" value={sess.csrf} /><button class="btn btn-ink btn-sm" type="submit">ส่งลิงก์ยืนยันอีกครั้ง</button></form>
+        <span>ยังไม่ได้ยืนยันบัญชี — ต้องยืนยันก่อนจึงลงประกาศได้</span>
+        <span style="display:flex;gap:8px;flex-wrap:wrap">
+          {lineOn(env) && <a class="btn btn-linelogin btn-sm" href="/auth/line?link=1">ยืนยันด้วย LINE (ทันที)</a>}
+          <form method="post" action="/account/resend-verify"><input type="hidden" name="csrf" value={sess.csrf} /><button class="btn btn-ink btn-sm" type="submit">ส่งลิงก์ทางอีเมลอีกครั้ง</button></form>
+        </span>
       </div>
     )}
     {msg && <div class="alert alert-ok">{msg}</div>}
