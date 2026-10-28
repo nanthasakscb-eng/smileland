@@ -30,7 +30,11 @@ if (c === '1') {
     console.log(from ? `ผู้ส่ง: ${from}\nทดสอบได้โดยสมัครสมาชิกใหม่ แล้วดูสถานะที่ /admin/outbox (ควรขึ้น "ส่งแล้ว")` : '⚠ ยังไม่ได้ตั้ง MAIL_FROM ใน wrangler.toml');
   }
 } else if (c === '2') {
-  const site = (await rl.question('Turnstile Site Key (ขึ้นต้นด้วย 0x): ')).trim();
+  // คีย์ smileland ใน Cloudflare (Site Key ไม่ใช่ความลับ แสดงบนหน้าเว็บอยู่แล้ว)
+  const cur = (readFileSync('wrangler.toml', 'utf8').match(/TURNSTILE_SITE_KEY\s*=\s*"(0x[^"]+)"/) || [])[1] || '0x4AAAAAAFjYuQwghWZlM5Tc';
+  const site = cur
+    ? ((await rl.question(`Site Key ตั้งไว้แล้ว (${cur}) — กด Enter เพื่อใช้ตัวนี้: `)).trim() || cur)
+    : (await rl.question('Turnstile Site Key (ขึ้นต้นด้วย 0x): ')).trim();
   const secret = (await rl.question('Turnstile Secret Key (ขึ้นต้นด้วย 0x): ')).trim();
   if (!/^0x[A-Za-z0-9_-]{10,}$/.test(site) || !/^0x[A-Za-z0-9_-]{10,}$/.test(secret)) console.log('✘ รูปแบบคีย์ไม่ถูกต้อง');
   else if (put('TURNSTILE_SECRET_KEY', secret)) {
