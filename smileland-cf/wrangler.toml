@@ -18,7 +18,7 @@ SITE_URL = "https://xn--q3ca1a3aod6acw1c9je.com"
 MAIL_FROM = "อีสานน่าอยู่ <no-reply@mail.xn--q3ca1a3aod6acw1c9je.com>"
 IMG_BASE = "/img"                     # production: https://img.<โดเมน> (R2 custom domain)
 # Turnstile test site key (ผ่านทุกครั้ง) — production เปลี่ยนเป็น site key จริง
-TURNSTILE_SITE_KEY = "1x00000000000000000000AA"
+TURNSTILE_SITE_KEY = "0x4AAAAAAFjYuQwghWZlM5Tc"
 LISTING_TTL_DAYS = "180"
 THIN_PAGE_MIN = "3"
 
