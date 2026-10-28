@@ -13,7 +13,7 @@ seo.get('/robots.txt', (c) => {
 });
 
 seo.get('/sitemap.xml', async (c) => xml(await sitemapIndex(c.env)));
-seo.get('/sitemaps/static.xml', (c) => xml(staticSitemap(c.env), 86400));
+seo.get('/sitemaps/static.xml', async (c) => xml(await staticSitemap(c.env), 3600));
 seo.get('/sitemaps/:file{[a-z0-9-]+\\.xml}', async (c) => {
   const slug = c.req.param('file').replace(/\.xml$/, '');
   const g = await geo(c.env);

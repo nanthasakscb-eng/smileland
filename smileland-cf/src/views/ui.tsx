@@ -7,7 +7,7 @@ import { imgUrl, imgSrcset, placeholder, type Card } from '../lib/listings';
 import { travelProvinces, provinceTravelHref } from '../data/travel-provinces';
 import { PronetMenu } from './pronet-menu';
 
-export const ASSET_V = '20261027-stats';
+export const ASSET_V = '20261028-merge';
 
 /* ---------- icons ---------- */
 const P = { fill: 'none', stroke: 'currentColor', 'stroke-width': '1.7', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' } as const;
@@ -74,7 +74,7 @@ export const Layout: FC<{ env: Bindings; meta: Meta; settings: Record<string, st
   const canonical = meta.canonical ? (meta.canonical.startsWith('http') ? meta.canonical : site + meta.canonical) : undefined;
   const og = meta.ogImage ? (meta.ogImage.startsWith('http') ? meta.ogImage : site + meta.ogImage) : site + '/assets/img/og.png';
   const ld = meta.jsonld ? (Array.isArray(meta.jsonld) ? meta.jsonld : [meta.jsonld]) : [];
-  const navs: [string, string, string][] = [['sale', '/sale/property', 'ซื้อ'], ['rent', '/rent/property', 'เช่า'], ['consign', '/consign', 'ฝากขาย/ฝากเช่า'], ['travel', '/travel/', 'เที่ยวสานกัน'], ['guide', '/guide', 'คู่มือ'], ['tools', '/tools', 'เครื่องมือ']];
+  const navs: [string, string, string][] = [['sale', '/sale/property', 'ซื้อ'], ['rent', '/rent/property', 'เช่า'], ['consign', '/consign', 'ฝากขาย/ฝากเช่า'], ['travel', '/travel/', 'เที่ยวอีสานกัน'], ['guide', '/guide', 'คู่มือ'], ['tools', '/tools', 'เครื่องมือ']];
   return (
     <>
       {raw('<!doctype html>')}
@@ -125,7 +125,7 @@ export const Layout: FC<{ env: Bindings; meta: Meta; settings: Record<string, st
               <Brand />
               <button class="menu-btn" type="button" aria-label="เมนู" aria-expanded="false" data-menu><Icon name="menu" /></button>
               <nav class="nav" id="nav">
-                {navs.map(([k, href, label]) => k === 'travel' ? <details class="travel-nav"><summary class={meta.nav === k ? 'on' : ''}>เที่ยวสานกัน <span aria-hidden="true">▾</span></summary><div class="travel-nav-panel"><a class="travel-nav-all" href="/travel/">ดูบทความทั้งหมด →</a><div class="travel-nav-provinces">{travelProvinces.map(([name, slug]) => <a href={provinceTravelHref(slug)}>{name}<small>10 ที่เที่ยว</small></a>)}</div></div></details> : <a href={href} class={meta.nav === k ? 'on' : ''}>{label}</a>)}
+                {navs.map(([k, href, label]) => k === 'travel' ? <details class="travel-nav"><summary class={meta.nav === k ? 'on' : ''}>เที่ยวอีสานกัน <span aria-hidden="true">▾</span></summary><div class="travel-nav-panel"><a class="travel-nav-all" href="/travel/">ดูบทความทั้งหมด →</a><div class="travel-nav-provinces">{travelProvinces.map(([name, slug]) => <a href={provinceTravelHref(slug)}>{name}<small>10 ที่เที่ยว</small></a>)}</div></div></details> : <a href={href} class={meta.nav === k ? 'on' : ''}>{label}</a>)}
                 {user ? <a href="/account" class={meta.nav === 'account' ? 'on' : ''}>บัญชีของฉัน{!user.verified ? ' ⚠' : ''}</a> : <a href="/login" class={meta.nav === 'login' ? 'on' : ''}>เข้าสู่ระบบ</a>}
                 <a href="/post" class="btn btn-gold btn-sm">+ ลงประกาศฟรี</a>
               </nav>
@@ -180,6 +180,7 @@ export const Footer: FC<{ settings: Record<string, string> }> = ({ settings }) =
             <li><a href="/status">ตรวจสถานะประกาศ</a></li>
             <li><a href="/tools">เครื่องมือคำนวณ</a></li>
             <li><a href="/guide">คู่มือซื้อขายบ้าน-ที่ดิน</a></li>
+            <li><a href="/articles">บทความความรู้ที่ดิน</a></li>
             <li><a href="/provinces">ทุกจังหวัด</a></li>
           </ul>
         </div>

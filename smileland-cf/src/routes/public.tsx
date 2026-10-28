@@ -18,6 +18,8 @@ import { plain } from '../lib/md';
 import { SearchPage, type SubLink } from '../views/pages/search';
 import { ListingPage } from '../views/pages/listing';
 import { PostDone, PostPage } from '../views/pages/post';
+import { ArticlePage, ArticlesIndexPage } from '../views/pages/articles';
+import { articles, articleBySlug } from '../data/articles';
 import { NeedVerify, OwnerDash, countOwner } from '../views/pages/account';
 import { getUser } from '../lib/users';
 import { ConsignPage, ManagePage, NotFoundPage, PrivacyPage, ProvincesPage, StatusPage, TermsPage, ToolsPage } from '../views/pages/misc';
@@ -42,12 +44,22 @@ export function notFound(c: Context<AppEnv>) {
 const site = (c: Context<AppEnv>) => c.env.SITE_URL.replace(/\/$/, '');
 const thaiMonthYear = () => new Intl.DateTimeFormat('th-TH', { month: 'long', year: 'numeric', timeZone: 'Asia/Bangkok' }).format(new Date());
 
-pub.get('/travel', (c) => render(c, {
-  title: 'เที่ยวสานกัน — รวมบทความเที่ยวภาคอีสาน',
+// หน้าเที่ยวใช้ URL แบบมี / ท้ายแบบเดียว (แบบไม่มี / ส่งต่อถาวร) กันหน้าซ้ำ
+pub.use('/travel/*', async (c, next) => {
+  const u = new URL(c.req.url);
+  if (c.req.method === 'GET' && !u.pathname.endsWith('/') && !/\.[a-z0-9]+$/i.test(u.pathname)) return c.redirect(u.pathname + '/' + u.search, 301);
+  await next();
+});
+pub.get('/travel', (c) => {
+  const u = new URL(c.req.url);
+  if (!u.pathname.endsWith('/')) return c.redirect('/travel/' + u.search, 301);
+  return render(c, {
+  title: 'เที่ยวอีสานกัน — รวมบทความเที่ยวภาคอีสาน',
   description: 'รวมบทความเที่ยวครบ 20 จังหวัดภาคอีสาน จังหวัดละ 10 สถานที่ รวม 200 จุดหมาย พร้อมแหล่งข้อมูลและลิงก์แผนที่',
   nav: 'travel', canonical: '/travel/',
   head: <link rel="stylesheet" href="/assets/css/travel.css?v=ubon2" />,
-}, <TravelPage />));
+}, <TravelPage />);
+});
 
 pub.get('/travel/ubon-ratchathani', (c) => render(c, {
   title: '10 ที่เที่ยวอุบลราชธานี เที่ยวแล้วอยากอยู่ต่อ',
@@ -61,10 +73,30 @@ pub.get('/travel/:province{[a-z-]+}', (c) => {
   if(!article)return notFound(c);
   return render(c, {
     title: `10 ที่เที่ยว${article.name} — ${article.subtitle}`,
-    description: `เที่ยว${article.name}กับ 10 สถานที่แนะนำ พร้อมแหล่งข้อมูล คำแนะนำวางแผนทริป และลิงก์ Google Maps จากเที่ยวสานกัน อีสานน่าอยู่`,
+    description: `เที่ยว${article.name}กับ 10 สถานที่แนะนำ พร้อมแหล่งข้อมูล คำแนะนำวางแผนทริป และลิงก์ Google Maps จากเที่ยวอีสานกัน อีสานน่าอยู่`,
     nav:'travel', canonical:`/travel/${article.slug}/`,
     head:<link rel="stylesheet" href="/assets/css/travel.css?v=isan20" />,
   }, <TravelArticlePage article={article}/>);
+});
+
+/* ---------- บทความ ---------- */
+pub.get('/articles', (c) => render(c, {
+  title: 'บทความ ความรู้ซื้อขาย เช่า บ้าน ที่ดิน ในอีสาน', description: 'รวมบทความความรู้เรื่องที่ดิน เอกสารสิทธิ์ การซื้อขาย และการเช่าอสังหาริมทรัพย์ในภาคอีสาน จากอีสานน่าอยู่',
+  canonical: '/articles', nav: 'guide', head: <link rel="stylesheet" href="/assets/css/guide.css?v=4" />,
+  jsonld: crumbsLd(site(c), [['หน้าแรก', '/'], ['บทความ']]),
+}, <ArticlesIndexPage items={[...articles].sort((a, b) => b.date.localeCompare(a.date))} />));
+pub.get('/articles/:slug{[a-z0-9-]+}', (c) => {
+  const a = articleBySlug(c.req.param('slug'));
+  if (!a) return notFound(c);
+  const url = `${site(c)}/articles/${a.slug}`;
+  return render(c, {
+    title: a.title, description: a.description.slice(0, 160), canonical: `/articles/${a.slug}`, nav: 'guide',
+    head: <link rel="stylesheet" href="/assets/css/guide.css?v=4" />,
+    jsonld: [
+      { '@context': 'https://schema.org', '@type': 'Article', headline: a.title, description: a.description, datePublished: a.date, dateModified: a.date, inLanguage: 'th', mainEntityOfPage: url, author: { '@type': 'Organization', name: 'อีสานน่าอยู่' }, publisher: { '@type': 'Organization', name: 'อีสานน่าอยู่', logo: { '@type': 'ImageObject', url: `${site(c)}/assets/img/logo.svg` } } },
+      crumbsLd(site(c), [['หน้าแรก', '/'], ['บทความ', '/articles'], [a.title]]),
+    ],
+  }, <ArticlePage a={a} others={articles.filter((x) => x.slug !== a.slug)} />);
 });
 
 pub.get('/credits', (c) => render(c, { title: 'เครดิตภาพ', description: 'เครดิตและสัญญาอนุญาตของภาพถ่ายที่ใช้บนอีสานน่าอยู่', canonical: '/credits' }, <CreditsPage />));
@@ -182,6 +214,10 @@ const landingHandler = async (c: Context<AppEnv>) => {
       p.district = dist.code;
     }
   }
+  // หน้าอำเภอที่ยังไม่มีประกาศ → ส่งต่อไปหน้าจังหวัด (ชั่วคราว) หน้าอำเภอจะกลับมาเองเมื่อมีประกาศเข้ามา
+  if (prov && dist && (await countActive(c.env, { deal: p.deal, type: p.type, province: prov.code, district: dist.code })) === 0) {
+    return c.redirect(`/${deal}/${type}/${prov.slug}`, 302);
+  }
   return renderListingSearch(c, p, { deal: deal as Deal, type: type!, prov, dist });
 };
 const LANDING = '/:deal{(?:sale|rent)}/:type{(?:house|land|condo|property)}';
@@ -223,8 +259,8 @@ async function renderListingSearch(c: Context<AppEnv>, p: SearchParams, landing:
     const dc = await districtCounts(c.env, prov.code, p.deal, p.type);
     const ds = await districtsOf(c.env, prov.code);
     subTitle = `เลือก${districtLabel(prov.code)}ใน${prov.nameTh}`;
-    const withN = ds.filter((x) => dc.get(x.code));
-    subLinks = (withN.length ? withN : ds).map((x) => ({ href: `${base}/${prov.slug}/${x.slug}`, label: x.nameTh, n: dc.get(x.code) }));
+    // ลิงก์เฉพาะอำเภอที่มีประกาศ (อำเภอที่ว่างจะถูกส่งต่อกลับมาหน้าจังหวัดอยู่แล้ว)
+    subLinks = ds.filter((x) => dc.get(x.code)).map((x) => ({ href: `${base}/${prov.slug}/${x.slug}`, label: x.nameTh, n: dc.get(x.code) }));
   } else if (landing && prov) {
     subTitle = 'ประเภททรัพย์ในพื้นที่นี้';
     subLinks = (['property', 'house', 'land', 'condo'] as const).map((t) => ({

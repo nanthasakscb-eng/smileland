@@ -5,7 +5,9 @@ import { db } from '../db';
 import { listings, listingTokens, timeline } from '../db/schema';
 import { geo } from './geo';
 import { nowSec } from './util';
+import { SERVICE_PROVINCES } from './service-area';
 import { guides } from '../data/guides';
+import { articles } from '../data/articles';
 import { travelProvinces } from '../data/travel-provinces';
 
 const xmlEsc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -54,14 +56,21 @@ export async function writeProvinceSitemap(env: Bindings, provinceCode: number) 
   else await env.UPLOADS.delete(key);
 }
 
-export function staticSitemap(env: Bindings) {
+/** sitemap หน้าหลัก: เฉพาะหน้าที่เปิดได้จริงและให้ Google เก็บได้ (ไม่รวมหน้าที่ต้องล็อกอิน หน้า noindex และหน้ารวมที่ยังมีประกาศจริงน้อย) */
+export async function staticSitemap(env: Bindings) {
   const base = site(env);
-  const paths = ['/', '/provinces', '/post', '/consign', '/tools',
-    ...['sale', 'rent'].flatMap((d) => ['property', 'house', 'land', 'condo'].map((t) => `/${d}/${t}`)),
+  const min = parseInt(env.THIN_PAGE_MIN || '3', 10);
+  const rows = await db(env).select({ deal: listings.deal, type: listings.type, n: count() }).from(listings)
+    .where(and(eq(listings.status, 'active'), sql`${listings.ref} NOT LIKE 'SL-DEMO%'`, sql`${listings.provinceCode} IN (${sql.raw(SERVICE_PROVINCES.join(','))})`))
+    .groupBy(listings.deal, listings.type);
+  const n = (deal: string, type: string) => rows.filter((r) => r.deal === deal && (type === 'property' || r.type === type)).reduce((a, r) => a + r.n, 0);
+  const landings = ['sale', 'rent'].flatMap((d) => ['property', 'house', 'land', 'condo'].filter((t) => n(d, t) >= min).map((t) => `/${d}/${t}`));
+  const paths = ['/', '/provinces', '/consign', '/tools', ...landings,
     '/guide', ...guides.map((g) => `/guide/${g.slug}`),
+    '/articles', ...articles.map((a) => `/articles/${a.slug}`),
     '/travel/', ...travelProvinces.map(([, slug]) => `/travel/${slug}/`)];
   return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
-    paths.map((p) => `<url><loc>${xmlEsc(base + p)}</loc></url>`).join('\n') + '\n</urlset>\n';
+    [...new Set(paths)].map((p) => `<url><loc>${xmlEsc(base + p)}</loc></url>`).join('\n') + '\n</urlset>\n';
 }
 
 export async function sitemapIndex(env: Bindings) {

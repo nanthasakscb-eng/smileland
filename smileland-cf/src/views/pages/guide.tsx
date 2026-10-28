@@ -51,6 +51,7 @@ export const GuideIndexPage: FC = () => {
         <h2>ความรู้ก่อนซื้อขาย</h2>
         <div class="g-grid">{know.map((g) => <Card g={g} />)}</div>
       </section>
+      <p class="g-muted">บทความอื่น ๆ: <a href="/articles">บทความจากอีสานน่าอยู่</a> เช่น เช็กอะไรก่อนซื้อที่ดิน และโฉนด นส.3 สปก. ต่างกันอย่างไร</p>
     </div>
     </>
   );

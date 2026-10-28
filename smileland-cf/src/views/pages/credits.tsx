@@ -31,6 +31,6 @@ export const CreditsPage: FC = () => (
         </tbody>
       </table>
     </div>
-    <p class="small muted" style="margin-top:20px">ภาพในบทความเที่ยวสานกันมีเครดิตกำกับไว้ใต้ภาพแต่ละภาพในหน้าบทความนั้น หากคุณเป็นเจ้าของภาพและต้องการให้แก้ไขเครดิตหรือนำภาพออก กรุณาติดต่อทีมงานผ่านหน้า <a href="/consign" style="text-decoration:underline">ติดต่อ</a></p>
+    <p class="small muted" style="margin-top:20px">ภาพในบทความเที่ยวอีสานกันมีเครดิตกำกับไว้ใต้ภาพแต่ละภาพในหน้าบทความนั้น หากคุณเป็นเจ้าของภาพและต้องการให้แก้ไขเครดิตหรือนำภาพออก กรุณาติดต่อทีมงานผ่านหน้า <a href="/consign" style="text-decoration:underline">ติดต่อ</a></p>
   </div>
 );

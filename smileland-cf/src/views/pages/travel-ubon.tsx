@@ -18,7 +18,7 @@ export const UbonTravelPage = () => <div class="ubon-travel">
   <section class="ut-hero">
     <img src={ubonImages[8].image} alt="วิวแม่น้ำโขงและแนวป่าจากผาชะนะได จังหวัดอุบลราชธานี" fetchpriority="high" />
     <div class="ut-hero-shade"></div>
-    <div class="wrap ut-hero-content"><a class="ut-back" href="/travel/">← เที่ยวสานกัน / อุบลราชธานี</a><p class="ut-kicker">EXPLORE ISAN · 01 / 20</p><h1>อุบลราชธานี<br /><em>เที่ยวแล้ว…อยากอยู่ต่อ</em></h1><p>10 ที่เที่ยวแนะนำ จากวัดงามกลางเมือง<br class="ut-desktop" />ถึงหน้าผาและสายน้ำโขง</p><a class="ut-gold" href="#places">ออกไปเที่ยวอุบลด้วยกัน <span>↓</span></a></div>
+    <div class="wrap ut-hero-content"><a class="ut-back" href="/travel/">← เที่ยวอีสานกัน / อุบลราชธานี</a><p class="ut-kicker">EXPLORE ISAN · 01 / 20</p><h1>อุบลราชธานี<br /><em>เที่ยวแล้ว…อยากอยู่ต่อ</em></h1><p>10 ที่เที่ยวแนะนำ จากวัดงามกลางเมือง<br class="ut-desktop" />ถึงหน้าผาและสายน้ำโขง</p><a class="ut-gold" href="#places">ออกไปเที่ยวอุบลด้วยกัน <span>↓</span></a></div>
     <span class="ut-hero-location">ผาชะนะได · อุบลราชธานี</span>
   </section>
   <div class="wrap ut-body">
