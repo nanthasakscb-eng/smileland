@@ -8,6 +8,7 @@ export type Article = {
   tag?: string;
 };
 import { batch1 } from './articles/batch1';
+import { batch2 } from './articles/batch2';
 
 export const articles: Article[] = [
   {
@@ -106,6 +107,6 @@ export const articles: Article[] = [
 ];
 /** วันนี้ตามเวลาไทย (YYYY-MM-DD) — บทความที่ตั้งวันในอนาคตจะยังไม่แสดง (ทยอยเผยแพร่อัตโนมัติ) */
 export const todayTH = () => new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10);
-const all = (): Article[] => [...articles, ...batch1];
+const all = (): Article[] => [...articles, ...batch1, ...batch2];
 export const publishedArticles = (): Article[] => { const t = todayTH(); return all().filter((a) => a.date <= t).sort((a, b) => b.date.localeCompare(a.date)); };
 export const articleBySlug = (s: string) => publishedArticles().find((a) => a.slug === s);
