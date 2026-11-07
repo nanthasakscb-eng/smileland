@@ -7,7 +7,7 @@ import { imgUrl, imgSrcset, placeholder, type Card } from '../lib/listings';
 import { travelProvinces, provinceTravelHref } from '../data/travel-provinces';
 import { PronetMenu } from './pronet-menu';
 
-export const ASSET_V = '20261028-line';
+export const ASSET_V = '20261107-restore';
 
 /* ---------- icons ---------- */
 const P = { fill: 'none', stroke: 'currentColor', 'stroke-width': '1.7', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' } as const;
