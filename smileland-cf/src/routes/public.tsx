@@ -19,7 +19,7 @@ import { SearchPage, type SubLink } from '../views/pages/search';
 import { ListingPage } from '../views/pages/listing';
 import { PostDone, PostPage } from '../views/pages/post';
 import { ArticlePage, ArticlesIndexPage } from '../views/pages/articles';
-import { articles, articleBySlug } from '../data/articles';
+import { publishedArticles, articleBySlug } from '../data/articles';
 import { NeedVerify, OwnerDash, countOwner } from '../views/pages/account';
 import { getUser } from '../lib/users';
 import { ConsignPage, ManagePage, NotFoundPage, PrivacyPage, ProvincesPage, StatusPage, TermsPage, ToolsPage } from '../views/pages/misc';
@@ -82,21 +82,21 @@ pub.get('/travel/:province{[a-z-]+}', (c) => {
 /* ---------- บทความ ---------- */
 pub.get('/articles', (c) => render(c, {
   title: 'บทความ ความรู้ซื้อขาย เช่า บ้าน ที่ดิน ในอีสาน', description: 'รวมบทความความรู้เรื่องที่ดิน เอกสารสิทธิ์ การซื้อขาย และการเช่าอสังหาริมทรัพย์ในภาคอีสาน จากอีสานน่าอยู่',
-  canonical: '/articles', nav: 'guide', head: <link rel="stylesheet" href="/assets/css/guide.css?v=4" />,
+  canonical: '/articles', nav: 'guide', head: <link rel="stylesheet" href="/assets/css/guide.css?v=5" />,
   jsonld: crumbsLd(site(c), [['หน้าแรก', '/'], ['บทความ']]),
-}, <ArticlesIndexPage items={[...articles].sort((a, b) => b.date.localeCompare(a.date))} />));
+}, <ArticlesIndexPage items={publishedArticles()} />));
 pub.get('/articles/:slug{[a-z0-9-]+}', (c) => {
   const a = articleBySlug(c.req.param('slug'));
   if (!a) return notFound(c);
   const url = `${site(c)}/articles/${a.slug}`;
   return render(c, {
-    title: a.title, description: a.description.slice(0, 160), canonical: `/articles/${a.slug}`, nav: 'guide',
-    head: <link rel="stylesheet" href="/assets/css/guide.css?v=4" />,
+    title: a.title, description: a.description.slice(0, 160), canonical: `/articles/${a.slug}`, nav: 'guide', ogImage: a.cover?.src ?? null,
+    head: <link rel="stylesheet" href="/assets/css/guide.css?v=5" />,
     jsonld: [
-      { '@context': 'https://schema.org', '@type': 'Article', headline: a.title, description: a.description, datePublished: a.date, dateModified: a.date, inLanguage: 'th', mainEntityOfPage: url, author: { '@type': 'Organization', name: 'อีสานน่าอยู่' }, publisher: { '@type': 'Organization', name: 'อีสานน่าอยู่', logo: { '@type': 'ImageObject', url: `${site(c)}/assets/img/logo.svg` } } },
+      { '@context': 'https://schema.org', '@type': 'Article', headline: a.title, description: a.description, ...(a.cover ? { image: `${site(c)}${a.cover.src}` } : {}), datePublished: a.date, dateModified: a.date, inLanguage: 'th', mainEntityOfPage: url, author: { '@type': 'Organization', name: 'อีสานน่าอยู่' }, publisher: { '@type': 'Organization', name: 'อีสานน่าอยู่', logo: { '@type': 'ImageObject', url: `${site(c)}/assets/img/logo.svg` } } },
       crumbsLd(site(c), [['หน้าแรก', '/'], ['บทความ', '/articles'], [a.title]]),
     ],
-  }, <ArticlePage a={a} others={articles.filter((x) => x.slug !== a.slug)} />);
+  }, <ArticlePage a={a} others={publishedArticles().filter((x) => x.slug !== a.slug).slice(0, 4)} />);
 });
 
 pub.get('/credits', (c) => render(c, { title: 'เครดิตภาพ', description: 'เครดิตและสัญญาอนุญาตของภาพถ่ายที่ใช้บนอีสานน่าอยู่', canonical: '/credits' }, <CreditsPage />));

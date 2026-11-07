@@ -1,5 +1,13 @@
 /** บทความ (/articles) — ย้ายมาจากเว็บจริง 28 ต.ค. 2569 เนื้อหาตามต้นฉบับ */
-export type Article = { slug: string; title: string; description: string; date: string; intro: string; body: string; sources: { title: string; url: string }[] };
+export type Article = {
+  slug: string; title: string; description: string; date: string; intro: string; body: string;
+  sources: { title: string; url: string }[];
+  /** ภาพปก 1200x630 (ใช้เป็น og:image ด้วย) — credit ใส่เมื่อใช้ภาพถ่ายของผู้อื่น */
+  cover?: { src: string; alt: string; credit?: string };
+  /** หมวด เช่น 'สินเชื่อบ้าน' */
+  tag?: string;
+};
+import { batch1 } from './articles/batch1';
 
 export const articles: Article[] = [
   {
@@ -96,4 +104,8 @@ export const articles: Article[] = [
     ],
   },
 ];
-export const articleBySlug = (s: string) => articles.find((a) => a.slug === s);
+/** วันนี้ตามเวลาไทย (YYYY-MM-DD) — บทความที่ตั้งวันในอนาคตจะยังไม่แสดง (ทยอยเผยแพร่อัตโนมัติ) */
+export const todayTH = () => new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10);
+const all = (): Article[] => [...articles, ...batch1];
+export const publishedArticles = (): Article[] => { const t = todayTH(); return all().filter((a) => a.date <= t).sort((a, b) => b.date.localeCompare(a.date)); };
+export const articleBySlug = (s: string) => publishedArticles().find((a) => a.slug === s);

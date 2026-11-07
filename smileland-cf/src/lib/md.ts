@@ -1,6 +1,6 @@
 /** Markdown ขนาดเล็กสำหรับบทความคู่มือ (เนื้อหาเขียนเองในโค้ด ไม่ใช่ข้อมูลจากผู้ใช้)
  *  รองรับ: ย่อหน้า (เว้นบรรทัด), รายการ "- ", รายการเลข "1. ", หัวข้อย่อย "### ", ตาราง "| a | b |",
- *  **ตัวหนา**, [ลิงก์](url), กล่องเน้น "> " */
+ *  หัวข้อ "## ", ภาพ "![alt](src)" (บรรทัดถัดไปเป็นคำบรรยาย), **ตัวหนา**, [ลิงก์](url), กล่องเน้น "> " */
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 function inline(s: string): string {
@@ -18,6 +18,15 @@ export function md(src: string): string {
   return blocks.map((b) => {
     const lines = b.split('\n').map((l) => l.trim()).filter(Boolean);
     if (!lines.length) return '';
+    if (lines[0].startsWith('## ')) {
+      const rest = lines.slice(1).join('\n');
+      return `<h2>${inline(lines[0].slice(3))}</h2>${rest ? md(rest) : ''}`;
+    }
+    if (/^!\[[^\]]*\]\([^)\s]+\)/.test(lines[0])) {
+      const m = lines[0].match(/^!\[([^\]]*)\]\(([^)\s]+)\)/)!;
+      const cap = lines.slice(1).join(' ');
+      return `<figure class="g-fig"><img src="${esc(m[2])}" alt="${esc(m[1])}" loading="lazy" decoding="async" width="1200" height="675" />${cap ? `<figcaption>${inline(cap)}</figcaption>` : ''}</figure>`;
+    }
     if (lines[0].startsWith('### ')) {
       const rest = lines.slice(1).join('\n');
       return `<h3>${inline(lines[0].slice(4))}</h3>${rest ? md(rest) : ''}`;

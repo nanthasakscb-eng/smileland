@@ -7,7 +7,7 @@ import { geo } from './geo';
 import { nowSec } from './util';
 import { SERVICE_PROVINCES } from './service-area';
 import { guides } from '../data/guides';
-import { articles } from '../data/articles';
+import { publishedArticles } from '../data/articles';
 import { travelProvinces } from '../data/travel-provinces';
 
 const xmlEsc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -67,7 +67,7 @@ export async function staticSitemap(env: Bindings) {
   const landings = ['sale', 'rent'].flatMap((d) => ['property', 'house', 'land', 'condo'].filter((t) => n(d, t) >= min).map((t) => `/${d}/${t}`));
   const paths = ['/', '/provinces', '/consign', '/tools', ...landings,
     '/guide', ...guides.map((g) => `/guide/${g.slug}`),
-    '/articles', ...articles.map((a) => `/articles/${a.slug}`),
+    '/articles', ...publishedArticles().map((a) => `/articles/${a.slug}`),
     '/travel/', ...travelProvinces.map(([, slug]) => `/travel/${slug}/`)];
   return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
     [...new Set(paths)].map((p) => `<url><loc>${xmlEsc(base + p)}</loc></url>`).join('\n') + '\n</urlset>\n';
